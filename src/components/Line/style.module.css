@@ -1,0 +1,119 @@
+/**
+ * 折线图组件样式
+ */
+
+.zcpcyChatsLineChartContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.zcpcyChatsLineChartCanvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* 提示框样式 */
+.zcpcyChatsTooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.zcpcyChatsTooltipVisible {
+  opacity: 1;
+}
+
+.zcpcyChatsTooltipTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.zcpcyChatsTooltipItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zcpcyChatsTooltipColor {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* 图例样式 */
+.zcpcyChatsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.zcpcyChatsLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.zcpcyChatsLegendItem:hover {
+  opacity: 0.8;
+}
+
+.zcpcyChatsLegendDisabled {
+  opacity: 0.4;
+}
+
+.zcpcyChatsLegendColor {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.zcpcyChatsLegendLine {
+  width: 20px;
+  height: 2px;
+}
+
+/* 加载状态 */
+.zcpcyChatsLoading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* 数据点动画 */
+@keyframes zcpcyChatsPointPulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

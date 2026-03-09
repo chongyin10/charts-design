@@ -1,0 +1,123 @@
+.examplePage {
+    padding: 20px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.mainContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.sectionTitle {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 12px;
+}
+
+.sectionText {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.exampleSection {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.subsectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.exampleDemo {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: auto;
+}
+
+.codeHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #1f2937;
+    border-radius: 8px 8px 0 0;
+    color: #e5e7eb;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.codeHeader + pre {
+    margin-top: 0 !important;
+    border-radius: 0 0 8px 8px !important;
+}
+
+.copyButton {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.copyButton:hover {
+    background: #2563eb;
+}
+
+.apiTable {
+    margin-top: 16px;
+}
+
+.anchorNav {
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.anchorWrapper {
+    position: fixed;
+    top: 100px;
+    right: 40px;
+    width: 140px;
+}
+
+/* 响应式适配 */
+@media (max-width: 1024px) {
+    .anchorNav {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .examplePage {
+        padding: 16px;
+    }
+
+    .sectionTitle {
+        font-size: 1.5rem;
+    }
+
+    .exampleSection {
+        padding: 16px;
+    }
+
+    .exampleDemo {
+        padding: 12px;
+    }
+}
