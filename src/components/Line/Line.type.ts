@@ -155,6 +155,21 @@ export interface LineThresholdConfig {
 }
 
 /**
+ * 竖线配置
+ * 启用后，鼠标移入时会显示该数据索引位置的所有数据点
+ */
+export interface LineVerticalLineConfig {
+  /** 是否启用竖线模式（默认 false） */
+  enabled?: boolean;
+  /** 竖线颜色 */
+  color?: string;
+  /** 竖线宽度 */
+  lineWidth?: number;
+  /** 竖线样式（实线/虚线） */
+  dash?: number[];
+}
+
+/**
  * 轨迹动画配置
  */
 export interface LineTrailAnimationConfig {
@@ -190,6 +205,21 @@ export interface LineTrackConfig {
 }
 
 /**
+ * Tooltip 数据项
+ * 用于竖线模式下显示多条数据
+ */
+export interface LineTooltipItem {
+  /** 数据集标签 */
+  label: string;
+  /** 数据值 */
+  value: number;
+  /** 数据集颜色 */
+  color: string;
+  /** 数据集索引 */
+  datasetIndex: number;
+}
+
+/**
  * 折线图组件属性
  */
 export interface LineProps {
@@ -213,6 +243,8 @@ export interface LineProps {
   threshold?: LineThresholdConfig;
   /** 轨迹动画配置 */
   trailAnimation?: LineTrailAnimationConfig;
+  /** 竖线配置 */
+  verticalLine?: LineVerticalLineConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 是否平滑曲线 */

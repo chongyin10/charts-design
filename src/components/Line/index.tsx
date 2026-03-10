@@ -15,6 +15,8 @@ import type {
     LineThresholdConfig,
     LineTrailAnimationConfig,
     DatasetPointConfig,
+    LineVerticalLineConfig,
+    LineTooltipItem,
 } from './Line.type';
 
 /**
@@ -939,6 +941,7 @@ export const Line: React.FC<LineProps> = ({
     tooltip,
     threshold,
     trailAnimation,
+    verticalLine,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     smooth = false,
     className,
@@ -950,6 +953,8 @@ export const Line: React.FC<LineProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [hoveredPoint, setHoveredPoint] = useState<ComputedPoint | null>(null);
+    // 竖线模式下当前悬停的数据索引
+    const [hoveredDataIndex, setHoveredDataIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [animationProgress, setAnimationProgress] = useState(0);
     // 轨迹动画进度 (0-1)
@@ -1266,14 +1271,59 @@ export const Line: React.FC<LineProps> = ({
             }
         }
 
-        // 绘制高亮点（只对可见数据集，且 point 不为 false）
+        // 绘制竖线（竖线模式下）
+        if (verticalLine?.enabled && hoveredDataIndex !== null && animationProgress >= 1) {
+            const { padding, chartHeight } = chartConfig;
+            const labelsLength = data.labels.length;
+            const dataCount = Math.max(1, labelsLength);
+            const step = dataCount > 1 ? chartConfig.chartWidth / (dataCount - 1) : 0;
+            const lineX = padding + hoveredDataIndex * step;
+
+            ctx.save();
+            ctx.strokeStyle = verticalLine.color || '#999';
+            ctx.lineWidth = verticalLine.lineWidth || 1;
+            if (verticalLine.dash && verticalLine.dash.length > 0) {
+                ctx.setLineDash(verticalLine.dash);
+            }
+            ctx.beginPath();
+            ctx.moveTo(lineX, padding);
+            ctx.lineTo(lineX, padding + chartHeight);
+            ctx.stroke();
+            ctx.restore();
+
+            // 绘制竖线模式下所有可见数据集的高亮点
+            pointsRef.current.forEach((datasetPoints, datasetIndex) => {
+                const opacity = getDatasetOpacity(datasetIndex);
+                if (opacity < 0.1) return;
+
+                const point = datasetPoints[hoveredDataIndex];
+                if (!point) return;
+
+                const dataset = data.datasets[datasetIndex];
+                if (dataset.point === false || dataset.pointStyle === 'none') return;
+
+                ctx.save();
+                ctx.globalAlpha = opacity;
+                ctx.fillStyle = getDatasetColor(datasetIndex, dataset);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            });
+        }
+
+        // 绘制高亮点（只对可见数据集，且 point 不为 false）- 普通模式
         const hoveredOpacity = hoveredPoint ? getDatasetOpacity(hoveredPoint.datasetIndex) : 0;
         const hoveredDataset = hoveredPoint ? data.datasets[hoveredPoint.datasetIndex] : null;
         const shouldShowHoverPoint = hoveredDataset &&
             hoveredDataset.point !== false &&
             hoveredDataset.pointStyle !== 'none';
 
-        if (hoveredPoint && shouldShowHoverPoint && animationProgress >= 1 && hoveredOpacity > 0.01) {
+        // 普通模式下绘制单个高亮点
+        if (hoveredPoint && shouldShowHoverPoint && animationProgress >= 1 && hoveredOpacity > 0.01 && !verticalLine?.enabled) {
             ctx.save();
             ctx.globalAlpha = hoveredOpacity;
             ctx.fillStyle = getDatasetColor(hoveredPoint.datasetIndex, hoveredDataset);
@@ -1324,6 +1374,8 @@ export const Line: React.FC<LineProps> = ({
         trailProgress,
         animationProgress,
         hoveredPoint,
+        hoveredDataIndex,
+        verticalLine,
         isLoading,
         onChartReady,
         // 注意：不依赖 hiddenDatasets，只依赖 opacityVersion 来触发重绘
@@ -1354,7 +1406,43 @@ export const Line: React.FC<LineProps> = ({
                 canvas.style.cursor = 'default';
             }
 
-            // 查找最近的数据点（只对可见数据集）
+            // 竖线模式：根据 X 轴位置查找最近的数据索引
+            if (verticalLine?.enabled) {
+                const { padding, chartWidth } = chartConfig;
+                const labelsLength = data.labels.length;
+                const dataCount = Math.max(1, labelsLength);
+                const step = dataCount > 1 ? chartWidth / (dataCount - 1) : 0;
+
+                // 计算最近的数据索引
+                let closestIndex = 0;
+                if (step > 0) {
+                    closestIndex = Math.round((x - padding) / step);
+                    closestIndex = Math.max(0, Math.min(closestIndex, labelsLength - 1));
+                }
+
+                // 检查鼠标是否在有效的图表区域内
+                const isInChartArea = x >= padding - step / 2 && x <= width - padding + step / 2;
+                
+                if (isInChartArea) {
+                    setHoveredDataIndex(closestIndex);
+                    // 找到第一个可见数据集的点作为参考点
+                    let referencePoint: ComputedPoint | null = null;
+                    for (let i = 0; i < pointsRef.current.length; i++) {
+                        if (getDatasetOpacity(i) > 0.1 && pointsRef.current[i][closestIndex]) {
+                            referencePoint = pointsRef.current[i][closestIndex];
+                            break;
+                        }
+                    }
+                    setHoveredPoint(referencePoint);
+                } else {
+                    setHoveredDataIndex(null);
+                    setHoveredPoint(null);
+                }
+                setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                return;
+            }
+
+            // 普通模式：查找最近的数据点（只对可见数据集）
             let closestPoint: ComputedPoint | null = null;
             let minDistance = Infinity;
 
@@ -1372,9 +1460,10 @@ export const Line: React.FC<LineProps> = ({
             });
 
             setHoveredPoint(closestPoint);
+            setHoveredDataIndex(null);
             setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
         },
-        [animationProgress, chartConfig.padding, getDatasetOpacity]
+        [animationProgress, chartConfig, data.labels.length, verticalLine, width, getDatasetOpacity]
     );
 
     // 处理鼠标离开
@@ -1466,14 +1555,39 @@ export const Line: React.FC<LineProps> = ({
     const tooltipContent = useMemo(() => {
         if (!hoveredPoint) return null;
 
+        // 竖线模式：显示该索引的所有数据点
+        if (verticalLine?.enabled && hoveredDataIndex !== null) {
+            const items: LineTooltipItem[] = [];
+            data.datasets.forEach((dataset, datasetIndex) => {
+                // 只显示可见的数据集
+                if (getDatasetOpacity(datasetIndex) < 0.1) return;
+                if (dataset.data[hoveredDataIndex] !== undefined) {
+                    items.push({
+                        label: dataset.label,
+                        value: dataset.data[hoveredDataIndex],
+                        color: getDatasetColor(datasetIndex, dataset),
+                        datasetIndex,
+                    });
+                }
+            });
+            return {
+                title: data.labels[hoveredDataIndex] || '',
+                items,
+            };
+        }
+
+        // 普通模式：显示单个数据点
         const dataset = data.datasets[hoveredPoint.datasetIndex];
         return {
             title: hoveredPoint.label,
-            label: dataset.label,
-            value: hoveredPoint.value,
-            color: getDatasetColor(hoveredPoint.datasetIndex, dataset),
+            items: [{
+                label: dataset.label,
+                value: hoveredPoint.value,
+                color: getDatasetColor(hoveredPoint.datasetIndex, dataset),
+                datasetIndex: hoveredPoint.datasetIndex,
+            }],
         };
-    }, [hoveredPoint, data]);
+    }, [hoveredPoint, data, verticalLine, hoveredDataIndex, getDatasetOpacity]);
 
     // 组件卸载时清理动画
     useEffect(() => {
@@ -1516,15 +1630,17 @@ export const Line: React.FC<LineProps> = ({
                     >
                         {tooltipContent.title}
                     </div>
-                    <div className={styles.zcpcyChatsTooltipItem}>
-                        <span
-                            className={styles.zcpcyChatsTooltipColor}
-                            style={{ backgroundColor: tooltipContent.color }}
-                        />
-                        <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
-                            {tooltipContent.label}: {tooltipContent.value}
-                        </span>
-                    </div>
+                    {tooltipContent.items.map((item, index) => (
+                        <div key={index} className={styles.zcpcyChatsTooltipItem}>
+                            <span
+                                className={styles.zcpcyChatsTooltipColor}
+                                style={{ backgroundColor: item.color }}
+                            />
+                            <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
+                                {item.label}: {item.value}
+                            </span>
+                        </div>
+                    ))}
                 </div>
             )}
 

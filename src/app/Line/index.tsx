@@ -271,6 +271,37 @@ export default function LineChartPage() {
 
     const trendData = processTrendData();
 
+    // 竖线功能示例数据
+    const verticalLineData: LineChartData = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '线上销售',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
+            },
+            {
+                label: '线下销售',
+                data: [8000, 12000, 11000, 15000, 18000, 20000],
+                track: {
+                    color: '#10b981',
+                    width: 2,
+                },
+            },
+            {
+                label: '分销渠道',
+                data: [5000, 7000, 9000, 11000, 13000, 16000],
+                track: {
+                    color: '#f59e0b',
+                    width: 2,
+                },
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
         console.log('点击数据点:', { datasetIndex, dataIndex, value });
@@ -798,6 +829,64 @@ const GroupedDataExample = () => {
     );
 };`;
 
+    // 竖线功能示例代码
+    const verticalLineCode = `import { Line } from '@zjpcy/charts-design';
+
+const VerticalLineExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '线上销售',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
+            },
+            {
+                label: '线下销售',
+                data: [8000, 12000, 11000, 15000, 18000, 20000],
+                track: {
+                    color: '#10b981',
+                    width: 2,
+                },
+            },
+            {
+                label: '分销渠道',
+                data: [5000, 7000, 9000, 11000, 13000, 16000],
+                track: {
+                    color: '#f59e0b',
+                    width: 2,
+                },
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            verticalLine={{
+                enabled: true,          // 启用竖线功能
+                color: '#999',          // 竖线颜色
+                lineWidth: 1,           // 竖线宽度
+                dash: [5, 5],           // 虚线样式（可选）
+            }}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+            legend={{
+                display: true,
+                position: 'top',
+                labelColor: '#374151',
+                labelFontSize: 12,
+            }}
+            smooth={true}
+        />
+    );
+};`;
+
     // JSON 数据加载示例代码
     const jsonDataCode = `import { Line } from '@zjpcy/charts-design';
 import trendDataJson from './Json/trend-data.json';
@@ -891,6 +980,7 @@ const JsonDataExample = () => {
         { param: 'tooltip', description: '提示框配置', type: 'LineTooltipConfig', default: '-' },
         { param: 'threshold', description: '预警线配置', type: 'LineThresholdConfig', default: '-' },
         { param: 'trailAnimation', description: '轨迹动画配置', type: 'LineTrailAnimationConfig', default: '-' },
+        { param: 'verticalLine', description: '竖线配置', type: 'LineVerticalLineConfig', default: '-' },
         { param: 'className', description: '自定义类名', type: 'string', default: '-' },
         { param: 'style', description: '自定义样式', type: 'React.CSSProperties', default: '-' },
         { param: 'onDataClick', description: '数据点点击事件', type: '(datasetIndex, dataIndex, value) => void', default: '-' },
@@ -947,6 +1037,14 @@ const JsonDataExample = () => {
         { param: 'width', description: '轨道宽度', type: 'number', default: '与线条宽度相同' },
         { param: 'hoverColor', description: '悬停时轨道颜色', type: 'string', default: '与线条颜色相同' },
         { param: 'hoverWidth', description: '悬停时轨道宽度', type: 'number', default: '与线条宽度相同' },
+    ];
+
+    // 竖线配置数据
+    const verticalLineDataAPI = [
+        { param: 'enabled', description: '是否启用竖线功能', type: 'boolean', default: 'false' },
+        { param: 'color', description: '竖线颜色', type: 'string', default: "'#999'" },
+        { param: 'lineWidth', description: '竖线宽度', type: 'number', default: '1' },
+        { param: 'dash', description: '虚线样式（例如 [5, 5] 表示 5px 实线 + 5px 虚线）', type: 'number[]', default: '-' },
     ];
 
     // Dataset 配置表格
@@ -1337,6 +1435,47 @@ const JsonDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 竖线功能示例 */}
+                    <div className={styles.exampleSection} id="line-vertical">
+                        <h3 className={styles.subsectionTitle}>竖线功能</h3>
+                        <p className={styles.sectionText}>启用竖线功能后，鼠标移入图表时会显示一条竖线，并列出该位置所有数据系列的值。适用于多线对比场景，便于查看同一时间点的数据对比。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={verticalLineData}
+                                width={500}
+                                height={300}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                                smooth={true}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={verticalLineCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {verticalLineCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 数据点配置示例 */}
                     <div className={styles.exampleSection} id="line-point">
                         <h3 className={styles.subsectionTitle}>数据点配置</h3>
@@ -1619,6 +1758,15 @@ const JsonDataExample = () => {
                         </div>
                     </div>
 
+                    {/* VerticalLine 配置 */}
+                    <div className={styles.exampleSection} id="line-vertical-api">
+                        <h3 className={styles.subsectionTitle}>VerticalLine 配置</h3>
+                        <p className={styles.sectionText}>竖线配置项说明。启用后，鼠标移入图表时会显示一条竖线，并列出该位置所有数据系列的值。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={verticalLineDataAPI} />
+                        </div>
+                    </div>
+
                     {/* Point 配置 */}
                     <div className={styles.exampleSection} id="line-point-api">
                         <h3 className={styles.subsectionTitle}>Point 配置</h3>
@@ -1675,6 +1823,7 @@ const JsonDataExample = () => {
                                 <Anchor.Link href="#line-legend" title="图例配置" />
                                 <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
+                                <Anchor.Link href="#line-vertical" title="竖线功能" />
                                 <Anchor.Link href="#line-point" title="数据点配置" />
                                 <Anchor.Link href="#line-trail" title="轨迹动画" />
                                 <Anchor.Link href="#line-track-connection" title="轨道连接" />
@@ -1686,6 +1835,7 @@ const JsonDataExample = () => {
                                 <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
                                 <Anchor.Link href="#line-grid-api" title="Grid 配置" />
                                 <Anchor.Link href="#line-trail-api" title="TrailAnimation 配置" />
+                                <Anchor.Link href="#line-vertical-api" title="VerticalLine 配置" />
                                 <Anchor.Link href="#line-point-api" title="Point 配置" />
                                 <Anchor.Link href="#line-track-api" title="Track 配置" />
                                 <Anchor.Link href="#line-axis-api" title="Axis 配置" />
