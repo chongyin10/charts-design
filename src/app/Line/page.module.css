@@ -95,6 +95,9 @@
     top: 100px;
     right: 40px;
     width: 140px;
+    height: 100vh;
+    overflow: scroll;
+    padding-bottom: 100px;
 }
 
 /* 响应式适配 */

@@ -3,6 +3,26 @@
  */
 
 /**
+ * 数据点配置（用于数据集内部）
+ */
+export interface DatasetPointConfig {
+  /** 数据点填充颜色 */
+  backgroundColor?: string;
+  /** 悬停时数据点填充颜色 */
+  hoverBackgroundColor?: string;
+  /** 数据点边框颜色 */
+  color?: string;
+  /** 数据点边框宽度 */
+  width?: number;
+  /** 数据点样式 */
+  style?: 'circle' | 'rect' | 'triangle';
+  /** 数据点大小 */
+  radius?: number;
+  /** 悬停时数据点大小 */
+  hoverRadius?: number;
+}
+
+/**
  * 数据集配置
  */
 export interface LineDataset {
@@ -10,22 +30,22 @@ export interface LineDataset {
   label: string;
   /** 数据数组 */
   data: number[];
-  /** 线条颜色 */
-  borderColor?: string;
-  /** 线条宽度 */
-  borderWidth?: number;
   /** 填充颜色 */
   backgroundColor?: string;
   /** 是否填充区域 */
   fill?: boolean;
-  /** 数据点样式 */
+  /** 数据点样式（已废弃，请使用 point 配置） */
   pointStyle?: 'circle' | 'rect' | 'triangle' | 'none';
-  /** 数据点大小 */
+  /** 数据点大小（已废弃，请使用 point 配置） */
   pointRadius?: number;
-  /** 数据点边框颜色 */
+  /** 数据点边框颜色（已废弃，请使用 point.color 配置） */
   pointBorderColor?: string;
-  /** 数据点填充颜色 */
+  /** 数据点填充颜色（已废弃，请使用 point 配置） */
   pointBackgroundColor?: string;
+  /** 数据点配置，设置为 false 隐藏数据点 */
+  point?: DatasetPointConfig | false;
+  /** 轨道样式配置 */
+  track?: LineTrackConfig;
 }
 
 /**
@@ -152,6 +172,21 @@ export interface LineTrailAnimationConfig {
   trailOpacity?: number;
   /** 是否循环播放（默认 false） */
   loop?: boolean;
+}
+
+/**
+ * 轨道样式配置
+ * 用于配置数据点之间的轨道连接线样式
+ */
+export interface LineTrackConfig {
+  /** 轨道颜色（默认与线条颜色相同） */
+  color?: string;
+  /** 轨道宽度 */
+  width?: number;
+  /** 悬停时轨道颜色 */
+  hoverColor?: string;
+  /** 悬停时轨道宽度 */
+  hoverWidth?: number;
 }
 
 /**

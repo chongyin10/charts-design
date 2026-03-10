@@ -12,6 +12,9 @@ const SyntaxHighlighter = Prism as any;
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styles from './page.module.css';
 
+// 导入 JSON 数据
+import trendDataJson from './Json/trend-data.json';
+
 // 自定义复制按钮组件
 interface CopyButtonProps {
     text: string;
@@ -60,12 +63,10 @@ export default function LineChartPage() {
             {
                 label: '2023年销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 4,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#fff',
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
             },
         ],
     };
@@ -77,29 +78,26 @@ export default function LineChartPage() {
             {
                 label: '产品 A',
                 data: [120, 135, 148, 162],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 5,
-                fill: false,
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
             },
             {
                 label: '产品 B',
                 data: [80, 95, 110, 125],
-                borderColor: '#ef4444',
-                borderWidth: 2,
-                pointStyle: 'rect',
-                pointRadius: 5,
-                fill: false,
+                track: {
+                    color: '#ef4444',
+                    width: 2,
+                },
             },
             {
                 label: '产品 C',
                 data: [60, 75, 85, 95],
-                borderColor: '#10b981',
-                borderWidth: 2,
-                pointStyle: 'triangle',
-                pointRadius: 5,
-                fill: false,
+                track: {
+                    color: '#10b981',
+                    width: 2,
+                },
             },
         ],
     };
@@ -111,12 +109,12 @@ export default function LineChartPage() {
             {
                 label: '访问量',
                 data: [820, 932, 901, 934, 1290, 1330, 1320],
-                borderColor: '#8b5cf6',
-                borderWidth: 2,
+                track: {
+                    color: '#8b5cf6',
+                    width: 2,
+                },
                 backgroundColor: 'rgba(139, 92, 246, 0.3)',
                 fill: true,
-                pointStyle: 'circle',
-                pointRadius: 4,
             },
         ],
     };
@@ -128,12 +126,10 @@ export default function LineChartPage() {
             {
                 label: '销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 4,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#fff',
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
             },
         ],
     };
@@ -145,8 +141,10 @@ export default function LineChartPage() {
             {
                 label: '2023年趋势',
                 data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
             },
         ],
     };
@@ -158,32 +156,103 @@ export default function LineChartPage() {
             {
                 label: 'download',
                 data: [4623, 6145, 508, 6268, 6411, 1890, 4251, 2978, 3880, 3606, 4311, 4116, 6419, 1643, 445],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 4,
+                track: {
+                    color: '#3b82f6',
+                    width: 0,
+                },
+                point: false, // 隐藏数据点
                 fill: false,
             },
             {
                 label: 'register',
                 data: [2208, 2016, 2916, 4512, 8281, 2008, 1963, 2367, 2956, 678, 3188, 3491, 2852, 4788, 4319],
-                borderColor: '#10b981',
-                borderWidth: 2,
-                pointStyle: 'rect',
-                pointRadius: 4,
+                track: {
+                    color: '#10b981',
+                    width: 2,
+                },
+                point: {
+                    hoverBackgroundColor: '#10b981',
+                    width: 2,
+                    style: 'rect',
+                    radius: 4,
+                },
                 fill: false,
             },
             {
                 label: 'bill',
                 data: [182, 257, 289, 428, 619, 87, 706, 387, 488, 507, 548, 456, 689, 280, 176],
-                borderColor: '#f59e0b',
-                borderWidth: 2,
-                pointStyle: 'triangle',
-                pointRadius: 4,
+                track: {
+                    color: '#f59e0b',
+                    width: 2,
+                },
+                point: {
+                    hoverBackgroundColor: '#f59e0b',
+                    width: 2,
+                    style: 'triangle',
+                    radius: 4,
+                },
                 fill: false,
             },
         ],
     };
+
+    // 处理从 JSON 加载的趋势数据
+    const processTrendData = (): LineChartData => {
+        // 定义数据项类型
+        interface TrendDataItem {
+            Date: string;
+            series: string;
+            value: number;
+        }
+
+        const data = trendDataJson as TrendDataItem[];
+
+        // 获取唯一的日期列表
+        const dates = [...new Set(data.map(item => item.Date))];
+
+        // 获取唯一的系列列表
+        const seriesList = [...new Set(data.map(item => item.series))];
+
+        // 定义颜色映射
+        const colorMap: Record<string, string> = {
+            'USA': '#3b82f6',
+            'California': '#ef4444',
+            'BA9C': '#10b981',
+            'Marin': '#f59e0b',
+        };
+
+        // 定义点样式映射
+        const pointStyleMap: Record<string, 'circle' | 'rect' | 'triangle'> = {
+            'USA': 'circle',
+            'California': 'rect',
+            'BA9C': 'triangle',
+            'Marin': 'circle',
+        };
+
+        // 构建 datasets
+        const datasets = seriesList.map(series => {
+            const seriesData = data
+                .filter(item => item.series === series)
+                .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime())
+                .map(item => item.value);
+
+            return {
+                label: series,
+                data: seriesData,
+                color: colorMap[series] || '#3b82f6',
+                width: 2,
+                point: false as const,
+                fill: false,
+            };
+        });
+
+        return {
+            labels: dates,
+            datasets,
+        };
+    };
+
+    const trendData = processTrendData();
 
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
@@ -201,12 +270,8 @@ const BasicLineExample = () => {
             {
                 label: '2023年销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 4,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: '#fff',
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -244,8 +309,8 @@ const SmoothLineExample = () => {
             {
                 label: '2023年销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -278,26 +343,20 @@ const MultiLineExample = () => {
             {
                 label: '产品 A',
                 data: [120, 135, 148, 162],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 5,
+                color: '#3b82f6',
+                width: 2,
             },
             {
                 label: '产品 B',
                 data: [80, 95, 110, 125],
-                borderColor: '#ef4444',
-                borderWidth: 2,
-                pointStyle: 'rect',
-                pointRadius: 5,
+                color: '#ef4444',
+                width: 2,
             },
             {
                 label: '产品 C',
                 data: [60, 75, 85, 95],
-                borderColor: '#10b981',
-                borderWidth: 2,
-                pointStyle: 'triangle',
-                pointRadius: 5,
+                color: '#10b981',
+                width: 2,
             },
         ],
     };
@@ -330,12 +389,10 @@ const AreaLineExample = () => {
             {
                 label: '访问量',
                 data: [820, 932, 901, 934, 1290, 1330, 1320],
-                borderColor: '#8b5cf6',
-                borderWidth: 2,
+                color: '#8b5cf6',
+                width: 2,
                 backgroundColor: 'rgba(139, 92, 246, 0.3)',
                 fill: true,
-                pointStyle: 'circle',
-                pointRadius: 4,
             },
         ],
     };
@@ -368,8 +425,8 @@ const ClickableLineExample = () => {
             {
                 label: '销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -399,14 +456,14 @@ const LegendExample = () => {
             {
                 label: '线上销售',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
             {
                 label: '线下销售',
                 data: [8000, 12000, 11000, 15000, 18000, 20000],
-                borderColor: '#10b981',
-                borderWidth: 2,
+                color: '#10b981',
+                width: 2,
             },
         ],
     };
@@ -438,8 +495,8 @@ const ThresholdLineExample = () => {
             {
                 label: '销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -474,8 +531,8 @@ const GridLineExample = () => {
             {
                 label: '销售额',
                 data: [12000, 19000, 15000, 25000, 22000, 30000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -510,6 +567,47 @@ const GridLineExample = () => {
     );
 };`;
 
+    // 数据点配置示例代码
+    const pointCode = `import { Line } from '@zjpcy/charts-design';
+
+const PointExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '2023年销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                color: '#3b82f6',
+                width: 2,
+                point: {
+                    hoverBackgroundColor: '#3b82f6',     // 悬停时填充颜色
+                    width: 2,
+                    style: 'circle',            // 圆形样式
+                    radius: 5,                  // 数据点大小
+                    hoverRadius: 8,             // 悬停时大小
+                    backgroundColor: '#fff',    // 填充颜色
+                },
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+            legend={{
+                display: true,
+                position: 'top',
+                labelColor: '#374151',
+                labelFontSize: 12,
+            }}
+        />
+    );
+};`;
+
     // 轨迹动画示例代码
     const trailAnimationCode = `import { Line } from '@zjpcy/charts-design';
 
@@ -520,8 +618,8 @@ const TrailAnimationExample = () => {
             {
                 label: '2023年销售额',
                 data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
+                color: '#3b82f6',
+                width: 2,
             },
         ],
     };
@@ -547,6 +645,42 @@ const TrailAnimationExample = () => {
     );
 };`;
 
+    // 轨道连接示例代码（更新为最新 API）
+    const trackConnectionCode = `import { Line } from '@zjpcy/charts-design';
+
+const TrackConnectionExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+                color: '#3b82f6',
+                width: 2,
+                point: {
+                    backgroundColor: '#3b82f6',
+                    hoverBackgroundColor: '#3b82f6',
+                    width: 2,
+                    style: 'circle',
+                    radius: 4,
+                },
+                // 启用轨道连接，配置轨道颜色
+                track: {
+                    color: '#3b82f6',
+                },
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+        />
+    );
+};`;
+
     // 分组数据示例代码
     const groupedDataCode = `import { Line } from '@zjpcy/charts-design';
 
@@ -560,28 +694,31 @@ const GroupedDataExample = () => {
                 label: 'download',
                 data: [4623, 6145, 508, 6268, 6411, 1890, 4251, 2978, 3880, 3606,
                        4311, 4116, 6419, 1643, 445],
-                borderColor: '#3b82f6',
-                borderWidth: 2,
-                pointStyle: 'circle',
-                pointRadius: 4,
+                color: '#3b82f6',
+                width: 0,
+                point: false,  // 隐藏数据点
             },
             {
                 label: 'register',
                 data: [2208, 2016, 2916, 4512, 8281, 2008, 1963, 2367, 2956, 678,
                        3188, 3491, 2852, 4788, 4319],
-                borderColor: '#10b981',
-                borderWidth: 2,
-                pointStyle: 'rect',
-                pointRadius: 4,
+                color: '#10b981',
+                width: 2,
+                point: {
+                    style: 'rect',
+                    radius: 4,
+                },
             },
             {
                 label: 'bill',
                 data: [182, 257, 289, 428, 619, 87, 706, 387, 488, 507,
                        548, 456, 689, 280, 176],
-                borderColor: '#f59e0b',
-                borderWidth: 2,
-                pointStyle: 'triangle',
-                pointRadius: 4,
+                color: '#f59e0b',
+                width: 2,
+                point: {
+                    style: 'triangle',
+                    radius: 4,
+                },
             },
         ],
     };
@@ -594,6 +731,77 @@ const GroupedDataExample = () => {
             smooth={true}
             xAxis={{ display: true, title: { text: '日期' } }}
             yAxis={{ display: true, title: { text: '数值' } }}
+            legend={{
+                display: true,
+                position: 'top',
+                labelColor: '#374151',
+                labelFontSize: 12,
+            }}
+        />
+    );
+};`;
+
+    // JSON 数据加载示例代码
+    const jsonDataCode = `import { Line } from '@zjpcy/charts-design';
+import trendDataJson from './Json/trend-data.json';
+
+const JsonDataExample = () => {
+    // 处理从 JSON 加载的趋势数据
+    const processTrendData = () => {
+        // 获取唯一的日期列表
+        const dates = [...new Set(trendDataJson.map(item => item.Date))];
+
+        // 获取唯一的系列列表
+        const seriesList = [...new Set(trendDataJson.map(item => item.series))];
+
+        // 构建 datasets
+        const datasets = seriesList.map(series => {
+            const seriesData = trendDataJson
+                .filter(item => item.series === series)
+                .sort((a, b) => new Date(a.Date).getTime() - new Date(b.Date).getTime())
+                .map(item => item.value);
+
+            return {
+                label: series,
+                data: seriesData,
+                color: {
+                    'USA': '#3b82f6',
+                    'California': '#ef4444',
+                    'BA9C': '#10b981',
+                    'Marin': '#f59e0b',
+                }[series] || '#3b82f6',
+                width: 2,
+                point: {
+                    style: 'circle',
+                    radius: 3,
+                },
+            };
+        });
+
+        return {
+            labels: dates,
+            datasets,
+        };
+    };
+
+    const trendData = processTrendData();
+
+    return (
+        <Line
+            data={trendData}
+            width={700}
+            height={400}
+            smooth={true}
+            xAxis={{
+                display: true,
+                title: { text: '日期' },
+                grid: { display: true, opacity: 0.3 }
+            }}
+            yAxis={{
+                display: true,
+                title: { text: '数值' },
+                grid: { display: true, opacity: 0.3 }
+            }}
             legend={{
                 display: true,
                 position: 'top',
@@ -617,14 +825,19 @@ const GroupedDataExample = () => {
         { param: 'data', description: '图表数据', type: 'LineChartData', default: 'required' },
         { param: 'width', description: '图表宽度', type: 'number', default: '500' },
         { param: 'height', description: '图表高度', type: 'number', default: '300' },
+        { param: 'padding', description: '图表内边距', type: 'number', default: '60' },
         { param: 'smooth', description: '是否使用平滑曲线', type: 'boolean', default: 'false' },
-        { param: 'xAxis', description: 'X轴配置', type: 'AxisConfig', default: '-' },
-        { param: 'yAxis', description: 'Y轴配置', type: 'AxisConfig', default: '-' },
-        { param: 'legend', description: '图例配置', type: 'LegendConfig', default: '-' },
-        { param: 'tooltip', description: '提示框配置', type: 'TooltipConfig', default: '-' },
-        { param: 'threshold', description: '预警线配置', type: 'ThresholdConfig', default: '-' },
+        { param: 'animationDuration', description: '初始动画时长（毫秒）', type: 'number', default: '1000' },
+        { param: 'xAxis', description: 'X轴配置', type: 'LineAxisConfig', default: '-' },
+        { param: 'yAxis', description: 'Y轴配置', type: 'LineAxisConfig', default: '-' },
+        { param: 'legend', description: '图例配置', type: 'LineLegendConfig', default: '-' },
+        { param: 'tooltip', description: '提示框配置', type: 'LineTooltipConfig', default: '-' },
+        { param: 'threshold', description: '预警线配置', type: 'LineThresholdConfig', default: '-' },
         { param: 'trailAnimation', description: '轨迹动画配置', type: 'LineTrailAnimationConfig', default: '-' },
+        { param: 'className', description: '自定义类名', type: 'string', default: '-' },
+        { param: 'style', description: '自定义样式', type: 'React.CSSProperties', default: '-' },
         { param: 'onDataClick', description: '数据点点击事件', type: '(datasetIndex, dataIndex, value) => void', default: '-' },
+        { param: 'onChartReady', description: '图表渲染完成回调', type: '() => void', default: '-' },
     ];
 
     // 预警线配置数据
@@ -649,6 +862,17 @@ const GroupedDataExample = () => {
         { param: 'horizontal', description: '是否显示水平网格线', type: 'boolean', default: 'true' },
     ];
 
+    // 数据点配置数据（Dataset 内部配置）
+    const pointDataAPI = [
+        { param: 'style', description: '数据点样式', type: "'circle' | 'rect' | 'triangle'", default: "'circle'" },
+        { param: 'radius', description: '数据点大小', type: 'number', default: '4' },
+        { param: 'hoverRadius', description: '悬停时数据点大小', type: 'number', default: '6' },
+        { param: 'hoverBackgroundColor', description: '悬停时数据点填充颜色', type: 'string', default: '与线条颜色相同' },
+        { param: 'color', description: '数据点边框颜色', type: 'string', default: '与线条颜色相同' },
+        { param: 'width', description: '数据点边框宽度', type: 'number', default: '2' },
+        { param: 'backgroundColor', description: '数据点填充颜色', type: 'string', default: "'#fff'" },
+    ];
+
     // 轨迹动画配置数据
     const trailAnimationDataAPI = [
         { param: 'enabled', description: '是否启用轨迹动画', type: 'boolean', default: 'false' },
@@ -658,6 +882,14 @@ const GroupedDataExample = () => {
         { param: 'trailLength', description: '轨迹长度（像素）', type: 'number', default: '20' },
         { param: 'trailOpacity', description: '轨迹透明度 (0-1)', type: 'number', default: '0.6' },
         { param: 'loop', description: '是否循环播放', type: 'boolean', default: 'false' },
+    ];
+
+    // 轨道配置数据（Dataset 内部配置）
+    const trackDataAPI = [
+        { param: 'color', description: '轨道颜色（默认为线条颜色）', type: 'string', default: '与线条颜色相同' },
+        { param: 'width', description: '轨道宽度', type: 'number', default: '与线条宽度相同' },
+        { param: 'hoverColor', description: '悬停时轨道颜色', type: 'string', default: '与线条颜色相同' },
+        { param: 'hoverWidth', description: '悬停时轨道宽度', type: 'number', default: '与线条宽度相同' },
     ];
 
     // Dataset 配置表格
@@ -671,14 +903,30 @@ const GroupedDataExample = () => {
     const datasetData = [
         { param: 'label', description: '数据系列名称', type: 'string', default: '-' },
         { param: 'data', description: '数据值数组', type: 'number[]', default: 'required' },
-        { param: 'borderColor', description: '线条颜色', type: 'string', default: '-' },
-        { param: 'borderWidth', description: '线条宽度', type: 'number', default: '2' },
         { param: 'backgroundColor', description: '填充颜色（面积图）', type: 'string', default: '-' },
         { param: 'fill', description: '是否填充区域', type: 'boolean', default: 'false' },
-        { param: 'pointStyle', description: '数据点样式', type: "'circle' | 'rect' | 'triangle'", default: "'circle'" },
-        { param: 'pointRadius', description: '数据点半径', type: 'number', default: '4' },
-        { param: 'pointBackgroundColor', description: '数据点背景色', type: 'string', default: '-' },
-        { param: 'pointBorderColor', description: '数据点边框色', type: 'string', default: '-' },
+        { param: 'point', description: '数据点配置，设置为 false 隐藏数据点', type: 'DatasetPointConfig | false', default: '-' },
+        { param: 'track', description: '轨道样式配置', type: 'LineTrackConfig', default: '-' },
+    ];
+
+    // 坐标轴配置数据
+    const axisDataAPI = [
+        { param: 'display', description: '是否显示坐标轴', type: 'boolean', default: 'true' },
+        { param: 'title', description: '轴标题配置', type: '{ text: string; color?: string; fontSize?: number }', default: '-' },
+        { param: 'tickColor', description: '标签颜色', type: 'string', default: "'#6b7280'" },
+        { param: 'tickFontSize', description: '标签字体大小', type: 'number', default: '12' },
+        { param: 'min', description: '最小值', type: 'number', default: '自动计算' },
+        { param: 'max', description: '最大值', type: 'number', default: '自动计算' },
+        { param: 'grid', description: '网格线配置', type: 'LineGridConfig', default: '-' },
+    ];
+
+    // Tooltip 配置数据
+    const tooltipDataAPI = [
+        { param: 'enabled', description: '是否显示提示框', type: 'boolean', default: 'true' },
+        { param: 'backgroundColor', description: '背景颜色', type: 'string', default: "'#ffffff'" },
+        { param: 'titleColor', description: '标题颜色', type: 'string', default: "'#111827'" },
+        { param: 'bodyColor', description: '内容颜色', type: 'string', default: "'#374151'" },
+        { param: 'fontSize', description: '字体大小', type: 'number', default: '12' },
     ];
 
     return (
@@ -990,6 +1238,53 @@ const GroupedDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 数据点配置示例 */}
+                    <div className={styles.exampleSection} id="line-point">
+                        <h3 className={styles.subsectionTitle}>数据点配置</h3>
+                        <p className={styles.sectionText}>通过 point 属性控制数据点的显示与样式。默认不显示数据点，可通过设置 point 对象来显示和自定义样式。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={{
+                                    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+                                    datasets: [
+                                        {
+                                            label: '2023年销售额',
+                                            data: [12000, 19000, 15000, 25000, 22000, 30000],
+                                            track: {
+                                                color: '#3b82f6',
+                                                width: 2,
+                                            },
+                                            point: false,
+                                        },
+                                    ],
+                                }}
+                                width={500}
+                                height={300}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={pointCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {pointCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 轨迹动画示例 */}
                     <div className={styles.exampleSection} id="line-trail">
                         <h3 className={styles.subsectionTitle}>轨迹动画</h3>
@@ -1034,6 +1329,60 @@ const GroupedDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 轨道连接示例 - 更新为最新 API */}
+                    <div className={styles.exampleSection} id="line-track-connection">
+                        <h3 className={styles.subsectionTitle}>轨道连接</h3>
+                        <p className={styles.sectionText}>在数据点之间绘制直接连接的轨道线条。在 dataset 中配置 track 对象即可启用，可自定义轨道颜色和宽度。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={{
+                                    labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                                    datasets: [
+                                        {
+                                            label: '销售额',
+                                            data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+                                            track: {
+                                                color: 'red',
+                                                width: 2,
+                                            },
+                                            point: {
+                                                backgroundColor: 'blue',
+                                                hoverBackgroundColor: '#000',
+                                                color: '#fff',
+                                                width: 2,
+                                                style: 'circle',
+                                                radius: 4,
+                                            },
+                                        },
+                                    ],
+                                }}
+                                width={500}
+                                height={300}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={trackConnectionCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {trackConnectionCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 分组数据示例 */}
                     <div className={styles.exampleSection} id="line-grouped">
                         <h3 className={styles.subsectionTitle}>分组数据示例</h3>
@@ -1069,6 +1418,49 @@ const GroupedDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* JSON 数据加载示例 */}
+                    <div className={styles.exampleSection} id="line-json-data">
+                        <h3 className={styles.subsectionTitle}>JSON 数据加载示例</h3>
+                        <p className={styles.sectionText}>从 JSON 文件加载趋势数据并渲染图表。数据包含多个系列（USA、California、BA9C、Marin）随时间变化的数值，展示了如何处理外部数据源。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={trendData}
+                                width={700}
+                                height={400}
+                                smooth={true}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '日期' },
+                                    grid: {
+                                        display: true,
+                                        opacity: 0.3,
+                                    }
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '数值' },
+                                    grid: {
+                                        display: true,
+                                        opacity: 0.3,
+                                    }
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={jsonDataCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {jsonDataCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -1081,7 +1473,7 @@ const GroupedDataExample = () => {
                     {/* Dataset 配置 */}
                     <div className={styles.exampleSection} id="line-dataset">
                         <h3 className={styles.subsectionTitle}>Dataset 配置</h3>
-                        <p className={styles.sectionText}>数据集配置项说明。</p>
+                        <p className={styles.sectionText}>数据集配置项说明。point 和 track 属性需要在 dataset 中配置。</p>
                         <div className={styles.apiTable}>
                             <Table columns={datasetColumns} dataSource={datasetData} />
                         </div>
@@ -1127,6 +1519,42 @@ const GroupedDataExample = () => {
                             <Table columns={datasetColumns} dataSource={trailAnimationDataAPI} />
                         </div>
                     </div>
+
+                    {/* Point 配置 */}
+                    <div className={styles.exampleSection} id="line-point-api">
+                        <h3 className={styles.subsectionTitle}>Point 配置</h3>
+                        <p className={styles.sectionText}>数据点配置项说明（在 dataset 的 point 属性中配置，设置为 false 可隐藏数据点）。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={pointDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* Track 配置 */}
+                    <div className={styles.exampleSection} id="line-track-api">
+                        <h3 className={styles.subsectionTitle}>Track 配置</h3>
+                        <p className={styles.sectionText}>轨道样式配置项说明（在 dataset 的 track 属性中配置）。配置该对象即启用轨道连接功能。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={trackDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* Axis 配置 */}
+                    <div className={styles.exampleSection} id="line-axis-api">
+                        <h3 className={styles.subsectionTitle}>Axis 配置</h3>
+                        <p className={styles.sectionText}>坐标轴配置项说明（xAxis/yAxis 通用配置）。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={axisDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* Tooltip 配置 */}
+                    <div className={styles.exampleSection} id="line-tooltip-api">
+                        <h3 className={styles.subsectionTitle}>Tooltip 配置</h3>
+                        <p className={styles.sectionText}>提示框配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={tooltipDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -1148,14 +1576,21 @@ const GroupedDataExample = () => {
                                 <Anchor.Link href="#line-legend" title="图例配置" />
                                 <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
+                                <Anchor.Link href="#line-point" title="数据点配置" />
                                 <Anchor.Link href="#line-trail" title="轨迹动画" />
+                                <Anchor.Link href="#line-track-connection" title="轨道连接" />
                                 <Anchor.Link href="#line-grouped" title="分组数据" />
+                                <Anchor.Link href="#line-json-data" title="JSON 数据加载" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
                                 <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
                                 <Anchor.Link href="#line-grid-api" title="Grid 配置" />
                                 <Anchor.Link href="#line-trail-api" title="TrailAnimation 配置" />
+                                <Anchor.Link href="#line-point-api" title="Point 配置" />
+                                <Anchor.Link href="#line-track-api" title="Track 配置" />
+                                <Anchor.Link href="#line-axis-api" title="Axis 配置" />
+                                <Anchor.Link href="#line-tooltip-api" title="Tooltip 配置" />
                             </Anchor>
                         )}
                     </div>

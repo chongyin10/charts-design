@@ -24,7 +24,7 @@ export default function Home() {
                 <div className={styles.logo}>Design Charts</div>
                 <Menu
                     mode="inline"
-                    selectedKey="home"
+                    selectedKey="line"
                     items={menuItems}
                     className={styles.menu}
                 />
@@ -35,7 +35,7 @@ export default function Home() {
                 <Header className={styles.header}>
                     <h2>组件展示示例</h2>
                 </Header>
-                <Content className={styles.content}>
+                <Content className={`${styles.content} app-content`}>
                     <LineExample />
                 </Content>
             </Layout>
