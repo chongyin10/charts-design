@@ -12,6 +12,7 @@ import type {
   LineChartConfig,
   ComputedPoint,
   LineDataset,
+  LineThresholdConfig,
 } from './Line.type';
 
 /**
@@ -221,6 +222,106 @@ const drawAxes = (
   ctx.moveTo(padding, padding);
   ctx.lineTo(padding, height - padding);
   ctx.stroke();
+};
+
+/**
+ * 绘制预警线
+ */
+const drawThresholdLine = (
+  ctx: CanvasRenderingContext2D,
+  config: LineChartConfig,
+  width: number,
+  height: number,
+  threshold: LineThresholdConfig
+): number => {
+  const { padding, chartHeight, maxValue, minValue } = config;
+  
+  // 计算预警线在Y轴上的位置
+  const normalizedValue = (threshold.value - minValue) / (maxValue - minValue || 1);
+  const y = height - padding - normalizedValue * chartHeight;
+  
+  // 绘制预警线
+  ctx.save();
+  ctx.strokeStyle = threshold.lineColor || '#ef4444';
+  ctx.lineWidth = threshold.lineWidth || 2;
+  ctx.setLineDash([5, 5]); // 虚线样式
+  
+  ctx.beginPath();
+  ctx.moveTo(padding, y);
+  ctx.lineTo(width - padding, y);
+  ctx.stroke();
+  
+  // 绘制预警线标签
+  if (threshold.showLabel !== false) {
+    ctx.fillStyle = threshold.lineColor || '#ef4444';
+    ctx.font = `bold ${DEFAULT_CONFIG.fontSize}px sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(
+      threshold.label || `预警值: ${threshold.value}`,
+      width - padding,
+      y - 4
+    );
+  }
+  
+  ctx.restore();
+  
+  return y;
+};
+
+/**
+ * 根据预警阈值分割数据点
+ * 返回分割后的线段数组，每个线段包含点数组和是否在阈值上方的标志
+ */
+const splitPointsByThreshold = (
+  points: ComputedPoint[],
+  thresholdValue: number
+): Array<{ points: ComputedPoint[]; isAbove: boolean }> => {
+  if (points.length < 2) return [{ points, isAbove: points[0]?.value >= thresholdValue }];
+  
+  const segments: Array<{ points: ComputedPoint[]; isAbove: boolean }> = [];
+  let currentSegment: ComputedPoint[] = [points[0]];
+  let currentIsAbove = points[0].value >= thresholdValue;
+  
+  for (let i = 1; i < points.length; i++) {
+    const prevPoint = points[i - 1];
+    const currPoint = points[i];
+    const currIsAbove = currPoint.value >= thresholdValue;
+    
+    // 如果跨越了阈值，需要计算交点并分割
+    if ((prevPoint.value >= thresholdValue) !== (currPoint.value >= thresholdValue)) {
+      // 计算与预警线的交点
+      const ratio = (thresholdValue - prevPoint.value) / (currPoint.value - prevPoint.value);
+      const intersectX = prevPoint.x + ratio * (currPoint.x - prevPoint.x);
+      const intersectY = prevPoint.y + ratio * (currPoint.y - prevPoint.y);
+      
+      const intersectPoint: ComputedPoint = {
+        x: intersectX,
+        y: intersectY,
+        value: thresholdValue,
+        label: '',
+        datasetIndex: prevPoint.datasetIndex,
+        dataIndex: -1, // 标记为交点
+      };
+      
+      // 结束当前线段
+      currentSegment.push(intersectPoint);
+      segments.push({ points: [...currentSegment], isAbove: currentIsAbove });
+      
+      // 开始新线段
+      currentSegment = [intersectPoint, currPoint];
+      currentIsAbove = currIsAbove;
+    } else {
+      currentSegment.push(currPoint);
+    }
+  }
+  
+  // 添加最后一个线段
+  if (currentSegment.length > 0) {
+    segments.push({ points: currentSegment, isAbove: currentIsAbove });
+  }
+  
+  return segments;
 };
 
 /**
@@ -461,6 +562,7 @@ export const Line: React.FC<LineProps> = ({
   yAxis,
   legend,
   tooltip,
+  threshold,
   animationDuration = DEFAULT_CONFIG.animationDuration,
   smooth = false,
   className,
@@ -554,7 +656,13 @@ export const Line: React.FC<LineProps> = ({
     // 绘制坐标轴
     drawAxes(ctx, chartConfig, width, height, xAxis?.gridColor || DEFAULT_CONFIG.axisColor);
 
-    // 绘制数据线（支持透明度动画）
+    // 绘制预警线（如果配置存在）
+    let thresholdY = -1;
+    if (threshold) {
+      thresholdY = drawThresholdLine(ctx, chartConfig, width, height, threshold);
+    }
+
+    // 绘制数据线（支持透明度动画和预警线颜色分割）
     data.datasets.forEach((dataset, datasetIndex) => {
       const opacity = getDatasetOpacity(datasetIndex);
       // 跳过完全透明的数据集
@@ -569,22 +677,53 @@ export const Line: React.FC<LineProps> = ({
 
       if (points.length < 2) return;
 
-      const color = getDatasetColor(datasetIndex, dataset);
+      const defaultColor = getDatasetColor(datasetIndex, dataset);
       const lineWidth = dataset.borderWidth || DEFAULT_CONFIG.borderWidth;
 
       ctx.save();
       ctx.globalAlpha = opacity;
 
-      // 绘制填充区域
-      if (dataset.fill && dataset.backgroundColor) {
-        drawFillArea(ctx, points, dataset.backgroundColor, height, padding);
-      }
+      // 如果配置了预警线，根据阈值分割线条
+      if (threshold) {
+        const segments = splitPointsByThreshold(points, threshold.value);
+        
+        segments.forEach((segment) => {
+          if (segment.points.length < 2) return;
+          
+          // 根据是否在阈值上方选择颜色
+          // 上方（包括等于）使用预警颜色，下方使用默认颜色
+          const segmentColor = segment.isAbove
+            ? (threshold.aboveLineColor || '#ef4444')  // 预警颜色，默认红色
+            : (threshold.belowLineColor || defaultColor);  // 正常颜色
+          
+          // 绘制线条
+          if (smooth) {
+            drawSmoothLine(ctx, segment.points, segmentColor, lineWidth);
+          } else {
+            drawStraightLine(ctx, segment.points, segmentColor, lineWidth);
+          }
+        });
 
-      // 绘制线条
-      if (smooth) {
-        drawSmoothLine(ctx, points, color, lineWidth);
+        // 绘制上方区域的填充（如果配置）
+        if (threshold.aboveFillColor) {
+          const abovePoints = points.filter((p) => p.value >= threshold.value);
+          if (abovePoints.length >= 2) {
+            drawFillArea(ctx, abovePoints, threshold.aboveFillColor, height, padding);
+          }
+        }
       } else {
-        drawStraightLine(ctx, points, color, lineWidth);
+        // 没有预警线时的正常绘制
+        // 绘制填充区域
+        if (dataset.fill && dataset.backgroundColor) {
+          drawFillArea(ctx, points, dataset.backgroundColor, height, padding);
+        }
+
+        // 绘制线条
+        if (smooth) {
+          drawSmoothLine(ctx, points, defaultColor, lineWidth);
+        } else {
+          drawStraightLine(ctx, points, defaultColor, lineWidth);
+        }
       }
 
       // 绘制数据点（只在动画完成时显示）
@@ -643,6 +782,7 @@ export const Line: React.FC<LineProps> = ({
     yAxis,
     legend,
     smooth,
+    threshold,
     animationProgress,
     hoveredPoint,
     isLoading,

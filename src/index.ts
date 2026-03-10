@@ -9,6 +9,7 @@ export type {
   LineAxisConfig,
   LineLegendConfig,
   LineTooltipConfig,
+  LineThresholdConfig,
 } from './components/Line/Line.type';
 
 // 导出工具函数

@@ -93,6 +93,28 @@ export interface LineTooltipConfig {
 }
 
 /**
+ * 预警线配置
+ */
+export interface LineThresholdConfig {
+  /** 预警线数值（Y轴数值） */
+  value: number;
+  /** 预警线颜色 */
+  lineColor?: string;
+  /** 预警线宽度 */
+  lineWidth?: number;
+  /** 预警线上方线条颜色（覆盖数据集默认颜色） */
+  aboveLineColor?: string;
+  /** 预警线下方线条颜色（使用数据集默认颜色） */
+  belowLineColor?: string;
+  /** 预警线上方区域填充颜色 */
+  aboveFillColor?: string;
+  /** 是否显示预警线标签 */
+  showLabel?: boolean;
+  /** 预警线标签文字 */
+  label?: string;
+}
+
+/**
  * 折线图组件属性
  */
 export interface LineProps {
@@ -112,6 +134,8 @@ export interface LineProps {
   legend?: LineLegendConfig;
   /** 提示框配置 */
   tooltip?: LineTooltipConfig;
+  /** 预警线配置 */
+  threshold?: LineThresholdConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 是否平滑曲线 */

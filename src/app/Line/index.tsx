@@ -121,6 +121,23 @@ export default function LineChartPage() {
         ],
     };
 
+    // 预警线示例数据
+    const thresholdData: LineChartData = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                pointStyle: 'circle',
+                pointRadius: 4,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#fff',
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
         console.log('点击数据点:', { datasetIndex, dataIndex, value });
@@ -364,6 +381,42 @@ const LegendExample = () => {
     );
 };`;
 
+    // 预警线示例代码
+    const thresholdCode = `import { Line } from '@zjpcy/charts-design';
+
+const ThresholdLineExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            threshold={{
+                value: 20000,              // 预警线数值
+                lineColor: '#ef4444',     // 预警线颜色（红色虚线）
+                lineWidth: 2,             // 预警线宽度
+                aboveLineColor: '#ef4444', // 预警线上方线条颜色（红色）
+                belowLineColor: '#3b82f6', // 预警线下方线条颜色（蓝色）
+                showLabel: true,          // 显示预警线标签
+                label: '预警值: 20000',    // 自定义标签文字
+            }}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+        />
+    );
+};`;
+
     // API 表格列定义
     const apiColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -382,7 +435,20 @@ const LegendExample = () => {
         { param: 'yAxis', description: 'Y轴配置', type: 'AxisConfig', default: '-' },
         { param: 'legend', description: '图例配置', type: 'LegendConfig', default: '-' },
         { param: 'tooltip', description: '提示框配置', type: 'TooltipConfig', default: '-' },
+        { param: 'threshold', description: '预警线配置', type: 'ThresholdConfig', default: '-' },
         { param: 'onDataClick', description: '数据点点击事件', type: '(datasetIndex, dataIndex, value) => void', default: '-' },
+    ];
+
+    // 预警线配置数据
+    const thresholdDataAPI = [
+        { param: 'value', description: '预警线数值（Y轴数值）', type: 'number', default: 'required' },
+        { param: 'lineColor', description: '预警线颜色', type: 'string', default: "'#ef4444'" },
+        { param: 'lineWidth', description: '预警线宽度', type: 'number', default: '2' },
+        { param: 'aboveLineColor', description: '预警线上方线条颜色', type: 'string', default: "'#ef4444'" },
+        { param: 'belowLineColor', description: '预警线下方线条颜色', type: 'string', default: '数据集默认颜色' },
+        { param: 'aboveFillColor', description: '预警线上方区域填充颜色', type: 'string', default: '-' },
+        { param: 'showLabel', description: '是否显示预警线标签', type: 'boolean', default: 'true' },
+        { param: 'label', description: '预警线标签文字', type: 'string', default: "'预警值: {value}'" },
     ];
 
     // Dataset 配置表格
@@ -624,6 +690,50 @@ const LegendExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 预警线配置 */}
+                    <div className={styles.exampleSection} id="line-threshold">
+                        <h3 className={styles.subsectionTitle}>预警线</h3>
+                        <p className={styles.sectionText}>在Y轴上添加预警线，横线上方的数据使用预警颜色显示，下方数据使用正常颜色显示。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={thresholdData}
+                                width={500}
+                                height={300}
+                                threshold={{
+                                    value: 25000,
+                                    lineColor: '#ef4444',
+                                    lineWidth: 2,
+                                    aboveLineColor: '#ef4444',
+                                    belowLineColor: '#3b82f6',
+                                    showLabel: true,
+                                    label: '预警值: 25000',
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                                smooth={true}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={thresholdCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {thresholdCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -655,6 +765,15 @@ const LegendExample = () => {
                             ]} />
                         </div>
                     </div>
+
+                    {/* Threshold 配置 */}
+                    <div className={styles.exampleSection} id="line-threshold-api">
+                        <h3 className={styles.subsectionTitle}>Threshold 配置</h3>
+                        <p className={styles.sectionText}>预警线配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={thresholdDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -674,9 +793,11 @@ const LegendExample = () => {
                                 <Anchor.Link href="#line-area" title="面积图" />
                                 <Anchor.Link href="#line-click" title="点击事件" />
                                 <Anchor.Link href="#line-legend" title="图例配置" />
+                                <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
+                                <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
                             </Anchor>
                         )}
                     </div>
