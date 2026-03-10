@@ -476,6 +476,145 @@ const drawFillArea = (
 };
 
 /**
+ * 绘制阈值分割的填充区域
+ * 用于在预警线存在时，分别绘制上方和下方的填充区域
+ */
+const drawFillAreaByThreshold = (
+    ctx: CanvasRenderingContext2D,
+    points: ComputedPoint[],
+    color: string,
+    height: number,
+    padding: number,
+    thresholdY: number,
+    isAbove: boolean
+): void => {
+    if (points.length < 2) return;
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.2;
+
+    ctx.beginPath();
+
+    if (isAbove) {
+        // 上方区域：从 thresholdY 开始向上填充到数据线
+        // 对于在阈值以下的点，钳制到阈值线
+        const firstY = Math.min(points[0].y, thresholdY);
+        ctx.moveTo(points[0].x, thresholdY);
+        ctx.lineTo(points[0].x, firstY);
+
+        for (let i = 1; i < points.length; i++) {
+            const y = Math.min(points[i].y, thresholdY);
+            ctx.lineTo(points[i].x, y);
+        }
+
+        ctx.lineTo(points[points.length - 1].x, thresholdY);
+    } else {
+        // 下方区域：从底部向上填充到数据线（或阈值线，取较低者）
+        // 对于在阈值以上的点，钳制到阈值线
+        const firstY = Math.max(points[0].y, thresholdY);
+        ctx.moveTo(points[0].x, height - padding);
+        ctx.lineTo(points[0].x, firstY);
+
+        for (let i = 1; i < points.length; i++) {
+            const y = Math.max(points[i].y, thresholdY);
+            ctx.lineTo(points[i].x, y);
+        }
+
+        ctx.lineTo(points[points.length - 1].x, height - padding);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+};
+
+/**
+ * 为阈值填充构建连续的点集（下半部分填充）
+ * 从图表底部到数据线，当数据线超过阈值时用阈值线作为边界
+ */
+const buildBelowThresholdFillPoints = (
+    points: ComputedPoint[],
+    thresholdValue: number
+): ComputedPoint[] => {
+    if (points.length < 2) return [];
+
+    const result: ComputedPoint[] = [];
+
+    for (let i = 0; i < points.length; i++) {
+        const point = points[i];
+        result.push(point);
+
+        // 检查与下一个点的连线是否跨越阈值
+        if (i < points.length - 1) {
+            const nextPoint = points[i + 1];
+            const isPointAbove = point.value >= thresholdValue;
+            const isNextAbove = nextPoint.value >= thresholdValue;
+
+            // 如果跨越了阈值，需要计算交点
+            if (isPointAbove !== isNextAbove) {
+                const ratio = (thresholdValue - point.value) / (nextPoint.value - point.value);
+                const intersectX = point.x + ratio * (nextPoint.x - point.x);
+                const intersectY = point.y + ratio * (nextPoint.y - point.y);
+
+                result.push({
+                    x: intersectX,
+                    y: intersectY,
+                    value: thresholdValue,
+                    label: '',
+                    datasetIndex: point.datasetIndex,
+                    dataIndex: -1,
+                });
+            }
+        }
+    }
+
+    return result;
+};
+
+/**
+ * 为阈值填充构建连续的点集（上半部分填充）
+ * 从数据线到阈值线，只包含在阈值以上的部分
+ */
+const buildAboveThresholdFillPoints = (
+    points: ComputedPoint[],
+    thresholdValue: number
+): ComputedPoint[] => {
+    if (points.length < 2) return [];
+
+    const result: ComputedPoint[] = [];
+
+    for (let i = 0; i < points.length; i++) {
+        const point = points[i];
+        result.push(point);
+
+        // 检查与下一个点的连线是否跨越阈值
+        if (i < points.length - 1) {
+            const nextPoint = points[i + 1];
+            const isPointAbove = point.value >= thresholdValue;
+            const isNextAbove = nextPoint.value >= thresholdValue;
+
+            // 如果跨越了阈值，需要计算交点
+            if (isPointAbove !== isNextAbove) {
+                const ratio = (thresholdValue - point.value) / (nextPoint.value - point.value);
+                const intersectX = point.x + ratio * (nextPoint.x - point.x);
+                const intersectY = point.y + ratio * (nextPoint.y - point.y);
+
+                result.push({
+                    x: intersectX,
+                    y: intersectY,
+                    value: thresholdValue,
+                    label: '',
+                    datasetIndex: point.datasetIndex,
+                    dataIndex: -1,
+                });
+            }
+        }
+    }
+
+    return result;
+};
+
+/**
  * 绘制轨道连接线
  * 在数据点之间绘制直接连接的轨道线条
  */
@@ -995,11 +1134,6 @@ export const Line: React.FC<LineProps> = ({
             ctx.save();
             ctx.globalAlpha = opacity;
 
-            // 绘制填充区域
-            if (dataset.fill && dataset.backgroundColor) {
-                drawFillArea(ctx, points, dataset.backgroundColor, height, padding);
-            }
-
             // 绘制线条
             // 如果配置了预警线，优先根据阈值分割线条颜色
             if (threshold) {
@@ -1038,22 +1172,43 @@ export const Line: React.FC<LineProps> = ({
                     }
                 });
 
-                // 绘制上方区域的填充（如果配置）
-                if (threshold.aboveFillColor) {
-                    const abovePoints = points.filter((p) => p.value >= threshold.value);
-                    if (abovePoints.length >= 2) {
-                        drawFillArea(ctx, abovePoints, threshold.aboveFillColor, height, padding);
+                // 绘制填充区域（如果 dataset.fill=true）
+                if (dataset.fill) {
+                    // 先绘制下方区域（作为底层）：从底部到数据线（或阈值线，取较小者）
+                    const belowFillColor = threshold.belowLineColor || dataset.backgroundColor;
+                    if (belowFillColor) {
+                        const belowPoints = buildBelowThresholdFillPoints(points, threshold.value);
+                        if (belowPoints.length >= 2) {
+                            drawFillAreaByThreshold(ctx, belowPoints, belowFillColor, height, padding, thresholdY, false);
+                        }
+                    }
+
+                    // 再绘制上方区域（作为上层）：从阈值线到数据线（仅阈值以上部分）
+                    const aboveFillColor = threshold.aboveFillColor || dataset.backgroundColor;
+                    if (aboveFillColor) {
+                        const abovePoints = buildAboveThresholdFillPoints(points, threshold.value);
+                        if (abovePoints.length >= 2) {
+                            drawFillAreaByThreshold(ctx, abovePoints, aboveFillColor, height, padding, thresholdY, true);
+                        }
                     }
                 }
-            } else if (dataset.track) {
-                // 没有预警线但有 track 配置时，使用 track 绘制
-                drawTrack(ctx, points, dataset, datasetIndex, false, smooth);
             } else {
-                // 没有预警线时的正常绘制
-                if (smooth) {
-                    drawSmoothLine(ctx, points, defaultColor, lineWidth);
+                // 没有预警线时的绘制
+                // 先绘制填充区域（如果有）
+                if (dataset.fill && dataset.backgroundColor) {
+                    drawFillArea(ctx, points, dataset.backgroundColor, height, padding);
+                }
+
+                if (dataset.track) {
+                    // 有 track 配置时，使用 track 绘制线条
+                    drawTrack(ctx, points, dataset, datasetIndex, false, smooth);
                 } else {
-                    drawStraightLine(ctx, points, defaultColor, lineWidth);
+                    // 正常绘制线条
+                    if (smooth) {
+                        drawSmoothLine(ctx, points, defaultColor, lineWidth);
+                    } else {
+                        drawStraightLine(ctx, points, defaultColor, lineWidth);
+                    }
                 }
             }
 

@@ -134,6 +134,23 @@ export default function LineChartPage() {
         ],
     };
 
+    // 预警线+面积图示例数据
+    const thresholdAreaData: LineChartData = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+                track: {
+                    color: '#3b82f6',
+                    width: 2,
+                },
+                fill: true,
+                backgroundColor: 'rgba(59, 130, 246, 0.3)',
+            },
+        ],
+    };
+
     // 轨迹动画示例数据
     const trailAnimationData: LineChartData = {
         labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
@@ -517,6 +534,46 @@ const ThresholdLineExample = () => {
             }}
             xAxis={{ display: true, title: { text: '月份' } }}
             yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+        />
+    );
+};`;
+
+    // 预警线+面积图示例代码
+    const thresholdAreaCode = `import { Line } from '@zjpcy/charts-design';
+
+const ThresholdAreaExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                color: '#3b82f6',
+                width: 2,
+                fill: true,                          // 启用面积图
+                backgroundColor: 'rgba(59, 130, 246, 0.3)',
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            threshold={{
+                value: 20000,              // 预警线数值
+                lineColor: '#ef4444',     // 预警线颜色
+                lineWidth: 2,
+                aboveLineColor: '#ef4444', // 预警线上方线条颜色
+                belowLineColor: '#3b82f6', // 预警线下方线条颜色
+                aboveFillColor: 'rgba(239, 68, 68, 0.3)', // 预警线上方填充颜色
+                showLabel: true,
+                label: '预警值: 20000',
+            }}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+            smooth={true}
         />
     );
 };`;
@@ -1188,6 +1245,48 @@ const JsonDataExample = () => {
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {thresholdCode}
+                        </SyntaxHighlighter>
+
+                        <h4 className={styles.subsectionTitle} style={{ marginTop: '2rem' }}>预警线 + 面积图</h4>
+                        <p className={styles.sectionText}>当设置 fill=true 时，预警线上方的区域可以单独设置填充颜色，下方区域按正常颜色显示。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={thresholdAreaData}
+                                width={500}
+                                height={300}
+                                threshold={{
+                                    value: 25000,
+                                    lineColor: '#ef4444',
+                                    lineWidth: 2,
+                                    aboveLineColor: '#ef4444',
+                                    belowLineColor: '#3b82f6',
+                                    aboveFillColor: 'rgba(239, 68, 68, 0.3)',
+                                    showLabel: true,
+                                    label: '预警值: 25000',
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                                smooth={true}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={thresholdAreaCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {thresholdAreaCode}
                         </SyntaxHighlighter>
                     </div>
 
