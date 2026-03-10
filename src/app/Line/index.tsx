@@ -138,6 +138,19 @@ export default function LineChartPage() {
         ],
     };
 
+    // 轨迹动画示例数据
+    const trailAnimationData: LineChartData = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '2023年趋势',
+                data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
         console.log('点击数据点:', { datasetIndex, dataIndex, value });
@@ -463,6 +476,43 @@ const GridLineExample = () => {
     );
 };`;
 
+    // 轨迹动画示例代码
+    const trailAnimationCode = `import { Line } from '@zjpcy/charts-design';
+
+const TrailAnimationExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '2023年销售额',
+                data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            trailAnimation={{
+                enabled: true,        // 启用轨迹动画
+                duration: 3000,       // 动画时长 3 秒
+                trailColor: '#10b981', // 轨迹颜色（绿色）
+                trailWidth: 8,        // 轨迹宽度
+                trailLength: 25,      // 轨迹长度（像素）
+                trailOpacity: 0.7,    // 轨迹透明度
+                loop: true,           // 循环播放
+            }}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
+            smooth={true}
+        />
+    );
+};`;
+
     // API 表格列定义
     const apiColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -482,6 +532,7 @@ const GridLineExample = () => {
         { param: 'legend', description: '图例配置', type: 'LegendConfig', default: '-' },
         { param: 'tooltip', description: '提示框配置', type: 'TooltipConfig', default: '-' },
         { param: 'threshold', description: '预警线配置', type: 'ThresholdConfig', default: '-' },
+        { param: 'trailAnimation', description: '轨迹动画配置', type: 'LineTrailAnimationConfig', default: '-' },
         { param: 'onDataClick', description: '数据点点击事件', type: '(datasetIndex, dataIndex, value) => void', default: '-' },
     ];
 
@@ -507,6 +558,17 @@ const GridLineExample = () => {
         { param: 'horizontal', description: '是否显示水平网格线', type: 'boolean', default: 'true' },
     ];
 
+    // 轨迹动画配置数据
+    const trailAnimationDataAPI = [
+        { param: 'enabled', description: '是否启用轨迹动画', type: 'boolean', default: 'false' },
+        { param: 'duration', description: '轨迹动画时长（毫秒）', type: 'number', default: '2000' },
+        { param: 'trailColor', description: '轨迹颜色', type: 'string', default: '与线条颜色相同' },
+        { param: 'trailWidth', description: '轨迹宽度', type: 'number', default: '6' },
+        { param: 'trailLength', description: '轨迹长度（像素）', type: 'number', default: '20' },
+        { param: 'trailOpacity', description: '轨迹透明度 (0-1)', type: 'number', default: '0.6' },
+        { param: 'loop', description: '是否循环播放', type: 'boolean', default: 'false' },
+    ];
+
     // Dataset 配置表格
     const datasetColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -522,7 +584,7 @@ const GridLineExample = () => {
         { param: 'borderWidth', description: '线条宽度', type: 'number', default: '2' },
         { param: 'backgroundColor', description: '填充颜色（面积图）', type: 'string', default: '-' },
         { param: 'fill', description: '是否填充区域', type: 'boolean', default: 'false' },
-        { param: 'pointStyle', description: '数据点样式', type: '\'circle\' | \'rect\' | \'triangle\'', default: '\'circle\'' },
+        { param: 'pointStyle', description: '数据点样式', type: "'circle' | 'rect' | 'triangle'", default: "'circle'" },
         { param: 'pointRadius', description: '数据点半径', type: 'number', default: '4' },
         { param: 'pointBackgroundColor', description: '数据点背景色', type: 'string', default: '-' },
         { param: 'pointBorderColor', description: '数据点边框色', type: 'string', default: '-' },
@@ -534,7 +596,7 @@ const GridLineExample = () => {
                 {/* 左侧主内容区 */}
                 <div className={styles.mainContent}>
                     <h2 className={styles.sectionTitle} id="line-intro">Line 折线图</h2>
-                    <p className={styles.sectionText}>使用 Canvas 绘制的高性能折线图组件，支持多线对比、面积图、平滑曲线等功能。</p>
+                    <p className={styles.sectionText}>使用 Canvas 绘制的高性能折线图组件，支持多线对比、面积图、平滑曲线、轨迹动画等功能。</p>
 
                     {/* 基础折线图 */}
                     <div className={styles.exampleSection} id="line-basic">
@@ -837,6 +899,50 @@ const GridLineExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 轨迹动画示例 */}
+                    <div className={styles.exampleSection} id="line-trail">
+                        <h3 className={styles.subsectionTitle}>轨迹动画</h3>
+                        <p className={styles.sectionText}>在折线图上添加发光轨迹动画效果，线条从起点逐步绘制到终点，并跟随一个发光轨迹点。支持自定义轨迹颜色、宽度、长度、透明度和循环播放。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={trailAnimationData}
+                                width={500}
+                                height={300}
+                                trailAnimation={{
+                                    enabled: true,
+                                    duration: 3000,
+                                    trailColor: '#10b981',
+                                    trailWidth: 8,
+                                    trailLength: 25,
+                                    trailOpacity: 0.7,
+                                    loop: true,
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                                smooth={true}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={trailAnimationCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {trailAnimationCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -886,6 +992,15 @@ const GridLineExample = () => {
                             <Table columns={datasetColumns} dataSource={gridDataAPI} />
                         </div>
                     </div>
+
+                    {/* TrailAnimation 配置 */}
+                    <div className={styles.exampleSection} id="line-trail-api">
+                        <h3 className={styles.subsectionTitle}>TrailAnimation 配置</h3>
+                        <p className={styles.sectionText}>轨迹动画配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={trailAnimationDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -907,11 +1022,13 @@ const GridLineExample = () => {
                                 <Anchor.Link href="#line-legend" title="图例配置" />
                                 <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
+                                <Anchor.Link href="#line-trail" title="轨迹动画" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
                                 <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
                                 <Anchor.Link href="#line-grid-api" title="Grid 配置" />
+                                <Anchor.Link href="#line-trail-api" title="TrailAnimation 配置" />
                             </Anchor>
                         )}
                     </div>

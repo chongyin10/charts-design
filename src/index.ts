@@ -11,6 +11,7 @@ export type {
   LineTooltipConfig,
   LineThresholdConfig,
   LineGridConfig,
+  LineTrailAnimationConfig,
 } from './components/Line/Line.type';
 
 // 导出工具函数

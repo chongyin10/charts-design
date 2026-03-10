@@ -135,6 +135,26 @@ export interface LineThresholdConfig {
 }
 
 /**
+ * 轨迹动画配置
+ */
+export interface LineTrailAnimationConfig {
+  /** 是否启用轨迹动画（默认 false） */
+  enabled?: boolean;
+  /** 轨迹动画时长（毫秒） */
+  duration?: number;
+  /** 轨迹颜色（默认与线条颜色相同） */
+  trailColor?: string;
+  /** 轨迹宽度（默认比线条宽 2px） */
+  trailWidth?: number;
+  /** 轨迹长度（像素，默认 20） */
+  trailLength?: number;
+  /** 轨迹透明度（0-1，默认 0.6） */
+  trailOpacity?: number;
+  /** 是否循环播放（默认 false） */
+  loop?: boolean;
+}
+
+/**
  * 折线图组件属性
  */
 export interface LineProps {
@@ -156,6 +176,8 @@ export interface LineProps {
   tooltip?: LineTooltipConfig;
   /** 预警线配置 */
   threshold?: LineThresholdConfig;
+  /** 轨迹动画配置 */
+  trailAnimation?: LineTrailAnimationConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 是否平滑曲线 */
