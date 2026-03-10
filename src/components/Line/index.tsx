@@ -154,10 +154,28 @@ const drawGrid = (
 
   // 绘制 X 轴标签
   const xStep = chartWidth / Math.max(1, labels.length - 1);
+  
+  // 计算是否需要旋转标签：当标签数量较多时自动旋转 45 度
+  const estimatedLabelWidth = fontSize * 8; // 估算每个标签的宽度（8字符）
+  const availableWidthPerLabel = chartWidth / labels.length;
+  const shouldRotateLabels = labels.length > 6 || estimatedLabelWidth > availableWidthPerLabel;
+  
   labels.forEach((label, index) => {
     const x = padding + index * xStep;
-    // X 轴标签
-    ctx.fillText(label, x, height - padding + 8);
+    
+    if (shouldRotateLabels) {
+      // 旋转标签 45 度以避免重叠
+      ctx.save();
+      ctx.translate(x, height - padding + 8);
+      ctx.rotate(-Math.PI / 4);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, 0, 0);
+      ctx.restore();
+    } else {
+      // 正常水平显示
+      ctx.fillText(label, x, height - padding + 8);
+    }
   });
 
   // 绘制 Y 轴标签

@@ -151,6 +151,40 @@ export default function LineChartPage() {
         ],
     };
 
+    // 分组数据示例 - 按日期分组的多线图数据
+    const groupedData: LineChartData = {
+        labels: ['2018/8/1', '2018/8/2', '2018/8/3', '2018/8/4', '2018/8/5', '2018/8/6', '2018/8/7', '2018/8/8', '2018/8/9', '2018/8/10', '2018/8/11', '2018/8/12', '2018/8/13', '2018/8/14', '2018/8/15'],
+        datasets: [
+            {
+                label: 'download',
+                data: [4623, 6145, 508, 6268, 6411, 1890, 4251, 2978, 3880, 3606, 4311, 4116, 6419, 1643, 445],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                pointStyle: 'circle',
+                pointRadius: 4,
+                fill: false,
+            },
+            {
+                label: 'register',
+                data: [2208, 2016, 2916, 4512, 8281, 2008, 1963, 2367, 2956, 678, 3188, 3491, 2852, 4788, 4319],
+                borderColor: '#10b981',
+                borderWidth: 2,
+                pointStyle: 'rect',
+                pointRadius: 4,
+                fill: false,
+            },
+            {
+                label: 'bill',
+                data: [182, 257, 289, 428, 619, 87, 706, 387, 488, 507, 548, 456, 689, 280, 176],
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointStyle: 'triangle',
+                pointRadius: 4,
+                fill: false,
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
         console.log('点击数据点:', { datasetIndex, dataIndex, value });
@@ -509,6 +543,63 @@ const TrailAnimationExample = () => {
             xAxis={{ display: true, title: { text: '月份' } }}
             yAxis={{ display: true, title: { text: '销售额 (元)' } }}
             smooth={true}
+        />
+    );
+};`;
+
+    // 分组数据示例代码
+    const groupedDataCode = `import { Line } from '@zjpcy/charts-design';
+
+const GroupedDataExample = () => {
+    const data = {
+        labels: ['2018/8/1', '2018/8/2', '2018/8/3', '2018/8/4', '2018/8/5',
+                 '2018/8/6', '2018/8/7', '2018/8/8', '2018/8/9', '2018/8/10',
+                 '2018/8/11', '2018/8/12', '2018/8/13', '2018/8/14', '2018/8/15'],
+        datasets: [
+            {
+                label: 'download',
+                data: [4623, 6145, 508, 6268, 6411, 1890, 4251, 2978, 3880, 3606,
+                       4311, 4116, 6419, 1643, 445],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+                pointStyle: 'circle',
+                pointRadius: 4,
+            },
+            {
+                label: 'register',
+                data: [2208, 2016, 2916, 4512, 8281, 2008, 1963, 2367, 2956, 678,
+                       3188, 3491, 2852, 4788, 4319],
+                borderColor: '#10b981',
+                borderWidth: 2,
+                pointStyle: 'rect',
+                pointRadius: 4,
+            },
+            {
+                label: 'bill',
+                data: [182, 257, 289, 428, 619, 87, 706, 387, 488, 507,
+                       548, 456, 689, 280, 176],
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointStyle: 'triangle',
+                pointRadius: 4,
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={600}
+            height={350}
+            smooth={true}
+            xAxis={{ display: true, title: { text: '日期' } }}
+            yAxis={{ display: true, title: { text: '数值' } }}
+            legend={{
+                display: true,
+                position: 'top',
+                labelColor: '#374151',
+                labelFontSize: 12,
+            }}
         />
     );
 };`;
@@ -943,6 +1034,41 @@ const TrailAnimationExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 分组数据示例 */}
+                    <div className={styles.exampleSection} id="line-grouped">
+                        <h3 className={styles.subsectionTitle}>分组数据示例</h3>
+                        <p className={styles.sectionText}>展示按日期分组的多维数据对比，支持点击图例切换显示/隐藏数据系列。数据格式为：date（日期）、type（类型：download/register/bill）、value（数值）。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={groupedData}
+                                width={600}
+                                height={350}
+                                smooth={true}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '日期' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '数值' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={groupedDataCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {groupedDataCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -1023,6 +1149,7 @@ const TrailAnimationExample = () => {
                                 <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
                                 <Anchor.Link href="#line-trail" title="轨迹动画" />
+                                <Anchor.Link href="#line-grouped" title="分组数据" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
