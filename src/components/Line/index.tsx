@@ -13,7 +13,6 @@ import type {
     ComputedPoint,
     LineDataset,
     LineThresholdConfig,
-    LineTrailAnimationConfig,
     DatasetPointConfig,
     LineVerticalLineConfig,
     LineTooltipItem,
@@ -138,7 +137,8 @@ const drawGrid = (
     yAxisTitle?: string,
     xAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
     yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
-    legacyGridColor?: string
+    legacyGridColor?: string,
+    xAxisTickInterval?: number
 ): void => {
     const { padding, chartWidth, chartHeight, maxValue, minValue } = config;
 
@@ -158,12 +158,19 @@ const drawGrid = (
     // 绘制 X 轴标签
     const xStep = chartWidth / Math.max(1, labels.length - 1);
 
+    // 应用标签间隔（tickInterval）
+    const tickInterval = Math.max(1, xAxisTickInterval || 1);
+    const visibleLabels = labels.filter((_, index) => index % tickInterval === 0);
+
     // 计算是否需要旋转标签：当标签数量较多时自动旋转 45 度
     const estimatedLabelWidth = fontSize * 8; // 估算每个标签的宽度（8字符）
-    const availableWidthPerLabel = chartWidth / labels.length;
-    const shouldRotateLabels = labels.length > 6 || estimatedLabelWidth > availableWidthPerLabel;
+    const availableWidthPerLabel = chartWidth / visibleLabels.length;
+    const shouldRotateLabels = visibleLabels.length > 6 || estimatedLabelWidth > availableWidthPerLabel;
 
     labels.forEach((label, index) => {
+        // 根据 tickInterval 跳过不需要显示的标签
+        if (index % tickInterval !== 0) return;
+
         const x = padding + index * xStep;
 
         if (shouldRotateLabels) {
@@ -741,116 +748,6 @@ const drawPoints = (
 };
 
 /**
- * 获取路径上某一点的坐标
- */
-const getPointOnPath = (
-    points: ComputedPoint[],
-    progress: number
-): ComputedPoint | null => {
-    if (points.length < 2) return points[0] || null;
-
-    // 计算总路径长度
-    let totalLength = 0;
-    const segmentLengths: number[] = [];
-
-    for (let i = 1; i < points.length; i++) {
-        const dx = points[i].x - points[i - 1].x;
-        const dy = points[i].y - points[i - 1].y;
-        const length = Math.sqrt(dx * dx + dy * dy);
-        segmentLengths.push(length);
-        totalLength += length;
-    }
-
-    // 根据进度找到当前所在线段
-    const targetLength = totalLength * progress;
-    let currentLength = 0;
-
-    for (let i = 0; i < segmentLengths.length; i++) {
-        const segmentLength = segmentLengths[i];
-        if (currentLength + segmentLength >= targetLength) {
-            // 在当前线段内插值
-            const segmentProgress = (targetLength - currentLength) / segmentLength;
-            const prev = points[i];
-            const curr = points[i + 1];
-
-            return {
-                x: prev.x + (curr.x - prev.x) * segmentProgress,
-                y: prev.y + (curr.y - prev.y) * segmentProgress,
-                value: prev.value + (curr.value - prev.value) * segmentProgress,
-                label: prev.label,
-                datasetIndex: prev.datasetIndex,
-                dataIndex: prev.dataIndex,
-            };
-        }
-        currentLength += segmentLength;
-    }
-
-    // 返回最后一个点
-    return points[points.length - 1];
-};
-
-/**
- * 绘制轨迹动画点
- * 在线条末端绘制一个发光效果的轨迹点
- */
-const drawTrailPoint = (
-    ctx: CanvasRenderingContext2D,
-    point: ComputedPoint,
-    color: string,
-    config: LineTrailAnimationConfig
-): void => {
-    const trailColor = config.trailColor || color;
-    const trailWidth = config.trailWidth || 6;
-    const trailLength = config.trailLength || 20;
-    const trailOpacity = config.trailOpacity ?? 0.6;
-
-    // 将颜色转换为 RGB 格式用于渐变
-    const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
-        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return result
-            ? {
-                r: parseInt(result[1], 16),
-                g: parseInt(result[2], 16),
-                b: parseInt(result[3], 16),
-            }
-            : { r: 59, g: 130, b: 246 };
-    };
-
-    const rgb = hexToRgb(trailColor);
-
-    ctx.save();
-
-    // 绘制轨迹光晕
-    const gradient = ctx.createRadialGradient(
-        point.x, point.y, 0,
-        point.x, point.y, trailLength
-    );
-    gradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${trailOpacity})`);
-    gradient.addColorStop(0.5, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${trailOpacity * 0.5})`);
-    gradient.addColorStop(1, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
-
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, trailLength, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 绘制核心亮点
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, trailWidth / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 绘制外圈
-    ctx.strokeStyle = trailColor;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(point.x, point.y, trailWidth / 2 + 2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.restore();
-};
-
-/**
  * 绘制图例
  * 返回图例点击区域信息
  */
@@ -940,7 +837,6 @@ export const Line: React.FC<LineProps> = ({
     legend,
     tooltip,
     threshold,
-    trailAnimation,
     verticalLine,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     smooth = false,
@@ -957,12 +853,6 @@ export const Line: React.FC<LineProps> = ({
     const [hoveredDataIndex, setHoveredDataIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
     const [animationProgress, setAnimationProgress] = useState(0);
-    // 轨迹动画进度 (0-1)
-    const [trailProgress, setTrailProgress] = useState(0);
-    // 轨迹动画当前点位置
-    const trailPointRef = useRef<ComputedPoint | null>(null);
-    // 轨迹动画动画帧 ID
-    const trailAnimationRef = useRef<number | null>(null);
     // 存储隐藏的数据集索引
     const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(new Set());
     // 存储数据集的动画透明度（用于显示/隐藏动画）
@@ -1014,74 +904,6 @@ export const Line: React.FC<LineProps> = ({
         requestAnimationFrame(animate);
     }, [animationDuration, data]);
 
-    // 轨迹动画效果
-    useEffect(() => {
-        // 清理之前的动画
-        if (trailAnimationRef.current) {
-            cancelAnimationFrame(trailAnimationRef.current);
-            trailAnimationRef.current = null;
-        }
-
-        // 如果未启用轨迹动画，重置状态
-        if (!trailAnimation?.enabled) {
-            setTrailProgress(0);
-            trailPointRef.current = null;
-            return;
-        }
-
-        // 等待初始动画完成后开始轨迹动画
-        if (animationProgress < 1) return;
-
-        const duration = trailAnimation.duration || 2000;
-        const loop = trailAnimation.loop ?? false;
-        let startTime: number | null = null;
-
-        const animate = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const elapsed = timestamp - startTime;
-            let progress = Math.min(elapsed / duration, 1);
-
-            // 使用 easeInOutCubic 缓动
-            const eased = progress < 0.5
-                ? 4 * progress * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-
-            setTrailProgress(eased);
-
-            // 更新轨迹点位置
-            if (allPoints.length > 0 && allPoints[0].length > 0) {
-                // 找到第一个可见的数据集
-                let targetPoints: ComputedPoint[] | null = null;
-                for (let i = 0; i < allPoints.length; i++) {
-                    if (getDatasetOpacity(i) > 0.1) {
-                        targetPoints = allPoints[i];
-                        break;
-                    }
-                }
-
-                if (targetPoints && targetPoints.length > 1) {
-                    trailPointRef.current = getPointOnPath(targetPoints, eased);
-                }
-            }
-
-            if (progress < 1) {
-                trailAnimationRef.current = requestAnimationFrame(animate);
-            } else if (loop) {
-                // 循环播放
-                startTime = null;
-                trailAnimationRef.current = requestAnimationFrame(animate);
-            }
-        };
-
-        trailAnimationRef.current = requestAnimationFrame(animate);
-
-        return () => {
-            if (trailAnimationRef.current) {
-                cancelAnimationFrame(trailAnimationRef.current);
-            }
-        };
-    }, [trailAnimation, animationProgress, allPoints, getDatasetOpacity]);
-
     // 绘制图表
     const drawChart = useCallback(() => {
         const canvas = canvasRef.current;
@@ -1106,7 +928,8 @@ export const Line: React.FC<LineProps> = ({
             yAxis?.display !== false ? yAxis?.title?.text : undefined,
             xAxis?.grid,
             yAxis?.grid,
-            xAxis?.gridColor || DEFAULT_CONFIG.gridColor
+            xAxis?.gridColor || DEFAULT_CONFIG.gridColor,
+            xAxis?.tickInterval
         );
 
         // 绘制坐标轴
@@ -1225,52 +1048,6 @@ export const Line: React.FC<LineProps> = ({
             ctx.restore();
         });
 
-        // 绘制轨迹动画（如果启用且动画完成）
-        if (trailAnimation?.enabled && animationProgress >= 1 && trailProgress > 0 && trailProgress < 1) {
-            // 找到第一个可见的数据集
-            let targetPoints: ComputedPoint[] | null = null;
-            let targetDatasetIndex = -1;
-            for (let i = 0; i < allPoints.length; i++) {
-                if (getDatasetOpacity(i) > 0.1) {
-                    targetPoints = allPoints[i];
-                    targetDatasetIndex = i;
-                    break;
-                }
-            }
-
-            if (targetPoints && targetPoints.length > 1) {
-                const dataset = data.datasets[targetDatasetIndex];
-                const color = getDatasetColor(targetDatasetIndex, dataset);
-
-                // 根据轨迹进度截取点
-                const visibleCount = Math.max(2, Math.floor(targetPoints.length * trailProgress));
-                const trailPoints = targetPoints.slice(0, visibleCount);
-
-                // 绘制轨迹线条（更粗的发光效果）
-                if (trailPoints.length >= 2) {
-                    ctx.save();
-                    ctx.globalAlpha = (trailAnimation.trailOpacity ?? 0.6) * 0.8;
-                    ctx.shadowColor = trailAnimation.trailColor || color;
-                    ctx.shadowBlur = (trailAnimation.trailLength || 20) * 0.5;
-
-                    const trailWidth = (trailAnimation.trailWidth || 6);
-
-                    if (smooth) {
-                        drawSmoothLine(ctx, trailPoints, trailAnimation.trailColor || color, trailWidth);
-                    } else {
-                        drawStraightLine(ctx, trailPoints, trailAnimation.trailColor || color, trailWidth);
-                    }
-                    ctx.restore();
-                }
-
-                // 绘制轨迹点
-                const currentPoint = getPointOnPath(targetPoints, trailProgress);
-                if (currentPoint) {
-                    drawTrailPoint(ctx, currentPoint, color, trailAnimation);
-                }
-            }
-        }
-
         // 绘制竖线（竖线模式下）
         if (verticalLine?.enabled && hoveredDataIndex !== null && animationProgress >= 1) {
             const { padding, chartHeight } = chartConfig;
@@ -1370,8 +1147,6 @@ export const Line: React.FC<LineProps> = ({
         legend,
         smooth,
         threshold,
-        trailAnimation,
-        trailProgress,
         animationProgress,
         hoveredPoint,
         hoveredDataIndex,
@@ -1588,15 +1363,6 @@ export const Line: React.FC<LineProps> = ({
             }],
         };
     }, [hoveredPoint, data, verticalLine, hoveredDataIndex, getDatasetOpacity]);
-
-    // 组件卸载时清理动画
-    useEffect(() => {
-        return () => {
-            if (trailAnimationRef.current) {
-                cancelAnimationFrame(trailAnimationRef.current);
-            }
-        };
-    }, []);
 
     return (
         <div

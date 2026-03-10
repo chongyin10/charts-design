@@ -100,6 +100,8 @@ export interface LineAxisConfig {
   max?: number;
   /** 网格线配置 */
   grid?: LineGridConfig;
+  /** 标签间隔，每 n 个标签显示一个（默认为1，显示所有标签） */
+  tickInterval?: number;
 }
 
 /**
@@ -170,26 +172,6 @@ export interface LineVerticalLineConfig {
 }
 
 /**
- * 轨迹动画配置
- */
-export interface LineTrailAnimationConfig {
-  /** 是否启用轨迹动画（默认 false） */
-  enabled?: boolean;
-  /** 轨迹动画时长（毫秒） */
-  duration?: number;
-  /** 轨迹颜色（默认与线条颜色相同） */
-  trailColor?: string;
-  /** 轨迹宽度（默认比线条宽 2px） */
-  trailWidth?: number;
-  /** 轨迹长度（像素，默认 20） */
-  trailLength?: number;
-  /** 轨迹透明度（0-1，默认 0.6） */
-  trailOpacity?: number;
-  /** 是否循环播放（默认 false） */
-  loop?: boolean;
-}
-
-/**
  * 轨道样式配置
  * 用于配置数据点之间的轨道连接线样式
  */
@@ -241,8 +223,6 @@ export interface LineProps {
   tooltip?: LineTooltipConfig;
   /** 预警线配置 */
   threshold?: LineThresholdConfig;
-  /** 轨迹动画配置 */
-  trailAnimation?: LineTrailAnimationConfig;
   /** 竖线配置 */
   verticalLine?: LineVerticalLineConfig;
   /** 动画时长（毫秒） */

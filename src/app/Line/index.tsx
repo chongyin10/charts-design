@@ -151,21 +151,6 @@ export default function LineChartPage() {
         ],
     };
 
-    // 轨迹动画示例数据
-    const trailAnimationData: LineChartData = {
-        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-        datasets: [
-            {
-                label: '2023年趋势',
-                data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
-                track: {
-                    color: '#3b82f6',
-                    width: 2,
-                },
-            },
-        ],
-    };
-
     // 分组数据示例 - 按日期分组的多线图数据
     const groupedData: LineChartData = {
         labels: ['2018/8/1', '2018/8/2', '2018/8/3', '2018/8/4', '2018/8/5', '2018/8/6', '2018/8/7', '2018/8/8', '2018/8/9', '2018/8/10', '2018/8/11', '2018/8/12', '2018/8/13', '2018/8/14', '2018/8/15'],
@@ -696,43 +681,6 @@ const PointExample = () => {
     );
 };`;
 
-    // 轨迹动画示例代码
-    const trailAnimationCode = `import { Line } from '@zjpcy/charts-design';
-
-const TrailAnimationExample = () => {
-    const data = {
-        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-        datasets: [
-            {
-                label: '2023年销售额',
-                data: [15000, 22000, 18000, 28000, 25000, 32000, 30000, 38000, 35000, 42000, 45000, 48000],
-                color: '#3b82f6',
-                width: 2,
-            },
-        ],
-    };
-
-    return (
-        <Line
-            data={data}
-            width={500}
-            height={300}
-            trailAnimation={{
-                enabled: true,        // 启用轨迹动画
-                duration: 3000,       // 动画时长 3 秒
-                trailColor: '#10b981', // 轨迹颜色（绿色）
-                trailWidth: 8,        // 轨迹宽度
-                trailLength: 25,      // 轨迹长度（像素）
-                trailOpacity: 0.7,    // 轨迹透明度
-                loop: true,           // 循环播放
-            }}
-            xAxis={{ display: true, title: { text: '月份' } }}
-            yAxis={{ display: true, title: { text: '销售额 (元)' } }}
-            smooth={true}
-        />
-    );
-};`;
-
     // 轨道连接示例代码（更新为最新 API）
     const trackConnectionCode = `import { Line } from '@zjpcy/charts-design';
 
@@ -941,7 +889,8 @@ const JsonDataExample = () => {
             xAxis={{
                 display: true,
                 title: { text: '日期' },
-                grid: { display: true, opacity: 0.3 }
+                grid: { display: true, opacity: 0.3 },
+                tickInterval: 30,
             }}
             yAxis={{
                 display: true,
@@ -979,7 +928,6 @@ const JsonDataExample = () => {
         { param: 'legend', description: '图例配置', type: 'LineLegendConfig', default: '-' },
         { param: 'tooltip', description: '提示框配置', type: 'LineTooltipConfig', default: '-' },
         { param: 'threshold', description: '预警线配置', type: 'LineThresholdConfig', default: '-' },
-        { param: 'trailAnimation', description: '轨迹动画配置', type: 'LineTrailAnimationConfig', default: '-' },
         { param: 'verticalLine', description: '竖线配置', type: 'LineVerticalLineConfig', default: '-' },
         { param: 'className', description: '自定义类名', type: 'string', default: '-' },
         { param: 'style', description: '自定义样式', type: 'React.CSSProperties', default: '-' },
@@ -1018,17 +966,6 @@ const JsonDataExample = () => {
         { param: 'color', description: '数据点边框颜色', type: 'string', default: '与线条颜色相同' },
         { param: 'width', description: '数据点边框宽度', type: 'number', default: '2' },
         { param: 'backgroundColor', description: '数据点填充颜色', type: 'string', default: "'#fff'" },
-    ];
-
-    // 轨迹动画配置数据
-    const trailAnimationDataAPI = [
-        { param: 'enabled', description: '是否启用轨迹动画', type: 'boolean', default: 'false' },
-        { param: 'duration', description: '轨迹动画时长（毫秒）', type: 'number', default: '2000' },
-        { param: 'trailColor', description: '轨迹颜色', type: 'string', default: '与线条颜色相同' },
-        { param: 'trailWidth', description: '轨迹宽度', type: 'number', default: '6' },
-        { param: 'trailLength', description: '轨迹长度（像素）', type: 'number', default: '20' },
-        { param: 'trailOpacity', description: '轨迹透明度 (0-1)', type: 'number', default: '0.6' },
-        { param: 'loop', description: '是否循环播放', type: 'boolean', default: 'false' },
     ];
 
     // 轨道配置数据（Dataset 内部配置）
@@ -1090,7 +1027,7 @@ const JsonDataExample = () => {
                 {/* 左侧主内容区 */}
                 <div className={styles.mainContent}>
                     <h2 className={styles.sectionTitle} id="line-intro">Line 折线图</h2>
-                    <p className={styles.sectionText}>使用 Canvas 绘制的高性能折线图组件，支持多线对比、面积图、平滑曲线、轨迹动画等功能。</p>
+                    <p className={styles.sectionText}>使用 Canvas 绘制的高性能折线图组件，支持多线对比、面积图、平滑曲线等功能。</p>
 
                     {/* 基础折线图 */}
                     <div className={styles.exampleSection} id="line-basic">
@@ -1523,50 +1460,6 @@ const JsonDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
-                    {/* 轨迹动画示例 */}
-                    <div className={styles.exampleSection} id="line-trail">
-                        <h3 className={styles.subsectionTitle}>轨迹动画</h3>
-                        <p className={styles.sectionText}>在折线图上添加发光轨迹动画效果，线条从起点逐步绘制到终点，并跟随一个发光轨迹点。支持自定义轨迹颜色、宽度、长度、透明度和循环播放。</p>
-                        <div className={styles.exampleDemo}>
-                            <Line
-                                data={trailAnimationData}
-                                width={500}
-                                height={300}
-                                trailAnimation={{
-                                    enabled: true,
-                                    duration: 3000,
-                                    trailColor: '#10b981',
-                                    trailWidth: 8,
-                                    trailLength: 25,
-                                    trailOpacity: 0.7,
-                                    loop: true,
-                                }}
-                                xAxis={{
-                                    display: true,
-                                    title: { text: '月份' },
-                                }}
-                                yAxis={{
-                                    display: true,
-                                    title: { text: '销售额 (元)' },
-                                }}
-                                legend={{
-                                    display: true,
-                                    position: 'top',
-                                    labelColor: '#374151',
-                                    labelFontSize: 12,
-                                }}
-                                smooth={true}
-                            />
-                        </div>
-                        <div className={styles.codeHeader}>
-                            <span>示例代码</span>
-                            <CopyButton text={trailAnimationCode} />
-                        </div>
-                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {trailAnimationCode}
-                        </SyntaxHighlighter>
-                    </div>
-
                     {/* 轨道连接示例 - 更新为最新 API */}
                     <div className={styles.exampleSection} id="line-track-connection">
                         <h3 className={styles.subsectionTitle}>轨道连接</h3>
@@ -1666,13 +1559,20 @@ const JsonDataExample = () => {
                                 width={700}
                                 height={400}
                                 smooth={true}
+                                verticalLine={{
+                                    enabled: true,          // 启用竖线功能
+                                    color: '#999',          // 竖线颜色
+                                    lineWidth: 1,           // 竖线宽度
+                                    dash: [5, 5],           // 虚线样式（可选）
+                                }}
                                 xAxis={{
                                     display: true,
                                     title: { text: '日期' },
                                     grid: {
                                         display: true,
                                         opacity: 0.3,
-                                    }
+                                    },
+                                    tickInterval: 30,
                                 }}
                                 yAxis={{
                                     display: true,
@@ -1749,15 +1649,6 @@ const JsonDataExample = () => {
                         </div>
                     </div>
 
-                    {/* TrailAnimation 配置 */}
-                    <div className={styles.exampleSection} id="line-trail-api">
-                        <h3 className={styles.subsectionTitle}>TrailAnimation 配置</h3>
-                        <p className={styles.sectionText}>轨迹动画配置项说明。</p>
-                        <div className={styles.apiTable}>
-                            <Table columns={datasetColumns} dataSource={trailAnimationDataAPI} />
-                        </div>
-                    </div>
-
                     {/* VerticalLine 配置 */}
                     <div className={styles.exampleSection} id="line-vertical-api">
                         <h3 className={styles.subsectionTitle}>VerticalLine 配置</h3>
@@ -1825,7 +1716,6 @@ const JsonDataExample = () => {
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
                                 <Anchor.Link href="#line-vertical" title="竖线功能" />
                                 <Anchor.Link href="#line-point" title="数据点配置" />
-                                <Anchor.Link href="#line-trail" title="轨迹动画" />
                                 <Anchor.Link href="#line-track-connection" title="轨道连接" />
                                 <Anchor.Link href="#line-grouped" title="分组数据" />
                                 <Anchor.Link href="#line-json-data" title="JSON 数据加载" />
@@ -1834,7 +1724,6 @@ const JsonDataExample = () => {
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
                                 <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
                                 <Anchor.Link href="#line-grid-api" title="Grid 配置" />
-                                <Anchor.Link href="#line-trail-api" title="TrailAnimation 配置" />
                                 <Anchor.Link href="#line-vertical-api" title="VerticalLine 配置" />
                                 <Anchor.Link href="#line-point-api" title="Point 配置" />
                                 <Anchor.Link href="#line-track-api" title="Track 配置" />
