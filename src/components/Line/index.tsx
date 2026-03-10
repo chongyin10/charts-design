@@ -747,82 +747,6 @@ const drawPoints = (
     });
 };
 
-/**
- * 绘制图例
- * 返回图例点击区域信息
- */
-const drawLegend = (
-    ctx: CanvasRenderingContext2D,
-    data: LineChartData,
-    width: number,
-    config: LineChartConfig,
-    textColor: string,
-    fontSize: number,
-    hiddenDatasets: Set<number>,
-    datasetOpacity: (index: number) => number
-): Array<{ x: number; y: number; width: number; height: number; datasetIndex: number }> => {
-    const legendY = config.padding / 2;
-    const itemSpacing = 100;
-    const totalWidth = data.datasets.length * itemSpacing;
-    const startX = (width - totalWidth) / 2 + 30;
-    const hitAreas: Array<{ x: number; y: number; width: number; height: number; datasetIndex: number }> = [];
-
-    ctx.font = `${fontSize}px sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-
-    data.datasets.forEach((dataset, index) => {
-        const x = startX + index * itemSpacing;
-        const color = getDatasetColor(index, dataset);
-        const opacity = datasetOpacity(index);
-        const isHidden = opacity < 0.5;
-
-        // 测量文字宽度
-        const textWidth = ctx.measureText(dataset.label).width;
-        const hitAreaPadding = 8;
-        const hitAreaX = x - 25 - hitAreaPadding;
-        const hitAreaWidth = 20 + textWidth + hitAreaPadding * 2;
-        const hitAreaHeight = fontSize + hitAreaPadding * 2;
-
-        // 存储点击区域
-        hitAreas.push({
-            x: hitAreaX,
-            y: legendY - hitAreaHeight / 2,
-            width: hitAreaWidth,
-            height: hitAreaHeight,
-            datasetIndex: index,
-        });
-
-        ctx.save();
-        ctx.globalAlpha = isHidden ? 0.3 : 1;
-
-        // 绘制线条
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(x - 25, legendY);
-        ctx.lineTo(x - 5, legendY);
-        ctx.stroke();
-
-        // 绘制文字
-        ctx.fillStyle = textColor;
-        ctx.fillText(dataset.label, x, legendY);
-
-        // 隐藏时绘制删除线
-        if (isHidden) {
-            ctx.strokeStyle = '#999';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x - 25, legendY);
-            ctx.lineTo(x + textWidth, legendY);
-            ctx.stroke();
-        }
-
-        ctx.restore();
-    });
-
-    return hitAreas;
-};
 
 /**
  * 折线图组件
@@ -863,8 +787,6 @@ export const Line: React.FC<LineProps> = ({
     const [opacityVersion, setOpacityVersion] = useState(0);
 
     const pointsRef = useRef<ComputedPoint[][]>([]);
-    // 存储图例点击区域
-    const legendHitAreasRef = useRef<Array<{ x: number; y: number; width: number; height: number; datasetIndex: number }>>([]);
 
     // 动画持续时间（毫秒）
     const ANIMATION_DURATION = 300;
@@ -1114,19 +1036,7 @@ export const Line: React.FC<LineProps> = ({
             ctx.restore();
         }
 
-        // 绘制图例
-        if (legend?.display !== false) {
-            legendHitAreasRef.current = drawLegend(
-                ctx,
-                data,
-                width,
-                chartConfig,
-                legend?.labelColor || DEFAULT_CONFIG.textColor,
-                legend?.labelFontSize || DEFAULT_CONFIG.fontSize,
-                hiddenDatasets,
-                getDatasetOpacity
-            );
-        }
+        // 图例已从 Canvas 绘制改为 DOM 渲染
 
         // 保存计算的点用于交互
         pointsRef.current = allPoints;
@@ -1171,16 +1081,6 @@ export const Line: React.FC<LineProps> = ({
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
-            // 检查是否在图例区域
-            const isLegendArea = y < chartConfig.padding / 2 + 15 && y > chartConfig.padding / 2 - 15;
-            if (isLegendArea) {
-                canvas.style.cursor = legendHitAreasRef.current.some(
-                    (area) => x >= area.x && x <= area.x + area.width && y >= area.y && y <= area.y + area.height
-                ) ? 'pointer' : 'default';
-            } else {
-                canvas.style.cursor = 'default';
-            }
-
             // 竖线模式：根据 X 轴位置查找最近的数据索引
             if (verticalLine?.enabled) {
                 const { padding, chartWidth } = chartConfig;
@@ -1195,8 +1095,12 @@ export const Line: React.FC<LineProps> = ({
                     closestIndex = Math.max(0, Math.min(closestIndex, labelsLength - 1));
                 }
 
-                // 检查鼠标是否在有效的图表区域内
-                const isInChartArea = x >= padding - step / 2 && x <= width - padding + step / 2;
+                // 检查鼠标是否在有效的图表区域内（只在绘图网格区域内才显示竖线）
+                const isInChartArea =
+                    x >= padding - step / 2 &&
+                    x <= width - padding + step / 2 &&
+                    y >= padding &&
+                    y <= height - padding;
                 
                 if (isInChartArea) {
                     setHoveredDataIndex(closestIndex);
@@ -1288,37 +1192,6 @@ export const Line: React.FC<LineProps> = ({
             if (!canvas) return;
 
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            // 检查是否点击了图例项
-            const hitArea = legendHitAreasRef.current.find(
-                (area) => x >= area.x && x <= area.x + area.width && y >= area.y && y <= area.y + area.height
-            );
-
-            if (hitArea) {
-                // 点击了图例，切换显示/隐藏（带动画）
-                const datasetIndex = hitArea.datasetIndex;
-                // 根据当前透明度判断是否需要显示或隐藏
-                const currentOpacity = datasetOpacityRef.current.get(datasetIndex) ?? 1;
-                const isCurrentlyVisible = currentOpacity > 0.5;
-
-                // 更新隐藏状态（用于图例样式）
-                setHiddenDatasets((prev) => {
-                    const newSet = new Set(prev);
-                    if (newSet.has(datasetIndex)) {
-                        newSet.delete(datasetIndex);
-                    } else {
-                        newSet.add(datasetIndex);
-                    }
-                    return newSet;
-                });
-
-                // 执行透明度动画
-                animateOpacity(datasetIndex, isCurrentlyVisible ? 0 : 1);
-                return;
-            }
-
             // 点击了数据点
             if (!hoveredPoint || !onDataClick) return;
             onDataClick(hoveredPoint.datasetIndex, hoveredPoint.dataIndex, hoveredPoint.value);
@@ -1368,8 +1241,55 @@ export const Line: React.FC<LineProps> = ({
         <div
             ref={containerRef}
             className={classNames(styles.zcpcyChatsLineChartContainer, className)}
-            style={{ ...style, width, height }}
+            style={{ ...style, width }}
         >
+            {/* 图例区域 - 独立渲染在 Canvas 上方 */}
+            {legend?.display !== false && data.datasets.length > 0 && (
+                <div
+                    className={styles.zcpcyChatsLegend}
+                    style={{
+                        justifyContent: legend?.position === 'bottom' ? 'center' : 'center',
+                        marginBottom: legend?.position === 'bottom' ? 0 : 12,
+                        marginTop: legend?.position === 'top' ? 0 : 12,
+                        order: legend?.position === 'bottom' ? 2 : 0,
+                    }}
+                >
+                    {data.datasets.map((dataset, index) => {
+                        const color = getDatasetColor(index, dataset);
+                        const isHidden = hiddenDatasets.has(index);
+                        return (
+                            <div
+                                key={index}
+                                className={classNames(
+                                    styles.zcpcyChatsLegendItem,
+                                    isHidden && styles.zcpcyChatsLegendDisabled
+                                )}
+                                onClick={() => {
+                                    const currentOpacity = datasetOpacityRef.current.get(index) ?? 1;
+                                    const isCurrentlyVisible = currentOpacity > 0.5;
+                                    setHiddenDatasets((prev) => {
+                                        const newSet = new Set(prev);
+                                        if (newSet.has(index)) {
+                                            newSet.delete(index);
+                                        } else {
+                                            newSet.add(index);
+                                        }
+                                        return newSet;
+                                    });
+                                    animateOpacity(index, isCurrentlyVisible ? 0 : 1);
+                                }}
+                            >
+                                <span
+                                    className={styles.zcpcyChatsLegendColor}
+                                    style={{ backgroundColor: color }}
+                                />
+                                <span>{dataset.label}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
             <canvas
                 ref={canvasRef}
                 width={width}
