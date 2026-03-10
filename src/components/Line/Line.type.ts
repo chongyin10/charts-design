@@ -39,6 +39,24 @@ export interface LineChartData {
 }
 
 /**
+ * 网格线配置
+ */
+export interface LineGridConfig {
+  /** 是否显示网格线 */
+  display?: boolean;
+  /** 网格线颜色 */
+  color?: string;
+  /** 网格线宽度 */
+  lineWidth?: number;
+  /** 网格线透明度 (0-1) */
+  opacity?: number;
+  /** 是否显示垂直网格线 (X轴方向) */
+  vertical?: boolean;
+  /** 是否显示水平网格线 (Y轴方向) */
+  horizontal?: boolean;
+}
+
+/**
  * 坐标轴配置
  */
 export interface LineAxisConfig {
@@ -50,7 +68,7 @@ export interface LineAxisConfig {
     color?: string;
     fontSize?: number;
   };
-  /** 网格线颜色 */
+  /** 网格线颜色 (已废弃，请使用 grid 配置) */
   gridColor?: string;
   /** 标签颜色 */
   tickColor?: string;
@@ -60,6 +78,8 @@ export interface LineAxisConfig {
   min?: number;
   /** 最大值 */
   max?: number;
+  /** 网格线配置 */
+  grid?: LineGridConfig;
 }
 
 /**

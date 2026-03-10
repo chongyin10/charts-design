@@ -417,6 +417,52 @@ const ThresholdLineExample = () => {
     );
 };`;
 
+    // 网格线示例代码
+    const gridCode = `import { Line } from '@zjpcy/charts-design';
+
+const GridLineExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            {
+                label: '销售额',
+                data: [12000, 19000, 15000, 25000, 22000, 30000],
+                borderColor: '#3b82f6',
+                borderWidth: 2,
+            },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            xAxis={{
+                display: true,
+                title: { text: '月份' },
+                grid: {
+                    display: true,      // 显示网格线
+                    color: '#e5e7eb',   // 网格线颜色
+                    lineWidth: 1,       // 网格线宽度
+                    opacity: 0.5,       // 网格线透明度
+                    vertical: true,     // 显示垂直网格线
+                    horizontal: false,  // 不显示水平网格线
+                }
+            }}
+            yAxis={{
+                display: true,
+                title: { text: '销售额 (元)' },
+                grid: {
+                    display: true,
+                    color: '#3b82f6',
+                    opacity: 0.2,
+                }
+            }}
+        />
+    );
+};`;
+
     // API 表格列定义
     const apiColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -449,6 +495,16 @@ const ThresholdLineExample = () => {
         { param: 'aboveFillColor', description: '预警线上方区域填充颜色', type: 'string', default: '-' },
         { param: 'showLabel', description: '是否显示预警线标签', type: 'boolean', default: 'true' },
         { param: 'label', description: '预警线标签文字', type: 'string', default: "'预警值: {value}'" },
+    ];
+
+    // 网格线配置数据
+    const gridDataAPI = [
+        { param: 'display', description: '是否显示网格线', type: 'boolean', default: 'false' },
+        { param: 'color', description: '网格线颜色', type: 'string', default: "'#e5e7eb'" },
+        { param: 'lineWidth', description: '网格线宽度', type: 'number', default: '1' },
+        { param: 'opacity', description: '网格线透明度 (0-1)', type: 'number', default: '1' },
+        { param: 'vertical', description: '是否显示垂直网格线', type: 'boolean', default: 'true' },
+        { param: 'horizontal', description: '是否显示水平网格线', type: 'boolean', default: 'true' },
     ];
 
     // Dataset 配置表格
@@ -734,6 +790,53 @@ const ThresholdLineExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 网格线示例 */}
+                    <div className={styles.exampleSection} id="line-grid">
+                        <h3 className={styles.subsectionTitle}>网格线配置</h3>
+                        <p className={styles.sectionText}>通过配置 xAxis/yAxis 的 grid 属性，可自定义网格线的显示、颜色、宽度和透明度。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={basicData}
+                                width={500}
+                                height={300}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                    grid: {
+                                        display: true,
+                                        color: '#e5e7eb',
+                                        lineWidth: 1,
+                                        opacity: 0.5,
+                                        vertical: true,
+                                        horizontal: false,
+                                    }
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (元)' },
+                                    grid: {
+                                        display: true,
+                                        color: '#3b82f6',
+                                        opacity: 0.2,
+                                    }
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={gridCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {gridCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -774,6 +877,15 @@ const ThresholdLineExample = () => {
                             <Table columns={datasetColumns} dataSource={thresholdDataAPI} />
                         </div>
                     </div>
+
+                    {/* Grid 配置 */}
+                    <div className={styles.exampleSection} id="line-grid-api">
+                        <h3 className={styles.subsectionTitle}>Grid 配置</h3>
+                        <p className={styles.sectionText}>网格线配置项说明（在 xAxis 或 yAxis 的 grid 属性中配置）。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={gridDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -794,10 +906,12 @@ const ThresholdLineExample = () => {
                                 <Anchor.Link href="#line-click" title="点击事件" />
                                 <Anchor.Link href="#line-legend" title="图例配置" />
                                 <Anchor.Link href="#line-threshold" title="预警线" />
+                                <Anchor.Link href="#line-grid" title="网格线配置" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
                                 <Anchor.Link href="#line-threshold-api" title="Threshold 配置" />
+                                <Anchor.Link href="#line-grid-api" title="Grid 配置" />
                             </Anchor>
                         )}
                     </div>

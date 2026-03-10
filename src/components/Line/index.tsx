@@ -38,7 +38,9 @@ const DEFAULT_CONFIG = {
   gridColor: '#e5e7eb',
   textColor: '#6b7280',
   axisColor: '#d1d5db',
-  tooltipBackground: 'rgba(0, 0, 0, 0.8)',
+  tooltipBackground: '#ffffff',
+  tooltipTitleColor: '#111827',
+  tooltipBodyColor: '#374151',
   fontSize: 12,
   titleFontSize: 14,
 };
@@ -126,36 +128,38 @@ const drawGrid = (
   width: number,
   height: number,
   labels: string[],
-  gridColor: string,
   textColor: string,
   fontSize: number,
   xAxisTitle?: string,
-  yAxisTitle?: string
+  yAxisTitle?: string,
+  xAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
+  yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
+  legacyGridColor?: string
 ): void => {
   const { padding, chartWidth, chartHeight, maxValue, minValue } = config;
 
-  ctx.strokeStyle = gridColor;
+  // 确定是否显示网格线
+  const showGrid = xAxisGrid?.display !== false || yAxisGrid?.display !== false;
+  
+  // 网格线默认配置
+  const defaultGridColor = legacyGridColor || '#e5e7eb';
+  const defaultLineWidth = 1;
+  const defaultOpacity = 1;
+
   ctx.fillStyle = textColor;
   ctx.font = `${fontSize}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'top';
 
-  // 绘制 X 轴网格线和标签
+  // 绘制 X 轴标签
   const xStep = chartWidth / Math.max(1, labels.length - 1);
   labels.forEach((label, index) => {
     const x = padding + index * xStep;
-
-    // 垂直网格线
-    ctx.beginPath();
-    ctx.moveTo(x, padding);
-    ctx.lineTo(x, height - padding);
-    ctx.stroke();
-
     // X 轴标签
     ctx.fillText(label, x, height - padding + 8);
   });
 
-  // 绘制 Y 轴网格线和标签
+  // 绘制 Y 轴标签
   const yGridCount = 5;
   ctx.textAlign = 'right';
   ctx.textBaseline = 'middle';
@@ -164,15 +168,45 @@ const drawGrid = (
     const ratio = i / yGridCount;
     const y = height - padding - ratio * chartHeight;
     const value = minValue + ratio * (maxValue - minValue);
-
-    // 水平网格线
-    ctx.beginPath();
-    ctx.moveTo(padding, y);
-    ctx.lineTo(width - padding, y);
-    ctx.stroke();
-
     // Y 轴标签
     ctx.fillText(value.toFixed(0), padding - 8, y);
+  }
+
+  // 绘制垂直网格线 (X轴方向)
+  const showVerticalGrid = xAxisGrid?.vertical !== false && showGrid;
+  if (showVerticalGrid) {
+    ctx.save();
+    ctx.strokeStyle = xAxisGrid?.color || defaultGridColor;
+    ctx.lineWidth = xAxisGrid?.lineWidth || defaultLineWidth;
+    ctx.globalAlpha = xAxisGrid?.opacity ?? defaultOpacity;
+    
+    labels.forEach((_, index) => {
+      const x = padding + index * xStep;
+      ctx.beginPath();
+      ctx.moveTo(x, padding);
+      ctx.lineTo(x, height - padding);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // 绘制水平网格线 (Y轴方向)
+  const showHorizontalGrid = yAxisGrid?.horizontal !== false && showGrid;
+  if (showHorizontalGrid) {
+    ctx.save();
+    ctx.strokeStyle = yAxisGrid?.color || xAxisGrid?.color || defaultGridColor;
+    ctx.lineWidth = yAxisGrid?.lineWidth || xAxisGrid?.lineWidth || defaultLineWidth;
+    ctx.globalAlpha = yAxisGrid?.opacity ?? xAxisGrid?.opacity ?? defaultOpacity;
+    
+    for (let i = 0; i <= yGridCount; i++) {
+      const ratio = i / yGridCount;
+      const y = height - padding - ratio * chartHeight;
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(width - padding, y);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // 绘制轴标题
@@ -639,18 +673,20 @@ export const Line: React.FC<LineProps> = ({
     // 清空画布
     ctx.clearRect(0, 0, width, height);
 
-    // 绘制网格（始终显示）
+    // 绘制网格（默认不显示，需要配置 grid.display: true）
     drawGrid(
       ctx,
       chartConfig,
       width,
       height,
       data.labels,
-      xAxis?.gridColor || DEFAULT_CONFIG.gridColor,
       xAxis?.tickColor || DEFAULT_CONFIG.textColor,
       xAxis?.tickFontSize || DEFAULT_CONFIG.fontSize,
       xAxis?.display !== false ? xAxis?.title?.text : undefined,
-      yAxis?.display !== false ? yAxis?.title?.text : undefined
+      yAxis?.display !== false ? yAxis?.title?.text : undefined,
+      xAxis?.grid,
+      yAxis?.grid,
+      xAxis?.gridColor || DEFAULT_CONFIG.gridColor
     );
 
     // 绘制坐标轴
@@ -961,7 +997,7 @@ export const Line: React.FC<LineProps> = ({
         >
           <div
             className={styles.zcpcyChatsTooltipTitle}
-            style={{ color: tooltip?.titleColor || '#fff' }}
+            style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
           >
             {tooltipContent.title}
           </div>
@@ -970,7 +1006,7 @@ export const Line: React.FC<LineProps> = ({
               className={styles.zcpcyChatsTooltipColor}
               style={{ backgroundColor: tooltipContent.color }}
             />
-            <span style={{ color: tooltip?.bodyColor || '#fff' }}>
+            <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
               {tooltipContent.label}: {tooltipContent.value}
             </span>
           </div>
