@@ -1,6 +1,7 @@
 // 库入口文件 - 导出所有组件和工具
-export { Line } from './components/Line';
-export { Column } from './components/Column';
+// 使用子路径导入获取按需加载支持
+export { Line, default as LineDefault } from './components/Line';
+export { Column, default as ColumnDefault } from './components/Column';
 
 // 导出类型定义
 export type {
