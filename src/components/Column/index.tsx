@@ -692,6 +692,8 @@ export const Column: React.FC<ColumnProps> = ({
 
     const dataset = data.datasets[hoveredColumn.datasetIndex];
     return {
+      dataIndex: hoveredColumn.dataIndex,
+      label: hoveredColumn.label,
       title: hoveredColumn.label,
       items: [{
         label: dataset.label,
@@ -775,23 +777,33 @@ export const Column: React.FC<ColumnProps> = ({
             backgroundColor: tooltip?.backgroundColor || DEFAULT_CONFIG.tooltipBackground,
           }}
         >
-          <div
-            className={styles.zcpcyChatsTooltipTitle}
-            style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
-          >
-            {tooltipContent.title}
-          </div>
-          {tooltipContent.items.map((item, index) => (
-            <div key={index} className={styles.zcpcyChatsTooltipItem}>
-              <span
-                className={styles.zcpcyChatsTooltipColor}
-                style={{ backgroundColor: item.color }}
-              />
-              <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
-                {item.label}: {item.value}
-              </span>
-            </div>
-          ))}
+          {tooltip?.customContent ? (
+            tooltip.customContent({
+              dataIndex: tooltipContent.dataIndex,
+              label: tooltipContent.label,
+              items: tooltipContent.items,
+            })
+          ) : (
+            <>
+              <div
+                className={styles.zcpcyChatsTooltipTitle}
+                style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
+              >
+                {tooltipContent.title}
+              </div>
+              {tooltipContent.items.map((item, index) => (
+                <div key={index} className={styles.zcpcyChatsTooltipItem}>
+                  <span
+                    className={styles.zcpcyChatsTooltipColor}
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
+                    {item.label}: {item.value}
+                  </span>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 

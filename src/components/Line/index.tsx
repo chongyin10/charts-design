@@ -1247,6 +1247,8 @@ export const Line: React.FC<LineProps> = ({
                 }
             });
             return {
+                dataIndex: hoveredDataIndex,
+                label: data.labels[hoveredDataIndex] || '',
                 title: data.labels[hoveredDataIndex] || '',
                 items,
             };
@@ -1255,6 +1257,8 @@ export const Line: React.FC<LineProps> = ({
         // 普通模式：显示单个数据点
         const dataset = data.datasets[hoveredPoint.datasetIndex];
         return {
+            dataIndex: hoveredPoint.dataIndex,
+            label: hoveredPoint.label,
             title: hoveredPoint.label,
             items: [{
                 label: dataset.label,
@@ -1338,23 +1342,33 @@ export const Line: React.FC<LineProps> = ({
                         backgroundColor: tooltip?.backgroundColor || DEFAULT_CONFIG.tooltipBackground,
                     }}
                 >
-                    <div
-                        className={styles.zcpcyChatsTooltipTitle}
-                        style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
-                    >
-                        {tooltipContent.title}
-                    </div>
-                    {tooltipContent.items.map((item, index) => (
-                        <div key={index} className={styles.zcpcyChatsTooltipItem}>
-                            <span
-                                className={styles.zcpcyChatsTooltipColor}
-                                style={{ backgroundColor: item.color }}
-                            />
-                            <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
-                                {item.label}: {item.value}
-                            </span>
-                        </div>
-                    ))}
+                    {tooltip?.customContent ? (
+                        tooltip.customContent({
+                            dataIndex: tooltipContent.dataIndex,
+                            label: tooltipContent.label,
+                            items: tooltipContent.items,
+                        })
+                    ) : (
+                        <>
+                            <div
+                                className={styles.zcpcyChatsTooltipTitle}
+                                style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
+                            >
+                                {tooltipContent.title}
+                            </div>
+                            {tooltipContent.items.map((item, index) => (
+                                <div key={index} className={styles.zcpcyChatsTooltipItem}>
+                                    <span
+                                        className={styles.zcpcyChatsTooltipColor}
+                                        style={{ backgroundColor: item.color }}
+                                    />
+                                    <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
+                                        {item.label}: {item.value}
+                                    </span>
+                                </div>
+                            ))}
+                        </>
+                    )}
                 </div>
             )}
 

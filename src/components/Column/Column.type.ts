@@ -104,6 +104,15 @@ export interface ColumnTooltipConfig {
   bodyColor?: string;
   /** 字体大小 */
   fontSize?: number;
+  /** 自定义内容渲染函数，返回 React 节点 */
+  customContent?: (data: {
+    /** 当前悬停的数据索引 */
+    dataIndex: number;
+    /** X轴标签 */
+    label: string;
+    /** 数据项列表 */
+    items: ColumnTooltipItem[];
+  }) => React.ReactNode;
 }
 
 /**

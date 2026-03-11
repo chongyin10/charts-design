@@ -1019,6 +1019,7 @@ const JsonDataExample = () => {
         { param: 'titleColor', description: '标题颜色', type: 'string', default: "'#111827'" },
         { param: 'bodyColor', description: '内容颜色', type: 'string', default: "'#374151'" },
         { param: 'fontSize', description: '字体大小', type: 'number', default: '12' },
+        { param: 'customContent', description: '自定义内容渲染函数', type: '(data) => ReactNode', default: '-' },
     ];
 
     return (
@@ -1413,6 +1414,145 @@ const JsonDataExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* Tooltip 自定义内容示例 */}
+                    <div className={styles.exampleSection} id="line-tooltip-custom">
+                        <h3 className={styles.subsectionTitle}>Tooltip 自定义内容</h3>
+                        <p className={styles.sectionText}>通过 customContent 属性自定义 Tooltip 的显示内容，可以完全控制提示框的样式和展示信息。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={verticalLineData}
+                                width={500}
+                                height={300}
+                                verticalLine={{
+                                    enabled: true,
+                                }}
+                                tooltip={{
+                                    enabled: true,
+                                    customContent: ({ dataIndex, label, items }) => (
+                                        <div style={{ padding: '4px' }}>
+                                            <div style={{
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                                borderBottom: '1px solid #eee',
+                                                paddingBottom: '4px'
+                                            }}>
+                                                📅 {label}
+                                            </div>
+                                            {items.map((item) => (
+                                                <div
+                                                    key={item.datasetIndex}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        marginBottom: '4px'
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            width: '10px',
+                                                            height: '10px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: item.color
+                                                        }}
+                                                    />
+                                                    <span style={{ flex: 1 }}>{item.label}</span>
+                                                    <span style={{ fontWeight: 'bold', color: item.color }}>
+                                                        {item.value.toLocaleString()}元
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            <div style={{
+                                                marginTop: '8px',
+                                                paddingTop: '4px',
+                                                borderTop: '1px solid #eee',
+                                                fontSize: '11px',
+                                                color: '#999'
+                                            }}>
+                                                第 {dataIndex + 1} 期数据
+                                            </div>
+                                        </div>
+                                    ),
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={`import { Line } from '@zjpcy/charts-design';
+
+const CustomTooltipExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            { label: '产品 A', data: [120, 132, 101, 134, 90, 230] },
+            { label: '产品 B', data: [220, 182, 191, 234, 290, 330] },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            verticalLine={{ enabled: true }}
+            tooltip={{
+                enabled: true,
+                customContent: ({ dataIndex, label, items }) => (
+                    <div>
+                        <div>📅 {label}</div>
+                        {items.map((item) => (
+                            <div key={item.datasetIndex}>
+                                <span style={{ backgroundColor: item.color }} />
+                                <span>{item.label}: {item.value}元</span>
+                            </div>
+                        ))}
+                        <div>第 {dataIndex + 1} 期数据</div>
+                    </div>
+                ),
+            }}
+        />
+    );
+};`} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {`import { Line } from '@zjpcy/charts-design';
+
+const CustomTooltipExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        datasets: [
+            { label: '产品 A', data: [120, 132, 101, 134, 90, 230] },
+            { label: '产品 B', data: [220, 182, 191, 234, 290, 330] },
+        ],
+    };
+
+    return (
+        <Line
+            data={data}
+            width={500}
+            height={300}
+            verticalLine={{ enabled: true }}
+            tooltip={{
+                enabled: true,
+                customContent: ({ dataIndex, label, items }) => (
+                    <div>
+                        <div>📅 {label}</div>
+                        {items.map((item) => (
+                            <div key={item.datasetIndex}>
+                                <span style={{ backgroundColor: item.color }} />
+                                <span>{item.label}: {item.value}元</span>
+                            </div>
+                        ))}
+                        <div>第 {dataIndex + 1} 期数据</div>
+                    </div>
+                ),
+            }}
+        />
+    );
+};`}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 数据点配置示例 */}
                     <div className={styles.exampleSection} id="line-point">
                         <h3 className={styles.subsectionTitle}>数据点配置</h3>
@@ -1715,6 +1855,7 @@ const JsonDataExample = () => {
                                 <Anchor.Link href="#line-threshold" title="预警线" />
                                 <Anchor.Link href="#line-grid" title="网格线配置" />
                                 <Anchor.Link href="#line-vertical" title="竖线功能" />
+                                <Anchor.Link href="#line-tooltip-custom" title="Tooltip 自定义" />
                                 <Anchor.Link href="#line-point" title="数据点配置" />
                                 <Anchor.Link href="#line-track-connection" title="轨道连接" />
                                 <Anchor.Link href="#line-grouped" title="分组数据" />

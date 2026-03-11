@@ -539,6 +539,7 @@ const FullConfigExample = () => {
         { param: 'titleColor', description: '标题颜色', type: 'string', default: "'#111827'" },
         { param: 'bodyColor', description: '内容颜色', type: 'string', default: "'#374151'" },
         { param: 'fontSize', description: '字体大小', type: 'number', default: '12' },
+        { param: 'customContent', description: '自定义内容渲染函数', type: '(data) => ReactNode', default: '-' },
     ];
 
     return (
@@ -721,6 +722,152 @@ const FullConfigExample = () => {
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {clickCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* Tooltip 自定义内容示例 */}
+                    <div className={styles.exampleSection} id="column-tooltip-custom">
+                        <h3 className={styles.subsectionTitle}>Tooltip 自定义内容</h3>
+                        <p className={styles.sectionText}>通过 customContent 属性自定义 Tooltip 的显示内容，可以完全控制提示框的样式和展示信息。</p>
+                        <div className={styles.exampleDemo}>
+                            <Column
+                                data={groupedData}
+                                width={500}
+                                height={300}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '季度' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '销售额 (万元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                                tooltip={{
+                                    enabled: true,
+                                    customContent: ({ dataIndex, label, items }) => (
+                                        <div style={{ padding: '4px' }}>
+                                            <div style={{
+                                                fontWeight: 'bold',
+                                                marginBottom: '8px',
+                                                borderBottom: '1px solid #eee',
+                                                paddingBottom: '4px'
+                                            }}>
+                                                📊 {label}
+                                            </div>
+                                            {items.map((item) => (
+                                                <div
+                                                    key={item.datasetIndex}
+                                                    style={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: '8px',
+                                                        marginBottom: '4px'
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            width: '10px',
+                                                            height: '10px',
+                                                            borderRadius: '2px',
+                                                            backgroundColor: item.color
+                                                        }}
+                                                    />
+                                                    <span style={{ flex: 1 }}>{item.label}</span>
+                                                    <span style={{ fontWeight: 'bold', color: item.color }}>
+                                                        {item.value}万
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            <div style={{
+                                                marginTop: '8px',
+                                                paddingTop: '4px',
+                                                borderTop: '1px solid #eee',
+                                                fontSize: '11px',
+                                                color: '#999'
+                                            }}>
+                                                数据索引: {dataIndex}
+                                            </div>
+                                        </div>
+                                    ),
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={`import { Column } from '@zjpcy/charts-design';
+
+const CustomTooltipExample = () => {
+    const data = {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [
+            { label: '产品 A', data: [120, 132, 101, 134] },
+            { label: '产品 B', data: [220, 182, 191, 234] },
+        ],
+    };
+
+    return (
+        <Column
+            data={data}
+            width={500}
+            height={300}
+            tooltip={{
+                enabled: true,
+                customContent: ({ dataIndex, label, items }) => (
+                    <div>
+                        <div>📊 {label}</div>
+                        {items.map((item) => (
+                            <div key={item.datasetIndex}>
+                                <span style={{ backgroundColor: item.color }} />
+                                <span>{item.label}: {item.value}万</span>
+                            </div>
+                        ))}
+                        <div>数据索引: {dataIndex}</div>
+                    </div>
+                ),
+            }}
+        />
+    );
+};`} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {`import { Column } from '@zjpcy/charts-design';
+
+const CustomTooltipExample = () => {
+    const data = {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [
+            { label: '产品 A', data: [120, 132, 101, 134] },
+            { label: '产品 B', data: [220, 182, 191, 234] },
+        ],
+    };
+
+    return (
+        <Column
+            data={data}
+            width={500}
+            height={300}
+            tooltip={{
+                enabled: true,
+                customContent: ({ dataIndex, label, items }) => (
+                    <div>
+                        <div>📊 {label}</div>
+                        {items.map((item) => (
+                            <div key={item.datasetIndex}>
+                                <span style={{ backgroundColor: item.color }} />
+                                <span>{item.label}: {item.value}万</span>
+                            </div>
+                        ))}
+                        <div>数据索引: {dataIndex}</div>
+                    </div>
+                ),
+            }}
+        />
+    );
+};`}
                         </SyntaxHighlighter>
                     </div>
 
@@ -930,6 +1077,7 @@ const FullConfigExample = () => {
                                 <Anchor.Link href="#column-stacked" title="堆叠柱状图" />
                                 <Anchor.Link href="#column-rounded" title="圆角柱状图" />
                                 <Anchor.Link href="#column-click" title="点击事件" />
+                                <Anchor.Link href="#column-tooltip-custom" title="Tooltip 自定义" />
                                 <Anchor.Link href="#column-grid" title="网格线配置" />
                                 <Anchor.Link href="#column-full" title="完整配置" />
                                 <Anchor.Link href="#column-api" title="API 参考" />
