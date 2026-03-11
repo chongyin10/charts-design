@@ -21,6 +21,31 @@
   border-right: none;
 }
 
+/* 自定义菜单样式 */
+.menuWrapper {
+  padding: 8px 0;
+}
+
+.menuItem {
+  padding: 12px 24px;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  border-right: 3px solid transparent;
+}
+
+.menuItem:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menuItemActive {
+  color: #fff;
+  background: #1890ff;
+  border-right-color: #fff;
+}
+
 .header {
   background: white;
   padding: 0 24px;

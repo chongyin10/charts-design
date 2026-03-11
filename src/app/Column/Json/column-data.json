@@ -1,0 +1,71 @@
+{
+  "monthlySales": {
+    "title": "月度销售数据",
+    "description": "2023年与2024年月度销售额对比",
+    "labels": ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
+    "datasets": [
+      {
+        "label": "2023年销售额",
+        "data": [12000, 19000, 15000, 25000, 22000, 30000, 28000, 35000, 32000, 38000, 42000, 45000],
+        "backgroundColor": "#3b82f6"
+      },
+      {
+        "label": "2024年销售额",
+        "data": [15000, 22000, 18000, 28000, 26000, 35000, 32000, 40000, 38000, 45000, 48000, 52000],
+        "backgroundColor": "#10b981"
+      }
+    ]
+  },
+  "categorySales": {
+    "title": "产品分类销量",
+    "description": "各产品分类的销量统计",
+    "labels": ["电子产品", "服装", "食品", "家居", "图书", "运动"],
+    "datasets": [
+      {
+        "label": "销量",
+        "data": [450, 320, 280, 190, 150, 220],
+        "backgroundColor": "#8b5cf6",
+        "borderRadius": [8, 8, 0, 0]
+      }
+    ]
+  },
+  "quarterlyStacked": {
+    "title": "季度销售构成",
+    "description": "按渠道分解的季度销售额（堆叠数据）",
+    "labels": ["Q1", "Q2", "Q3", "Q4"],
+    "datasets": [
+      {
+        "label": "线上销售",
+        "data": [30, 45, 35, 50],
+        "backgroundColor": "#3b82f6"
+      },
+      {
+        "label": "线下销售",
+        "data": [20, 25, 30, 35],
+        "backgroundColor": "#10b981"
+      },
+      {
+        "label": "分销渠道",
+        "data": [15, 20, 25, 30],
+        "backgroundColor": "#f59e0b"
+      }
+    ]
+  },
+  "regionalComparison": {
+    "title": "区域销售对比",
+    "description": "不同区域的销售业绩对比",
+    "labels": ["华东", "华南", "华北", "西南", "西北"],
+    "datasets": [
+      {
+        "label": "目标",
+        "data": [100, 80, 60, 40, 30],
+        "backgroundColor": "#e5e7eb"
+      },
+      {
+        "label": "实际完成",
+        "data": [95, 85, 55, 45, 25],
+        "backgroundColor": "#3b82f6"
+      }
+    ]
+  }
+}

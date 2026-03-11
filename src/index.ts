@@ -1,5 +1,6 @@
 // 库入口文件 - 导出所有组件和工具
 export { Line } from './components/Line';
+export { Column } from './components/Column';
 
 // 导出类型定义
 export type {
@@ -11,8 +12,18 @@ export type {
   LineTooltipConfig,
   LineThresholdConfig,
   LineGridConfig,
-  LineTrailAnimationConfig,
 } from './components/Line/Line.type';
+
+export type {
+  ColumnProps,
+  ColumnChartData,
+  ColumnDataset,
+  ColumnAxisConfig,
+  ColumnLegendConfig,
+  ColumnTooltipConfig,
+  ColumnGridConfig,
+  ColumnConfig,
+} from './components/Column/Column.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';
