@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { Button, Layout, Menu } from '@zjpcy/simple-design';
 import '@zjpcy/simple-design/dist/cjs/index.css';
@@ -11,6 +11,20 @@ const { Header, Sider, Content } = Layout;
 
 export default function Home() {
     const [selectedKey, setSelectedKey] = useState('line');
+
+    // 从 URL hash 读取初始 key
+    useEffect(() => {
+        const hash = window.location.hash.replace('#/', '');
+        if (hash && (hash === 'line' || hash === 'column')) {
+            setSelectedKey(hash);
+        }
+    }, []);
+
+    // 切换菜单时更新 URL hash
+    const handleMenuChange = (_: unknown, key: string) => {
+        setSelectedKey(key);
+        window.location.hash = `#/${key}`;
+    };
 
     // 菜单项配置
     const menuItems = [
@@ -45,7 +59,8 @@ export default function Home() {
                     mode="inline"
                     items={menuItems}
                     className={styles.menu}
-                    onChange={(_, key) => setSelectedKey(key)}
+                    selectedKey={selectedKey}
+                    onChange={handleMenuChange}
                 />
             </Sider>
 

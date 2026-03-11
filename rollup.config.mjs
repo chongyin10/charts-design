@@ -4,15 +4,26 @@ import typescript from '@rollup/plugin-typescript';
 import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import postcss from 'rollup-plugin-postcss';
 import dts from 'rollup-plugin-dts';
-import { readFileSync, rmSync, existsSync, readdirSync, statSync } from 'fs';
+import { readFileSync, rmSync, existsSync, readdirSync, statSync, cpSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf-8'));
 
-// 组件列表 - 新增组件时在此添加
-const components = ['Line', 'Column'];
+// 自动读取 src/components 目录下的组件文件夹
+const getComponentNames = () => {
+  const componentsDir = join(__dirname, 'src', 'components');
+  if (!existsSync(componentsDir)) return [];
+
+  return readdirSync(componentsDir).filter((name) => {
+    const componentPath = join(componentsDir, name);
+    return statSync(componentPath).isDirectory();
+  });
+};
+
+const components = getComponentNames();
+console.log('[build] 发现组件:', components);
 
 // resolve 插件配置
 const resolveOptions = {
@@ -27,15 +38,58 @@ const resolveOptions = {
  */
 const cleanupExtraTypes = (lowerName, componentName) => {
   const typesDir = join(__dirname, 'dist', lowerName, 'types', 'components');
-  if (!existsSync(typesDir)) return;
-
-  const dirs = readdirSync(typesDir);
-  for (const dir of dirs) {
-    if (dir !== componentName) {
-      const dirPath = join(typesDir, dir);
-      rmSync(dirPath, { recursive: true, force: true });
-      console.log(`[cleanup] Removed extra types: ${dirPath}`);
+  if (existsSync(typesDir)) {
+    const dirs = readdirSync(typesDir);
+    for (const dir of dirs) {
+      if (dir !== componentName) {
+        const dirPath = join(typesDir, dir);
+        rmSync(dirPath, { recursive: true, force: true });
+        console.log(`[cleanup] Removed extra types: ${dirPath}`);
+      }
     }
+  }
+
+  // 清理公共类型定义（保留在全量构建的 types 目录中）
+  const hooksDir = join(__dirname, 'dist', lowerName, 'types', 'hooks');
+  const libDir = join(__dirname, 'dist', lowerName, 'types', 'lib');
+
+  if (existsSync(hooksDir)) {
+    rmSync(hooksDir, { recursive: true, force: true });
+    console.log(`[cleanup] Removed duplicate hooks types: ${lowerName}`);
+  }
+  if (existsSync(libDir)) {
+    rmSync(libDir, { recursive: true, force: true });
+    console.log(`[cleanup] Removed duplicate lib types: ${lowerName}`);
+  }
+};
+
+/**
+ * 复制公共类型到 dist/types 目录（只执行一次）
+ */
+const copySharedTypes = () => {
+  const fullTypesDir = join(__dirname, 'dist', 'types');
+
+  // 从第一个组件的 types 目录复制 hooks 和 lib（如果存在）
+  const firstComponent = components[0];
+  if (!firstComponent) return;
+
+  const firstComponentTypesDir = join(__dirname, 'dist', firstComponent.toLowerCase(), 'types');
+  const hooksSource = join(firstComponentTypesDir, 'hooks');
+  const libSource = join(firstComponentTypesDir, 'lib');
+
+  const targetHooksDir = join(fullTypesDir, 'hooks');
+  const targetLibDir = join(fullTypesDir, 'lib');
+
+  // 复制 hooks 类型
+  if (existsSync(hooksSource) && !existsSync(targetHooksDir)) {
+    cpSync(hooksSource, targetHooksDir, { recursive: true });
+    console.log(`[shared-types] Copied hooks types to dist/types/hooks`);
+  }
+
+  // 复制 lib 类型
+  if (existsSync(libSource) && !existsSync(targetLibDir)) {
+    cpSync(libSource, targetLibDir, { recursive: true });
+    console.log(`[shared-types] Copied lib types to dist/types/lib`);
   }
 };
 
@@ -145,6 +199,13 @@ const fullBundleConfig = [
       }),
       resolve(resolveOptions),
       commonjs(),
+      // 复制公共类型定义
+      {
+        name: 'copy-shared-types',
+        closeBundle() {
+          copySharedTypes();
+        },
+      },
     ],
     external: ['react', 'react-dom', 'classnames', ...Object.keys(packageJson.dependencies || {})],
   },

@@ -14,18 +14,18 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js"
     },
-    "./line": {
-      "types": "./dist/line/index.d.ts",
-      "import": "./dist/line/index.esm.js",
-      "require": "./dist/line/index.js"
-    },
-    "./line/style.css": "./dist/line/style.css",
     "./column": {
       "types": "./dist/column/index.d.ts",
       "import": "./dist/column/index.esm.js",
       "require": "./dist/column/index.js"
     },
     "./column/style.css": "./dist/column/style.css",
+    "./line": {
+      "types": "./dist/line/index.d.ts",
+      "import": "./dist/line/index.esm.js",
+      "require": "./dist/line/index.js"
+    },
+    "./line/style.css": "./dist/line/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [
@@ -33,9 +33,10 @@
   ],
   "scripts": {
     "dev": "next dev",
-    "build": "rollup -c rollup.config.mjs",
+    "build": "node scripts/generate-exports.js && rollup -c rollup.config.mjs",
     "build:watch": "rollup -c rollup.config.mjs --watch",
     "build:web": "next build",
+    "generate-exports": "node scripts/generate-exports.js",
     "start": "next start",
     "type-check": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx"
