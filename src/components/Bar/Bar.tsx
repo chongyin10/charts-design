@@ -438,7 +438,10 @@ const drawBars = (
   dataset: BarDataset,
   datasetIndex: number,
   animationProgress: number,
-  defaultBorderRadius: number | number[]
+  defaultBorderRadius: number | number[],
+  yAxisPosition: 'left' | 'right',
+  padding: number,
+  chartWidth: number
 ): void => {
   const borderRadius = dataset.borderRadius ?? defaultBorderRadius;
   const borderColor = dataset.borderColor;
@@ -447,10 +450,21 @@ const drawBars = (
   bars.forEach((bar) => {
     // 根据动画进度调整宽度
     const animatedWidth = bar.width * animationProgress;
+    
+    // 根据 Y 轴位置计算动画时的 x 坐标
+    // 实现从 Y 轴开始伸长的效果
+    let animatedX: number;
+    if (yAxisPosition === 'right') {
+      // 从右侧 Y 轴向左伸长：右侧固定，左侧向左移动
+      animatedX = bar.x + bar.width - animatedWidth;
+    } else {
+      // 从左侧 Y 轴向右伸长：x 保持从 Y 轴开始，宽度增加
+      animatedX = bar.x;
+    }
 
     // 绘制条形
     ctx.fillStyle = bar.color;
-    drawRoundedRect(ctx, bar.x, bar.y, animatedWidth, bar.height, borderRadius);
+    drawRoundedRect(ctx, animatedX, bar.y, animatedWidth, bar.height, borderRadius);
     ctx.fill();
 
     // 绘制边框
@@ -512,10 +526,17 @@ export const Bar: React.FC<BarProps> = ({
   const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(new Set());
   const datasetOpacityRef = useRef<Map<number, number>>(new Map());
   const animatingDatasetsRef = useRef<Set<number>>(new Set());
+  const datasetBarProgressRef = useRef<Map<number, number>>(new Map());
+  const animatingBarProgressRef = useRef<Set<number>>(new Set());
   const [opacityVersion, setOpacityVersion] = useState(0);
+  const [barProgressVersion, setBarProgressVersion] = useState(0);
 
   const barsRef = useRef<ComputedBar[][]>([]);
   const ANIMATION_DURATION = 300;
+
+  const getDatasetBarProgress = useCallback((datasetIndex: number): number => {
+    return datasetBarProgressRef.current.get(datasetIndex) ?? 1;
+  }, [barProgressVersion]);
 
   const getDatasetOpacity = useCallback((datasetIndex: number): number => {
     return datasetOpacityRef.current.get(datasetIndex) ?? 1;
@@ -603,13 +624,21 @@ export const Bar: React.FC<BarProps> = ({
       ctx.save();
       ctx.globalAlpha = opacity;
 
+      // 使用数据集独立的条形进度或全局动画进度
+      const barProgress = animatingBarProgressRef.current.has(datasetIndex)
+        ? getDatasetBarProgress(datasetIndex)
+        : animationProgress;
+
       drawBars(
         ctx,
         bars,
         dataset,
         datasetIndex,
-        animationProgress,
-        bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius
+        barProgress,
+        bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
+        yAxisPosition,
+        padding,
+        chartConfig.chartWidth
       );
 
       ctx.restore();
@@ -653,7 +682,7 @@ export const Bar: React.FC<BarProps> = ({
 
   useEffect(() => {
     drawChart();
-  }, [drawChart, opacityVersion]);
+  }, [drawChart, opacityVersion, barProgressVersion]);
 
   // 处理鼠标移动
   const handleMouseMove = useCallback(
@@ -701,6 +730,32 @@ export const Bar: React.FC<BarProps> = ({
     }
   }, []);
 
+  // 执行条形进度动画（从 Y 轴伸长）
+  const animateBarProgress = useCallback((datasetIndex: number, targetProgress: number) => {
+    const startTime = Date.now();
+    const startProgress = datasetBarProgressRef.current.get(datasetIndex) ?? (targetProgress === 0 ? 1 : 0);
+    animatingBarProgressRef.current.add(datasetIndex);
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+
+      const currentProgress = startProgress + (targetProgress - startProgress) * eased;
+      datasetBarProgressRef.current.set(datasetIndex, currentProgress);
+      setBarProgressVersion(v => v + 1);
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        datasetBarProgressRef.current.set(datasetIndex, targetProgress);
+        animatingBarProgressRef.current.delete(datasetIndex);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  }, []);
+
   // 执行透明度动画
   const animateOpacity = useCallback((datasetIndex: number, targetOpacity: number) => {
     const startTime = Date.now();
@@ -728,6 +783,12 @@ export const Bar: React.FC<BarProps> = ({
 
     requestAnimationFrame(animate);
   }, []);
+
+  // 同时执行透明度和条形进度动画
+  const animateDataset = useCallback((datasetIndex: number, show: boolean) => {
+    animateOpacity(datasetIndex, show ? 1 : 0);
+    animateBarProgress(datasetIndex, show ? 1 : 0);
+  }, [animateOpacity, animateBarProgress]);
 
   // 处理点击
   const handleClick = useCallback(
@@ -795,7 +856,7 @@ export const Bar: React.FC<BarProps> = ({
                     }
                     return newSet;
                   });
-                  animateOpacity(index, isCurrentlyVisible ? 0 : 1);
+                  animateDataset(index, !isCurrentlyVisible);
                 }}
               >
                 <span
