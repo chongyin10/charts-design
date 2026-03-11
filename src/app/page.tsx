@@ -6,6 +6,7 @@ import { Button, Layout, Menu } from '@zjpcy/simple-design';
 import '@zjpcy/simple-design/dist/cjs/index.css';
 import LineExample from './Line';
 import ColumnExample from './Column';
+import BarExample from './Bar';
 
 const { Header, Sider, Content } = Layout;
 
@@ -15,7 +16,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -36,6 +37,10 @@ export default function Home() {
             key: 'column',
             label: '柱状图示例',
         },
+        {
+            key: 'bar',
+            label: '条形图示例',
+        },
     ];
 
     // 渲染对应的内容组件
@@ -45,6 +50,8 @@ export default function Home() {
                 return <LineExample />;
             case 'column':
                 return <ColumnExample />;
+            case 'bar':
+                return <BarExample />;
             default:
                 return <LineExample />;
         }

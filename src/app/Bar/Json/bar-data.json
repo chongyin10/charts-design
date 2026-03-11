@@ -1,0 +1,77 @@
+{
+  "productSales": {
+    "title": "产品销售排行",
+    "description": "各产品销售额排行（条形图更适合展示排名数据）",
+    "labels": ["智能手机", "笔记本电脑", "平板电脑", "智能手表", "无线耳机", "智能音箱", "游戏主机", "数码相机"],
+    "datasets": [
+      {
+        "label": "销售额（万元）",
+        "data": [850, 720, 450, 380, 320, 280, 250, 180],
+        "backgroundColor": "#3b82f6"
+      }
+    ]
+  },
+  "departmentComparison": {
+    "title": "部门业绩对比",
+    "description": "各部门季度业绩完成情况对比",
+    "labels": ["销售部", "市场部", "技术部", "运营部", "客服部", "财务部", "人事部"],
+    "datasets": [
+      {
+        "label": "目标",
+        "data": [100, 80, 90, 70, 60, 50, 40],
+        "backgroundColor": "#e5e7eb"
+      },
+      {
+        "label": "实际完成",
+        "data": [95, 85, 88, 75, 65, 52, 42],
+        "backgroundColor": "#10b981"
+      }
+    ]
+  },
+  "channelStacked": {
+    "title": "渠道销售构成",
+    "description": "按渠道分解的销售额（堆叠条形图）",
+    "labels": ["华东区", "华南区", "华北区", "西南区", "西北区"],
+    "datasets": [
+      {
+        "label": "线上销售",
+        "data": [45, 38, 32, 28, 20],
+        "backgroundColor": "#3b82f6"
+      },
+      {
+        "label": "线下销售",
+        "data": [30, 28, 25, 22, 18],
+        "backgroundColor": "#10b981"
+      },
+      {
+        "label": "分销渠道",
+        "data": [20, 18, 15, 12, 10],
+        "backgroundColor": "#f59e0b"
+      }
+    ]
+  },
+  "cityPopulation": {
+    "title": "城市人口排行",
+    "description": "主要城市人口数量统计",
+    "labels": ["上海", "北京", "深圳", "广州", "成都", "杭州", "武汉", "西安"],
+    "datasets": [
+      {
+        "label": "人口（万人）",
+        "data": [2487, 2189, 1756, 1868, 2119, 1237, 1365, 1295],
+        "backgroundColor": "#8b5cf6"
+      }
+    ]
+  },
+  "projectProgress": {
+    "title": "项目进度对比",
+    "description": "各项目当前进度百分比",
+    "labels": ["项目 Alpha", "项目 Beta", "项目 Gamma", "项目 Delta", "项目 Epsilon", "项目 Zeta"],
+    "datasets": [
+      {
+        "label": "完成度 (%)",
+        "data": [95, 78, 65, 42, 30, 15],
+        "backgroundColor": "#06b6d4"
+      }
+    ]
+  }
+}
