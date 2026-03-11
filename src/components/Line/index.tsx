@@ -201,6 +201,34 @@ const drawGrid = (
         ctx.fillText(value.toFixed(0), padding - 8, y);
     }
 
+    // 绘制 X 轴刻度尺（始终显示，不受网格配置影响）
+    ctx.save();
+    ctx.strokeStyle = '#9ca3af'; // 浅灰色刻度尺
+    ctx.lineWidth = 2;
+    labels.forEach((_, index) => {
+        if (index % tickInterval !== 0) return;
+        const x = padding + index * xStep;
+        ctx.beginPath();
+        ctx.moveTo(x, height - padding);
+        ctx.lineTo(x, height - padding + 6); // 向下延伸 6px
+        ctx.stroke();
+    });
+    ctx.restore();
+
+    // 绘制 Y 轴刻度尺（始终显示，不受网格配置影响）
+    ctx.save();
+    ctx.strokeStyle = '#9ca3af'; // 浅灰色刻度尺
+    ctx.lineWidth = 2;
+    for (let i = 0; i <= yGridCount; i++) {
+        const ratio = i / yGridCount;
+        const y = height - padding - ratio * chartHeight;
+        ctx.beginPath();
+        ctx.moveTo(padding - 6, y); // 向左延伸 6px
+        ctx.lineTo(padding, y);
+        ctx.stroke();
+    }
+    ctx.restore();
+
     // 绘制垂直网格线 (X轴方向)
     const showVerticalGrid = xAxisGrid?.vertical !== false && showGrid;
     if (showVerticalGrid) {
