@@ -119,6 +119,22 @@ export interface BarTooltipConfig {
 }
 
 /**
+ * 数据标签配置
+ */
+export interface BarDataLabelConfig {
+  /** 是否显示数据标签 */
+  display?: boolean;
+  /** 标签颜色 */
+  color?: string;
+  /** 标签字体大小 */
+  fontSize?: number;
+  /** 标签与条形的间距 */
+  offset?: number;
+  /** 自定义格式化函数 */
+  formatter?: (value: number) => string;
+}
+
+/**
  * 条形配置
  */
 export interface BarConfig {
@@ -128,6 +144,8 @@ export interface BarConfig {
   borderRadius?: number | number[];
   /** 条形间距 (分组条形图中组内条形间距) */
   spacing?: number;
+  /** 数据标签配置 */
+  dataLabel?: BarDataLabelConfig;
 }
 
 /**

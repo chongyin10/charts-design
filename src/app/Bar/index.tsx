@@ -144,13 +144,22 @@ export default function BasicBarChart() {
             data={data}
             width={500}
             height={300}
-            yAxis={{ 
+            yAxis={{
                 display: true,
-                title: { text: '产品' } 
+                title: { text: '产品' }
             }}
-            xAxis={{ 
+            xAxis={{
                 display: true,
-                title: { text: '销售额（万元）' } 
+                title: { text: '销售额（万元）' }
+            }}
+            bar={{
+                dataLabel: {
+                    display: true,
+                    color: '#374151',
+                    fontSize: 12,
+                    offset: 8,
+                    formatter: (value) => value + '万',
+                },
             }}
             legend={{
                 display: true,
@@ -437,6 +446,16 @@ export default function RightAxisBarChart() {
         { param: 'height', description: '条形高度比例 (0-1)', type: 'number', default: '0.6' },
         { param: 'borderRadius', description: '条形圆角半径', type: 'number', default: '0' },
         { param: 'spacing', description: '分组内条形间距', type: 'number', default: '4' },
+        { param: 'dataLabel', description: '数据标签配置，见下表', type: 'BarDataLabelConfig', default: '-' },
+    ];
+
+    // 数据标签配置数据
+    const dataLabelDataAPI = [
+        { param: 'display', description: '是否显示数据标签', type: 'boolean', default: 'false' },
+        { param: 'color', description: '标签文字颜色', type: 'string', default: "'#374151'" },
+        { param: 'fontSize', description: '标签字体大小', type: 'number', default: '12' },
+        { param: 'offset', description: '标签与条形的间距', type: 'number', default: '6' },
+        { param: 'formatter', description: '自定义格式化函数', type: '(value: number) => string', default: '-' },
     ];
 
     // Legend 配置数据
@@ -481,6 +500,15 @@ export default function RightAxisBarChart() {
                                 xAxis={{
                                     display: true,
                                     title: { text: '销售额（万元）' },
+                                }}
+                                bar={{
+                                    dataLabel: {
+                                        display: true,
+                                        color: '#374151',
+                                        fontSize: 12,
+                                        offset: 8,
+                                        formatter: (value) => value + '万',
+                                    },
                                 }}
                                 legend={{
                                     display: true,
@@ -719,6 +747,15 @@ export default function RightAxisBarChart() {
                         </div>
                     </div>
 
+                    {/* 数据标签配置 */}
+                    <div className={styles.exampleSection} id="bar-datalabel-api">
+                        <h3 className={styles.subsectionTitle}>DataLabel 数据标签配置</h3>
+                        <p className={styles.sectionText}>数据标签配置项说明（在 bar.dataLabel 属性中配置）。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={dataLabelDataAPI} />
+                        </div>
+                    </div>
+
                     {/* Legend 配置 */}
                     <div className={styles.exampleSection} id="bar-legend-api">
                         <h3 className={styles.subsectionTitle}>Legend 配置</h3>
@@ -760,6 +797,7 @@ export default function RightAxisBarChart() {
                                 <Anchor.Link href="#bar-axis-api" title="Axis 配置" />
                                 <Anchor.Link href="#bar-grid-api" title="Grid 配置" />
                                 <Anchor.Link href="#bar-style-api" title="Bar 样式配置" />
+                                <Anchor.Link href="#bar-datalabel-api" title="数据标签配置" />
                                 <Anchor.Link href="#bar-legend-api" title="Legend 配置" />
                                 <Anchor.Link href="#bar-tooltip-api" title="Tooltip 配置" />
                             </Anchor>

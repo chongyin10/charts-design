@@ -14,6 +14,7 @@ import type {
   ComputedBar,
   BarDataset,
   BarTooltipItem,
+  BarConfig,
 } from './Bar.type';
 
 /**
@@ -430,6 +431,56 @@ const drawRoundedRect = (
 };
 
 /**
+ * 绘制数据标签
+ */
+const drawDataLabels = (
+  ctx: CanvasRenderingContext2D,
+  bars: ComputedBar[],
+  dataset: BarDataset,
+  animationProgress: number,
+  dataLabelConfig: BarConfig['dataLabel'],
+  yAxisPosition: 'left' | 'right',
+  defaultTextColor: string,
+  defaultFontSize: number
+): void => {
+  if (!dataLabelConfig?.display) return;
+
+  const color = dataLabelConfig.color || defaultTextColor;
+  const fontSize = dataLabelConfig.fontSize || defaultFontSize;
+  const offset = dataLabelConfig.offset ?? 6;
+  const formatter = dataLabelConfig.formatter || ((value: number) => value.toString());
+
+  ctx.fillStyle = color;
+  ctx.font = `${fontSize}px sans-serif`;
+  ctx.textBaseline = 'middle';
+
+  bars.forEach((bar) => {
+    // 动画完成前不显示数据标签
+    if (animationProgress < 1) return;
+
+    const text = formatter(bar.value);
+    const textMetrics = ctx.measureText(text);
+    const textWidth = textMetrics.width;
+
+    let labelX: number;
+    if (yAxisPosition === 'right') {
+      // Y 轴在右侧，标签显示在条形左侧
+      labelX = bar.x - offset - textWidth;
+      ctx.textAlign = 'right';
+    } else {
+      // Y 轴在左侧（默认），标签显示在条形右侧
+      labelX = bar.x + bar.width + offset;
+      ctx.textAlign = 'left';
+    }
+
+    const labelY = bar.y + bar.height / 2;
+
+    // 确保标签在图表范围内
+    ctx.fillText(text, labelX, labelY);
+  });
+};
+
+/**
  * 绘制条形
  */
 const drawBars = (
@@ -441,7 +492,10 @@ const drawBars = (
   defaultBorderRadius: number | number[],
   yAxisPosition: 'left' | 'right',
   padding: number,
-  chartWidth: number
+  chartWidth: number,
+  dataLabelConfig: BarConfig['dataLabel'],
+  defaultTextColor: string,
+  defaultFontSize: number
 ): void => {
   const borderRadius = dataset.borderRadius ?? defaultBorderRadius;
   const borderColor = dataset.borderColor;
@@ -474,6 +528,9 @@ const drawBars = (
       ctx.stroke();
     }
   });
+
+  // 绘制数据标签
+  drawDataLabels(ctx, bars, dataset, animationProgress, dataLabelConfig, yAxisPosition, defaultTextColor, defaultFontSize);
 };
 
 /**
@@ -638,7 +695,10 @@ export const Bar: React.FC<BarProps> = ({
         bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
         yAxisPosition,
         padding,
-        chartConfig.chartWidth
+        chartConfig.chartWidth,
+        bar?.dataLabel,
+        yAxis?.tickColor || DEFAULT_CONFIG.textColor,
+        yAxis?.tickFontSize || DEFAULT_CONFIG.fontSize
       );
 
       ctx.restore();
