@@ -75,6 +75,8 @@ export interface BarAxisConfig {
   grid?: BarGridConfig;
   /** 标签间隔，每 n 个标签显示一个（默认为1，显示所有标签） */
   tickInterval?: number;
+  /** 坐标轴位置，X轴默认为 'bottom'，Y轴默认为 'left' */
+  position?: 'left' | 'right' | 'top' | 'bottom';
 }
 
 /**

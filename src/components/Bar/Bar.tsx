@@ -97,9 +97,18 @@ const calculateChartConfig = (
 
 /**
  * 将数据值转换为 X 坐标
+ * @param value 数据值
+ * @param config 图表配置
+ * @param padding 内边距
+ * @param yAxisPosition Y轴位置，'left' 或 'right'
  */
-const valueToX = (value: number, config: BarChartConfig, padding: number): number => {
+const valueToX = (value: number, config: BarChartConfig, padding: number, yAxisPosition: 'left' | 'right' = 'left'): number => {
   const normalizedValue = (value - config.minValue) / config.valueRange;
+  if (yAxisPosition === 'right') {
+    // 从右侧开始，X 坐标从右向左递增
+    return padding + config.chartWidth - normalizedValue * config.chartWidth;
+  }
+  // 默认从左侧开始
   return padding + normalizedValue * config.chartWidth;
 };
 
@@ -121,9 +130,10 @@ const computeBars = (
   height: number,
   stacked: boolean,
   barHeight: number,
-  barSpacing: number
+  barSpacing: number,
+  yAxisPosition: 'left' | 'right' = 'left'
 ): ComputedBar[][] => {
-  const { padding, chartHeight, minValue } = config;
+  const { padding, chartWidth, chartHeight, minValue, maxValue, valueRange } = config;
   const categoryCount = Math.max(1, data.labels.length);
   const datasetCount = data.datasets.length;
 
@@ -132,6 +142,7 @@ const computeBars = (
 
   // 存储堆叠状态下的累计宽度
   const stackAccumulated: number[] = new Array(categoryCount).fill(0);
+  const stackAccumulatedRight: number[] = new Array(categoryCount).fill(0);
 
   return data.datasets.map((dataset, datasetIndex) => {
     return dataset.data.map((value, dataIndex) => {
@@ -156,18 +167,31 @@ const computeBars = (
 
       if (stacked) {
         // 堆叠模式：基于累计宽度计算位置
-        const normalizedValue = (value - minValue) / config.valueRange;
-        const normalizedAccumulated = (stackAccumulated[dataIndex] - minValue) / config.valueRange;
+        const normalizedValue = (value - minValue) / valueRange;
+        barWidth = normalizedValue * chartWidth;
 
-        barWidth = normalizedValue * config.chartWidth;
-        barX = padding + normalizedAccumulated * config.chartWidth;
-
-        // 更新累计宽度
-        stackAccumulated[dataIndex] += value;
+        if (yAxisPosition === 'right') {
+          // 从右侧开始堆叠
+          const normalizedAccumulated = (stackAccumulatedRight[dataIndex] - minValue) / valueRange;
+          barX = padding + chartWidth - normalizedAccumulated * chartWidth - barWidth;
+          stackAccumulatedRight[dataIndex] += value;
+        } else {
+          // 从左侧开始堆叠
+          const normalizedAccumulated = (stackAccumulated[dataIndex] - minValue) / valueRange;
+          barX = padding + normalizedAccumulated * chartWidth;
+          stackAccumulated[dataIndex] += value;
+        }
       } else {
-        // 分组模式：直接从左侧计算
-        barX = minValue < 0 ? valueToX(0, config, padding) : padding;
+        // 分组模式
         barWidth = valueToWidth(value, config);
+        if (yAxisPosition === 'right') {
+          // 从右侧开始
+          const zeroX = minValue < 0 ? valueToX(0, config, padding, 'right') : padding + chartWidth;
+          barX = zeroX - barWidth;
+        } else {
+          // 从左侧开始（默认）
+          barX = minValue < 0 ? valueToX(0, config, padding, 'left') : padding;
+        }
       }
 
       return {
@@ -200,7 +224,8 @@ const drawGrid = (
   yAxisTitle?: string,
   xAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
   yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
-  yAxisTickInterval?: number
+  yAxisTickInterval?: number,
+  yAxisPosition: 'left' | 'right' = 'left'
 ): void => {
   const { padding, chartWidth, chartHeight, maxValue, minValue } = config;
 
@@ -216,13 +241,15 @@ const drawGrid = (
   const categoryHeight = chartHeight / Math.max(1, labels.length);
   const tickInterval = Math.max(1, yAxisTickInterval || 1);
 
-  ctx.textAlign = 'right';
+  // 根据 Y 轴位置调整标签对齐方式
+  ctx.textAlign = yAxisPosition === 'right' ? 'left' : 'right';
   ctx.textBaseline = 'middle';
 
   labels.forEach((label, index) => {
     if (index % tickInterval !== 0) return;
     const y = padding + index * categoryHeight + categoryHeight / 2;
-    ctx.fillText(label, padding - 8, y);
+    const labelX = yAxisPosition === 'right' ? width - padding + 8 : padding - 8;
+    ctx.fillText(label, labelX, y);
   });
 
   // 绘制 X 轴标签（数值标签）
@@ -232,8 +259,12 @@ const drawGrid = (
 
   for (let i = 0; i <= xGridCount; i++) {
     const ratio = i / xGridCount;
-    const x = padding + ratio * chartWidth;
-    const value = minValue + ratio * (maxValue - minValue);
+    const x = yAxisPosition === 'right'
+      ? width - padding - ratio * chartWidth
+      : padding + ratio * chartWidth;
+    const value = yAxisPosition === 'right'
+      ? maxValue - ratio * (maxValue - minValue)
+      : minValue + ratio * (maxValue - minValue);
     ctx.fillText(value.toFixed(0), x, height - padding + 8);
   }
 
@@ -245,8 +276,13 @@ const drawGrid = (
     if (index % tickInterval !== 0) return;
     const y = padding + index * categoryHeight + categoryHeight / 2;
     ctx.beginPath();
-    ctx.moveTo(padding - 6, y);
-    ctx.lineTo(padding, y);
+    if (yAxisPosition === 'right') {
+      ctx.moveTo(width - padding, y);
+      ctx.lineTo(width - padding + 6, y);
+    } else {
+      ctx.moveTo(padding - 6, y);
+      ctx.lineTo(padding, y);
+    }
     ctx.stroke();
   });
   ctx.restore();
@@ -257,7 +293,9 @@ const drawGrid = (
   ctx.lineWidth = 2;
   for (let i = 0; i <= xGridCount; i++) {
     const ratio = i / xGridCount;
-    const x = padding + ratio * chartWidth;
+    const x = yAxisPosition === 'right'
+      ? width - padding - ratio * chartWidth
+      : padding + ratio * chartWidth;
     ctx.beginPath();
     ctx.moveTo(x, height - padding);
     ctx.lineTo(x, height - padding + 6);
@@ -293,7 +331,9 @@ const drawGrid = (
 
     for (let i = 0; i <= xGridCount; i++) {
       const ratio = i / xGridCount;
-      const x = padding + ratio * chartWidth;
+      const x = yAxisPosition === 'right'
+        ? width - padding - ratio * chartWidth
+        : padding + ratio * chartWidth;
       ctx.beginPath();
       ctx.moveTo(x, padding);
       ctx.lineTo(x, height - padding);
@@ -317,7 +357,8 @@ const drawGrid = (
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.font = `bold ${fontSize}px sans-serif`;
-    ctx.fillText(yAxisTitle, padding, padding - 10);
+    const titleX = yAxisPosition === 'right' ? width - padding : padding;
+    ctx.fillText(yAxisTitle, titleX, padding - 10);
     ctx.restore();
   }
 };
@@ -330,7 +371,8 @@ const drawAxes = (
   config: BarChartConfig,
   width: number,
   height: number,
-  axisColor: string
+  axisColor: string,
+  yAxisPosition: 'left' | 'right' = 'left'
 ): void => {
   const { padding } = config;
 
@@ -343,10 +385,15 @@ const drawAxes = (
   ctx.lineTo(width - padding, height - padding);
   ctx.stroke();
 
-  // Y 轴
+  // Y 轴 - 根据位置绘制在左侧或右侧
   ctx.beginPath();
-  ctx.moveTo(padding, padding);
-  ctx.lineTo(padding, height - padding);
+  if (yAxisPosition === 'right') {
+    ctx.moveTo(width - padding, padding);
+    ctx.lineTo(width - padding, height - padding);
+  } else {
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, height - padding);
+  }
   ctx.stroke();
 };
 
@@ -474,6 +521,9 @@ export const Bar: React.FC<BarProps> = ({
     return datasetOpacityRef.current.get(datasetIndex) ?? 1;
   }, [opacityVersion]);
 
+  // 确定 Y 轴位置，默认为 'left'
+  const yAxisPosition = yAxis?.position === 'right' ? 'right' : 'left';
+
   // 计算图表配置
   const chartConfig = useMemo(
     () => calculateChartConfig(data, width, height, padding, stacked, xAxis?.min, xAxis?.max),
@@ -489,9 +539,10 @@ export const Bar: React.FC<BarProps> = ({
       height,
       stacked,
       bar?.height ?? DEFAULT_CONFIG.barHeight,
-      bar?.spacing ?? DEFAULT_CONFIG.barSpacing
+      bar?.spacing ?? DEFAULT_CONFIG.barSpacing,
+      yAxisPosition
     ),
-    [data, chartConfig, width, height, stacked, bar?.height, bar?.spacing]
+    [data, chartConfig, width, height, stacked, bar?.height, bar?.spacing, yAxisPosition]
   );
 
   // 动画效果
@@ -534,11 +585,12 @@ export const Bar: React.FC<BarProps> = ({
       yAxis?.display !== false ? yAxis?.title?.text : undefined,
       xAxis?.grid,
       yAxis?.grid,
-      yAxis?.tickInterval
+      yAxis?.tickInterval,
+      yAxisPosition
     );
 
     // 绘制坐标轴
-    drawAxes(ctx, chartConfig, width, height, xAxis?.grid?.color || DEFAULT_CONFIG.axisColor);
+    drawAxes(ctx, chartConfig, width, height, xAxis?.grid?.color || DEFAULT_CONFIG.axisColor, yAxisPosition);
 
     // 绘制条形
     data.datasets.forEach((dataset, datasetIndex) => {

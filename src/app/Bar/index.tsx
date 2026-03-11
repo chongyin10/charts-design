@@ -310,13 +310,13 @@ const handleDataClick = (datasetIndex, dataIndex, value) => {
     data={data}
     width={500}
     height={300}
-    yAxis={{ 
+    yAxis={{
         display: true,
-        title: { text: '产品' } 
+        title: { text: '产品' }
     }}
-    xAxis={{ 
+    xAxis={{
         display: true,
-        title: { text: '销售额' } 
+        title: { text: '销售额' }
     }}
     legend={{
         display: true,
@@ -326,6 +326,44 @@ const handleDataClick = (datasetIndex, dataIndex, value) => {
     }}
     onDataClick={handleDataClick}
 />`;
+
+    // 右侧坐标轴代码
+    const rightAxisCode = `import { Bar } from '@/components/Bar';
+import type { BarChartData } from '@/components/Bar/Bar.type';
+
+const data: BarChartData = {
+    labels: ['产品 A', '产品 B', '产品 C', '产品 D', '产品 E'],
+    datasets: [
+        {
+            label: '销售额（万元）',
+            data: [850, 720, 450, 380, 320],
+            backgroundColor: '#3b82f6',
+        },
+    ],
+};
+
+export default function RightAxisBarChart() {
+    return (
+        <Bar
+            data={data}
+            width={500}
+            height={300}
+            yAxis={{
+                display: true,
+                position: 'right',
+                title: { text: '产品' }
+            }}
+            xAxis={{
+                display: true,
+                title: { text: '销售额（万元）' }
+            }}
+            legend={{
+                display: true,
+                position: 'top',
+            }}
+        />
+    );
+}`;
 
     // API 表格列定义
     const apiColumns: TableColumn[] = [
@@ -380,6 +418,8 @@ const handleDataClick = (datasetIndex, dataIndex, value) => {
         { param: 'min', description: '最小值', type: 'number', default: '自动计算' },
         { param: 'max', description: '最大值', type: 'number', default: '自动计算' },
         { param: 'grid', description: '网格线配置', type: 'BarGridConfig', default: '-' },
+        { param: 'position', description: '坐标轴位置（yAxis: left/right）', type: "'left' | 'right'", default: "'left'" },
+        { param: 'tickInterval', description: '标签间隔，每n个显示一个', type: 'number', default: '1' },
     ];
 
     // 网格线配置数据
@@ -599,6 +639,41 @@ const handleDataClick = (datasetIndex, dataIndex, value) => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 右侧坐标轴 */}
+                    <div className={styles.exampleSection} id="bar-right-axis">
+                        <h3 className={styles.subsectionTitle}>右侧坐标轴</h3>
+                        <p className={styles.sectionText}>通过设置 yAxis.position 为 'right'，可以将坐标轴显示在图表右侧，条形从右侧开始绘制。</p>
+                        <div className={styles.exampleDemo}>
+                            <Bar
+                                data={basicData}
+                                width={500}
+                                height={300}
+                                yAxis={{
+                                    display: true,
+                                    position: 'right',
+                                    title: { text: '产品' },
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '销售额（万元）' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={rightAxisCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {rightAxisCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="bar-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -679,6 +754,7 @@ const handleDataClick = (datasetIndex, dataIndex, value) => {
                                 <Anchor.Link href="#bar-stacked" title="堆叠条形图" />
                                 <Anchor.Link href="#bar-rounded" title="圆角条形图" />
                                 <Anchor.Link href="#bar-click" title="点击事件" />
+                                <Anchor.Link href="#bar-right-axis" title="右侧坐标轴" />
                                 <Anchor.Link href="#bar-api" title="API 参考" />
                                 <Anchor.Link href="#bar-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#bar-axis-api" title="Axis 配置" />
