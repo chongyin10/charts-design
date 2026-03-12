@@ -15,6 +15,7 @@ import styles from './page.module.css';
 // 导入 JSON 数据
 import areaDataJson from './Json/area-data.json';
 import aaplJson from './Json/aapl.json';
+import unemploymentDataJson from './Json/unemployment-by-industry.json';
 
 // 自定义复制按钮组件
 interface CopyButtonProps {
@@ -174,7 +175,46 @@ export default function AreaChartPage() {
     // 自定义 X 轴刻度：只显示指定年份
     const customTickLabels = ['2007-4-23', '2007-5-3', '2007-5-13', '2007-5-23', '2007-6-1', '2007-6-11'];
 
+    // 处理失业数据：将数据按行业分组
+    // 首先获取所有唯一的日期和行业
+    const uniqueDates = Array.from(new Set(unemploymentDataJson.map((item: { date: string }) => item.date))).sort();
+    const uniqueIndustries = Array.from(new Set(unemploymentDataJson.map((item: { industry: string }) => item.industry)));
 
+    // 创建按行业组织的数据集
+    const unemploymentDatasets = uniqueIndustries.map((industry) => {
+        const industryData = unemploymentDataJson.filter((item: { industry: string }) => item.industry === industry);
+        const data = uniqueDates.map((date) => {
+            const item = industryData.find((d: { date: string }) => d.date === date);
+            return item ? item.unemployed : 0;
+        });
+        return { industry, data };
+    });
+
+    // 从失业数据转换的堆叠面积图数据
+    // labels 使用年月格式，显示 2000-2005 年的数据
+    const unemploymentData: AreaChartData = {
+        labels: uniqueDates.map((date: string) => {
+            const d = new Date(date);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }),
+        datasets: unemploymentDatasets.map((item, index) => ({
+            label: item.industry,
+            data: item.data,
+            fillOpacity: 0.7,
+            point: {
+                hoverRadius: 1,
+                hoverBackgroundColor: 'blue',
+                color: 'transparent',
+                backgroundColor: 'transparent',
+                width: 0,
+                radius: 0,
+                tooltipOffsetX: 80
+            }
+        })),
+    };
+
+    // 失业数据示例的自定义刻度（每年显示一次）
+    const unemploymentCustomTicks = ['2000-01', '2001-01', '2002-01', '2003-01', '2004-01', '2005-01'];
 
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
@@ -529,8 +569,69 @@ const VerticalLineExample = () => {
     );
 };`;
 
-    // API 表格数据
-    const areaPropsData = [
+// 失业数据堆叠面积图代码示例
+const unemploymentCode = `import { Area } from '@zjpcy/charts-design';
+import unemploymentDataJson from './unemployment-by-industry.json';
+
+const UnemploymentAreaExample = () => {
+// 处理数据：获取所有唯一的日期和行业
+const uniqueDates = Array.from(new Set(unemploymentDataJson.map(item => item.date))).sort();
+const uniqueIndustries = Array.from(new Set(unemploymentDataJson.map(item => item.industry)));
+
+// 创建按行业组织的数据集
+const unemploymentDatasets = uniqueIndustries.map((industry) => {
+    const industryData = unemploymentDataJson.filter(item => item.industry === industry);
+    const data = uniqueDates.map((date) => {
+        const item = industryData.find(d => d.date === date);
+        return item ? item.unemployed : 0;
+    });
+    return { industry, data };
+});
+
+// 转换为 Area 组件需要的格式
+const data = {
+    labels: uniqueDates.map(date => {
+        const d = new Date(date);
+        return \`\${d.getFullYear()}-\${String(d.getMonth() + 1).padStart(2, '0')}\`;
+    }),
+    datasets: unemploymentDatasets.map(item => ({
+        label: item.industry,
+        data: item.data,
+        fillOpacity: 0.7,
+    })),
+};
+
+return (
+    <Area
+        data={data}
+        width={700}
+        height={400}
+        stacked={true}
+        xAxis={{
+            display: true,
+            title: { text: '日期' },
+            customTicks: ['2000-01', '2001-01', '2002-01', '2003-01', '2004-01', '2005-01'],
+        }}
+        yAxis={{
+            display: true,
+            title: { text: '失业人数 (千人)' },
+        }}
+        legend={{
+            display: true,
+            position: 'top',
+        }}
+        verticalLine={{
+            enabled: true,
+            color: '#666',
+            lineWidth: 1,
+            dash: [4, 4],
+        }}
+    />
+);
+};`;
+
+// API 表格数据
+const areaPropsData = [
         { param: 'data', description: '图表数据', type: 'AreaChartData', default: 'required' },
         { param: 'width', description: '图表宽度', type: 'number', default: '500' },
         { param: 'height', description: '图表高度', type: 'number', default: '300' },
@@ -608,6 +709,8 @@ const VerticalLineExample = () => {
         { param: 'hoverBackgroundColor', description: '悬停时填充颜色', type: 'string', default: '数据集颜色' },
         { param: 'color', description: '数据点边框颜色', type: 'string', default: '数据集颜色' },
         { param: 'width', description: '数据点边框宽度', type: 'number', default: '2' },
+        { param: 'tooltipOffsetX', description: 'Tooltip 水平偏移量（像素），正值向右，负值向左', type: 'number', default: '0' },
+        { param: 'tooltipOffsetY', description: 'Tooltip 垂直偏移量（像素），正值向下，负值向上', type: 'number', default: '0' },
     ];
 
     return (
@@ -885,6 +988,12 @@ const VerticalLineExample = () => {
                                     display: true,
                                     position: 'top',
                                 }}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
                             />
                         </div>
                         <div className={styles.codeHeader}>
@@ -893,6 +1002,46 @@ const VerticalLineExample = () => {
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {customTooltipCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 失业数据堆叠面积图 */}
+                    <div className={styles.exampleSection} id="area-unemployment">
+                        <h3 className={styles.subsectionTitle}>行业失业数据可视化</h3>
+                        <p className={styles.sectionText}>使用数据展示各行业失业人数随时间的变化趋势。数据按行业分组，使用堆叠面积图展示各行业的累计失业人数。</p>
+                        <div className={styles.exampleDemo}>
+                            <Area
+                                data={unemploymentData}
+                                width={700}
+                                height={400}
+                                stacked={true}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '日期' },
+                                    customTicks: unemploymentCustomTicks,
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '失业人数 (千人)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#666',
+                                    lineWidth: 1,
+                                    dash: [4, 4],
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={unemploymentCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {unemploymentCode}
                         </SyntaxHighlighter>
                     </div>
 
@@ -1000,6 +1149,7 @@ const VerticalLineExample = () => {
                                 <Anchor.Link href="#area-custom-ticks" title="自定义 X 轴刻度" />
                                 <Anchor.Link href="#area-click" title="点击事件" />
                                 <Anchor.Link href="#area-tooltip" title="自定义 Tooltip" />
+                                <Anchor.Link href="#area-unemployment" title="失业数据可视化" />
                                 <Anchor.Link href="#area-vertical-line" title="竖线功能" />
                                 <Anchor.Link href="#area-api" title="API 参考" />
                                 <Anchor.Link href="#area-dataset" title="Dataset 配置" />

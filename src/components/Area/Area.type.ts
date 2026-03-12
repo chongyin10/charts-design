@@ -20,6 +20,10 @@ export interface AreaPointConfig {
     radius?: number;
     /** 悬停时数据点大小 */
     hoverRadius?: number;
+    /** Tooltip 水平偏移量（像素），正值向右，负值向左 */
+    tooltipOffsetX?: number;
+    /** Tooltip 垂直偏移量（像素），正值向下，负值向上 */
+    tooltipOffsetY?: number;
 }
 
 /**

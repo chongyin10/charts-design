@@ -875,24 +875,28 @@ export const Area: React.FC<AreaProps> = ({
 
                 if (isInChartArea) {
                     const prevIndex = hoveredDataIndexRef.current;
+                    // 找到第一个可见数据集的点作为参考点
+                    let referencePoint: ComputedPoint | null = null;
+                    for (let i = 0; i < pointsRef.current.length; i++) {
+                        if (!visibleData.datasets[i]?.hidden && pointsRef.current[i][closestIndex]) {
+                            referencePoint = pointsRef.current[i][closestIndex];
+                            break;
+                        }
+                    }
                     if (prevIndex !== closestIndex) {
                         // 先更新 ref，确保 draw 能获取最新值
                         hoveredDataIndexRef.current = closestIndex;
                         setHoveredDataIndex(closestIndex);
-                        // 找到第一个可见数据集的点作为参考点
-                        let referencePoint: ComputedPoint | null = null;
-                        for (let i = 0; i < pointsRef.current.length; i++) {
-                            if (!visibleData.datasets[i]?.hidden && pointsRef.current[i][closestIndex]) {
-                                referencePoint = pointsRef.current[i][closestIndex];
-                                break;
-                            }
-                        }
                         hoveredPointRef.current = referencePoint;
                         setHoveredPoint(referencePoint);
                         // 立即重绘以显示竖线效果
                         if (isAnimationComplete) {
                             draw(1);
                         }
+                    }
+                    // 根据数据点位置计算 tooltip 位置（竖线与数据点交汇点）
+                    if (referencePoint) {
+                        setTooltipPos({ x: referencePoint.x, y: referencePoint.y });
                     }
                 } else {
                     if (hoveredDataIndexRef.current !== null) {
@@ -905,7 +909,6 @@ export const Area: React.FC<AreaProps> = ({
                         }
                     }
                 }
-                setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
                 return;
             }
 
@@ -946,7 +949,11 @@ export const Area: React.FC<AreaProps> = ({
             }
 
             setHoveredPoint(nearestPoint);
-            setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            // 根据数据点位置计算 tooltip 位置
+            if (nearestPoint) {
+                const point = nearestPoint as ComputedPoint;
+                setTooltipPos({ x: point.x, y: point.y });
+            }
         },
         [allPoints, visibleData.datasets, draw, isAnimationComplete, chartConfig, data.labels.length, width, height, verticalLine]
     );
@@ -993,6 +1000,16 @@ export const Area: React.FC<AreaProps> = ({
             : hoveredPoint !== null
     );
 
+    // 获取 Tooltip 偏移量配置
+    const hoveredDataset = hoveredPoint
+        ? visibleData.datasets[hoveredPoint.datasetIndex]
+        : null;
+    const pointConfig = hoveredDataset && typeof hoveredDataset.point === 'object'
+        ? hoveredDataset.point
+        : null;
+    const tooltipOffsetX = pointConfig?.tooltipOffsetX ?? 0;
+    const tooltipOffsetY = pointConfig?.tooltipOffsetY ?? 0;
+
     return (
         <div
             ref={containerRef}
@@ -1031,8 +1048,9 @@ export const Area: React.FC<AreaProps> = ({
                 <div
                     className={classNames(styles.zcpcyChatsTooltip, styles.zcpcyChatsTooltipVisible)}
                     style={{
-                        left: tooltipPos.x,
-                        top: tooltipPos.y - 10,
+                        left: tooltipPos.x + (verticalLine?.enabled ? 15 : 0) + tooltipOffsetX,
+                        top: tooltipPos.y - (verticalLine?.enabled ? 0 : 50) + tooltipOffsetY,
+                        transform: verticalLine?.enabled ? 'translate(0, -50%)' : 'translate(-50%, 0)',
                         backgroundColor: tooltip?.backgroundColor || DEFAULT_CONFIG.tooltipBackground,
                     }}
                 >
