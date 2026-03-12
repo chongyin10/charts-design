@@ -491,6 +491,44 @@ const CustomTooltipExample = () => {
     );
 };`;
 
+    // 竖线功能代码
+    const verticalLineCode = `import { Area } from '@zjpcy/charts-design';
+
+const VerticalLineExample = () => {
+    const data = {
+        labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        datasets: [
+            {
+                label: '访问量',
+                data: [820, 932, 901, 934, 1290, 1330, 1320],
+                fillColor: '#3b82f6',
+                fillOpacity: 0.4,
+            },
+            {
+                label: '转化量',
+                data: [320, 432, 401, 434, 590, 630, 620],
+                fillColor: '#10b981',
+                fillOpacity: 0.4,
+            },
+        ],
+    };
+
+    return (
+        <Area
+            data={data}
+            width={500}
+            height={300}
+            verticalLine={{
+                enabled: true,
+                color: '#999',
+                lineWidth: 1,
+                dash: [5, 5],
+            }}
+            legend={{ display: true, position: 'top' }}
+        />
+    );
+};`;
+
     // API 表格数据
     const areaPropsData = [
         { param: 'data', description: '图表数据', type: 'AreaChartData', default: 'required' },
@@ -772,6 +810,12 @@ const CustomTooltipExample = () => {
                                     display: true,
                                     position: 'top',
                                 }}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
                             />
                         </div>
                         <div className={styles.codeHeader}>
@@ -852,6 +896,36 @@ const CustomTooltipExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 竖线功能 */}
+                    <div className={styles.exampleSection} id="area-vertical-line">
+                        <h3 className={styles.subsectionTitle}>竖线功能</h3>
+                        <p className={styles.sectionText}>通过 verticalLine 属性启用竖线模式，悬停时显示垂直参考线并展示该位置的所有数据点信息。</p>
+                        <div className={styles.exampleDemo}>
+                            <Area
+                                data={smoothData}
+                                width={500}
+                                height={300}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={verticalLineCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {verticalLineCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="area-api">
                         <h3 className={styles.subsectionTitle}>Area Props</h3>
@@ -926,6 +1000,7 @@ const CustomTooltipExample = () => {
                                 <Anchor.Link href="#area-custom-ticks" title="自定义 X 轴刻度" />
                                 <Anchor.Link href="#area-click" title="点击事件" />
                                 <Anchor.Link href="#area-tooltip" title="自定义 Tooltip" />
+                                <Anchor.Link href="#area-vertical-line" title="竖线功能" />
                                 <Anchor.Link href="#area-api" title="API 参考" />
                                 <Anchor.Link href="#area-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#area-axis-api" title="Axis 配置" />

@@ -572,6 +572,7 @@ export const Area: React.FC<AreaProps> = ({
     yAxis,
     legend,
     tooltip,
+    verticalLine,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     smooth = false,
     stacked = false,
@@ -583,9 +584,15 @@ export const Area: React.FC<AreaProps> = ({
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [hoveredPoint, setHoveredPoint] = useState<ComputedPoint | null>(null);
+    // 竖线模式下当前悬停的数据索引
+    const [hoveredDataIndex, setHoveredDataIndex] = useState<number | null>(null);
+    const hoveredDataIndexRef = useRef<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
     const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(new Set());
     const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+
+    // 存储计算的点用于交互
+    const pointsRef = useRef<ComputedPoint[][]>([]);
 
     const visibleData: AreaChartData = useMemo(() => ({
         labels: data.labels,
@@ -717,9 +724,53 @@ export const Area: React.FC<AreaProps> = ({
                 });
             }
 
-            // 单独绘制悬停点
+            // 绘制竖线（竖线模式下）
+            // 使用 ref 获取最新值，避免依赖更新导致重新创建 draw 函数
+            const currentHoveredIndex = hoveredDataIndexRef.current;
+            if (verticalLine?.enabled && currentHoveredIndex !== null && isAnimationComplete) {
+                const { padding: p, chartHeight } = chartConfig;
+                const labelsLength = data.labels.length;
+                const dataCount = Math.max(1, labelsLength);
+                const step = dataCount > 1 ? chartConfig.chartWidth / (dataCount - 1) : 0;
+                const lineX = p + currentHoveredIndex * step;
+
+                ctx.save();
+                ctx.strokeStyle = verticalLine.color || '#999';
+                ctx.lineWidth = verticalLine.lineWidth || 1;
+                if (verticalLine.dash && verticalLine.dash.length > 0) {
+                    ctx.setLineDash(verticalLine.dash);
+                }
+                ctx.beginPath();
+                ctx.moveTo(lineX, p);
+                ctx.lineTo(lineX, p + chartHeight);
+                ctx.stroke();
+                ctx.restore();
+
+                // 绘制竖线模式下所有可见数据集的高亮点
+                pointsRef.current.forEach((datasetPoints, datasetIndex) => {
+                    if (visibleData.datasets[datasetIndex]?.hidden) return;
+
+                    const point = datasetPoints[currentHoveredIndex];
+                    if (!point) return;
+
+                    const dataset = visibleData.datasets[datasetIndex];
+                    if (dataset.point === false || dataset.pointStyle === 'none') return;
+
+                    ctx.save();
+                    ctx.fillStyle = getDatasetColor(datasetIndex, dataset);
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+            }
+
+            // 单独绘制悬停点（普通模式）
             const hoveredPoint = hoveredPointRef.current;
-            if (hoveredPoint && !visibleData.datasets[hoveredPoint.datasetIndex]?.hidden) {
+            if (hoveredPoint && !visibleData.datasets[hoveredPoint.datasetIndex]?.hidden && !verticalLine?.enabled) {
                 const dataset = visibleData.datasets[hoveredPoint.datasetIndex];
                 if (dataset && dataset.point !== false && dataset.pointStyle !== 'none') {
                     const pointConfig = dataset.point;
@@ -753,8 +804,11 @@ export const Area: React.FC<AreaProps> = ({
                     ctx.stroke();
                 }
             }
+
+            // 保存计算的点用于交互
+            pointsRef.current = allPoints;
         },
-        [visibleData, allPoints, chartConfig, width, height, padding, data.labels, xAxis, yAxis, smooth, stacked]
+        [visibleData, allPoints, chartConfig, width, height, padding, data.labels, xAxis, yAxis, smooth, stacked, verticalLine]
     );
 
     // 动画效果
@@ -798,6 +852,64 @@ export const Area: React.FC<AreaProps> = ({
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
+            // 竖线模式：根据 X 轴位置查找最近的数据索引
+            if (verticalLine?.enabled) {
+                const { padding: p, chartWidth } = chartConfig;
+                const labelsLength = data.labels.length;
+                const dataCount = Math.max(1, labelsLength);
+                const step = dataCount > 1 ? chartWidth / (dataCount - 1) : 0;
+
+                // 计算最近的数据索引
+                let closestIndex = 0;
+                if (step > 0) {
+                    closestIndex = Math.round((x - p) / step);
+                    closestIndex = Math.max(0, Math.min(closestIndex, labelsLength - 1));
+                }
+
+                // 检查鼠标是否在有效的图表区域内（只在绘图网格区域内才显示竖线）
+                const isInChartArea =
+                    x >= p - step / 2 &&
+                    x <= width - p + step / 2 &&
+                    y >= p &&
+                    y <= height - p;
+
+                if (isInChartArea) {
+                    const prevIndex = hoveredDataIndexRef.current;
+                    if (prevIndex !== closestIndex) {
+                        // 先更新 ref，确保 draw 能获取最新值
+                        hoveredDataIndexRef.current = closestIndex;
+                        setHoveredDataIndex(closestIndex);
+                        // 找到第一个可见数据集的点作为参考点
+                        let referencePoint: ComputedPoint | null = null;
+                        for (let i = 0; i < pointsRef.current.length; i++) {
+                            if (!visibleData.datasets[i]?.hidden && pointsRef.current[i][closestIndex]) {
+                                referencePoint = pointsRef.current[i][closestIndex];
+                                break;
+                            }
+                        }
+                        hoveredPointRef.current = referencePoint;
+                        setHoveredPoint(referencePoint);
+                        // 立即重绘以显示竖线效果
+                        if (isAnimationComplete) {
+                            draw(1);
+                        }
+                    }
+                } else {
+                    if (hoveredDataIndexRef.current !== null) {
+                        hoveredDataIndexRef.current = null;
+                        setHoveredDataIndex(null);
+                        hoveredPointRef.current = null;
+                        setHoveredPoint(null);
+                        if (isAnimationComplete) {
+                            draw(1);
+                        }
+                    }
+                }
+                setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+                return;
+            }
+
+            // 普通模式：查找最近的数据点
             let nearestPoint: ComputedPoint | null = null;
             let minDistance = Infinity;
 
@@ -836,12 +948,14 @@ export const Area: React.FC<AreaProps> = ({
             setHoveredPoint(nearestPoint);
             setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
         },
-        [allPoints, visibleData.datasets, draw, isAnimationComplete]
+        [allPoints, visibleData.datasets, draw, isAnimationComplete, chartConfig, data.labels.length, width, height, verticalLine]
     );
 
     const handleMouseLeave = useCallback(() => {
         hoveredPointRef.current = null;
+        hoveredDataIndexRef.current = null;
         setHoveredPoint(null);
+        setHoveredDataIndex(null);
         // 立即重绘以清除悬停效果
         if (isAnimationComplete) {
             draw(1);
@@ -869,7 +983,15 @@ export const Area: React.FC<AreaProps> = ({
     }, []);
 
     const showLegend = legend?.display !== false;
-    const showTooltip = tooltip?.enabled !== false && hoveredPoint;
+    // 判断 tooltip 显示条件：
+    // 1. tooltip 启用
+    // 2. 竖线模式下需要 hoveredDataIndex 不为 null
+    // 3. 普通模式下需要 hoveredPoint 不为 null
+    const showTooltip = tooltip?.enabled !== false && (
+        verticalLine?.enabled
+            ? hoveredDataIndex !== null
+            : hoveredPoint !== null
+    );
 
     return (
         <div
@@ -915,44 +1037,92 @@ export const Area: React.FC<AreaProps> = ({
                     }}
                 >
                     {tooltip?.customContent ? (
-                        tooltip.customContent({
-                            dataIndex: hoveredPoint.dataIndex,
-                            label: hoveredPoint.label,
-                            items: visibleData.datasets
-                                .map((dataset, idx) => ({
-                                    label: dataset.label,
-                                    value: dataset.data[hoveredPoint.dataIndex],
-                                    color: getDatasetFillColor(idx, dataset),
-                                    datasetIndex: idx,
-                                }))
-                                .filter(item => !visibleData.datasets[item.datasetIndex]?.hidden),
-                        })
+                        // 竖线模式：显示该索引的所有数据点
+                        verticalLine?.enabled && hoveredDataIndex !== null ? (
+                            tooltip.customContent({
+                                dataIndex: hoveredDataIndex,
+                                label: data.labels[hoveredDataIndex] || '',
+                                items: visibleData.datasets
+                                    .map((dataset, idx) => ({
+                                        label: dataset.label,
+                                        value: dataset.data[hoveredDataIndex],
+                                        color: getDatasetFillColor(idx, dataset),
+                                        datasetIndex: idx,
+                                    }))
+                                    .filter(item => !visibleData.datasets[item.datasetIndex]?.hidden),
+                            })
+                        ) : hoveredPoint ? (
+                            tooltip.customContent({
+                                dataIndex: hoveredPoint.dataIndex,
+                                label: hoveredPoint.label,
+                                items: visibleData.datasets
+                                    .map((dataset, idx) => ({
+                                        label: dataset.label,
+                                        value: dataset.data[hoveredPoint.dataIndex],
+                                        color: getDatasetFillColor(idx, dataset),
+                                        datasetIndex: idx,
+                                    }))
+                                    .filter(item => !visibleData.datasets[item.datasetIndex]?.hidden),
+                            })
+                        ) : null
                     ) : (
-                        <>
-                            <div
-                                className={styles.zcpcyChatsTooltipTitle}
-                                style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
-                            >
-                                {hoveredPoint.label}
-                            </div>
-                            <div className={styles.zcpcyChatsTooltipItem}>
-                                <span
-                                    className={styles.zcpcyChatsTooltipColor}
-                                    style={{
-                                        backgroundColor: getDatasetFillColor(
-                                            hoveredPoint.datasetIndex,
-                                            visibleData.datasets[hoveredPoint.datasetIndex]
-                                        ),
-                                    }}
-                                />
-                                <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
-                                    {visibleData.datasets[hoveredPoint.datasetIndex]?.label}: {hoveredPoint.value}
-                                    {stacked && hoveredPoint.stackValue !== undefined && (
-                                        <span style={{ opacity: 0.7 }}> (累计: {hoveredPoint.stackValue})</span>
-                                    )}
-                                </span>
-                            </div>
-                        </>
+                        // 竖线模式：显示该索引的所有数据点
+                        verticalLine?.enabled && hoveredDataIndex !== null ? (
+                            <>
+                                <div
+                                    className={styles.zcpcyChatsTooltipTitle}
+                                    style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
+                                >
+                                    {data.labels[hoveredDataIndex]}
+                                </div>
+                                {visibleData.datasets.map((dataset, idx) => {
+                                    if (dataset.hidden) return null;
+                                    const value = dataset.data[hoveredDataIndex];
+                                    return (
+                                        <div key={idx} className={styles.zcpcyChatsTooltipItem}>
+                                            <span
+                                                className={styles.zcpcyChatsTooltipColor}
+                                                style={{
+                                                    backgroundColor: getDatasetFillColor(idx, dataset),
+                                                }}
+                                            />
+                                            <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
+                                                {dataset.label}: {value}
+                                                {stacked && (
+                                                    <span style={{ opacity: 0.7 }}> (累计: {value})</span>
+                                                )}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </>
+                        ) : hoveredPoint ? (
+                            <>
+                                <div
+                                    className={styles.zcpcyChatsTooltipTitle}
+                                    style={{ color: tooltip?.titleColor || DEFAULT_CONFIG.tooltipTitleColor }}
+                                >
+                                    {hoveredPoint.label}
+                                </div>
+                                <div className={styles.zcpcyChatsTooltipItem}>
+                                    <span
+                                        className={styles.zcpcyChatsTooltipColor}
+                                        style={{
+                                            backgroundColor: getDatasetFillColor(
+                                                hoveredPoint.datasetIndex,
+                                                visibleData.datasets[hoveredPoint.datasetIndex]
+                                            ),
+                                        }}
+                                    />
+                                    <span style={{ color: tooltip?.bodyColor || DEFAULT_CONFIG.tooltipBodyColor }}>
+                                        {visibleData.datasets[hoveredPoint.datasetIndex]?.label}: {hoveredPoint.value}
+                                        {stacked && hoveredPoint.stackValue !== undefined && (
+                                            <span style={{ opacity: 0.7 }}> (累计: {hoveredPoint.stackValue})</span>
+                                        )}
+                                    </span>
+                                </div>
+                            </>
+                        ) : null
                     )}
                 </div>
             )}
