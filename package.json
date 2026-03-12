@@ -14,6 +14,18 @@
       "import": "./dist/index.esm.js",
       "require": "./dist/index.js"
     },
+    "./area": {
+      "types": "./dist/area/index.d.ts",
+      "import": "./dist/area/index.esm.js",
+      "require": "./dist/area/index.js"
+    },
+    "./area/style.css": "./dist/area/style.css",
+    "./bar": {
+      "types": "./dist/bar/index.d.ts",
+      "import": "./dist/bar/index.esm.js",
+      "require": "./dist/bar/index.js"
+    },
+    "./bar/style.css": "./dist/bar/style.css",
     "./column": {
       "types": "./dist/column/index.d.ts",
       "import": "./dist/column/index.esm.js",

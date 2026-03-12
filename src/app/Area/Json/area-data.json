@@ -1,0 +1,14 @@
+[
+  { "Date": "1月", "series": "访问量", "value": 820 },
+  { "Date": "2月", "series": "访问量", "value": 932 },
+  { "Date": "3月", "series": "访问量", "value": 901 },
+  { "Date": "4月", "series": "访问量", "value": 934 },
+  { "Date": "5月", "series": "访问量", "value": 1290 },
+  { "Date": "6月", "series": "访问量", "value": 1330 },
+  { "Date": "7月", "series": "访问量", "value": 1320 },
+  { "Date": "8月", "series": "访问量", "value": 1450 },
+  { "Date": "9月", "series": "访问量", "value": 1520 },
+  { "Date": "10月", "series": "访问量", "value": 1480 },
+  { "Date": "11月", "series": "访问量", "value": 1600 },
+  { "Date": "12月", "series": "访问量", "value": 1750 }
+]
