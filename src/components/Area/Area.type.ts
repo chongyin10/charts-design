@@ -213,6 +213,12 @@ export interface AreaProps {
     smooth?: boolean;
     /** 是否堆叠显示 */
     stacked?: boolean;
+    /**
+     * 是否启用穿越零点模式（十字形坐标轴）
+     * 当数据同时包含正负值时，面积图从0线开始填充，X轴显示在Y=0位置
+     * @default false
+     */
+    crossZero?: boolean;
     /** 自定义类名 */
     className?: string;
     /** 自定义样式 */

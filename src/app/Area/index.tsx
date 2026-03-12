@@ -16,6 +16,7 @@ import styles from './page.module.css';
 import areaDataJson from './Json/area-data.json';
 import aaplJson from './Json/aapl.json';
 import unemploymentDataJson from './Json/unemployment-by-industry.json';
+import profitLossDataJson from './Json/profit-loss-data.json';
 
 // 自定义复制按钮组件
 interface CopyButtonProps {
@@ -215,6 +216,79 @@ export default function AreaChartPage() {
 
     // 失业数据示例的自定义刻度（每年显示一次）
     const unemploymentCustomTicks = ['2000-01', '2001-01', '2002-01', '2003-01', '2004-01', '2005-01'];
+
+    // 盈亏数据示例的自定义刻度（每周显示一次，避免重叠）
+    const profitLossCustomTicks = ['1/2', '1/8', '1/15', '1/22', '1/29', '2/5', '2/9'];
+
+    // 处理盈亏数据：获取所有唯一的日期和公司
+    const uniqueDatesPL = Array.from(new Set(profitLossDataJson.map((item: { date: string }) => item.date))).sort();
+    const uniqueCompanies = Array.from(new Set(profitLossDataJson.map((item: { company: string }) => item.company)));
+
+    // 创建按公司组织的数据集
+    const profitLossDatasets = uniqueCompanies.map((company) => {
+        const companyData = profitLossDataJson.filter((item: { company: string }) => item.company === company);
+        const data = uniqueDatesPL.map((date) => {
+            const item = companyData.find((d: { date: string }) => d.date === date);
+            return item ? item.profit : 0;
+        });
+        return { company, data };
+    });
+
+    // 从 JSON 加载的正负值面积图数据
+    const crossZeroData: AreaChartData = {
+        labels: uniqueDatesPL.map((date: string) => {
+            const d = new Date(date);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+        }),
+        datasets: [
+            {
+                label: "科技公司A 日收益",
+                data: profitLossDatasets[0].data,
+                fillColor: "#3b82f6",
+                fillOpacity: 0.4,
+                borderColor: "#2563eb",
+                borderWidth: 2,
+                point: false
+            },
+        ],
+    };
+
+    // 多系列正负值面积图数据（从 JSON 加载）
+    const crossZeroMultiData: AreaChartData = {
+        labels: uniqueDatesPL.map((date: string) => {
+            const d = new Date(date);
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+        }),
+        datasets: [
+            {
+                label: "科技公司A",
+                data: profitLossDatasets[0].data,
+                fillColor: "#3b82f6",
+                fillOpacity: 0.4,
+                borderColor: "#2563eb",
+                borderWidth: 2,
+                point: false
+            },
+            {
+                label: "科技公司B",
+                data: profitLossDatasets[1].data,
+                fillColor: "#10b981",
+                fillOpacity: 0.4,
+                borderColor: "#059669",
+                borderWidth: 2,
+                point: false
+            },
+            {
+                label: "金融集团C",
+                data: profitLossDatasets[2].data,
+                fillColor: "#f59e0b",
+                fillOpacity: 0.4,
+                borderColor: "#d97706",
+                borderWidth: 2,
+                point: false
+            },
+        ],
+    };
 
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
@@ -569,6 +643,130 @@ const VerticalLineExample = () => {
     );
 };`;
 
+    // 正负值面积图代码（crossZero模式）
+    const crossZeroCode = `import { Area } from '@zjpcy/charts-design';
+import profitLossDataJson from './profit-loss-data.json';
+
+const CrossZeroAreaExample = () => {
+    // 处理盈亏数据：获取所有唯一的日期和公司
+    const uniqueDates = Array.from(new Set(profitLossDataJson.map(item => item.date))).sort();
+    const uniqueCompanies = Array.from(new Set(profitLossDataJson.map(item => item.company)));
+
+    // 创建按公司组织的数据集
+    const profitLossDatasets = uniqueCompanies.map((company) => {
+        const companyData = profitLossDataJson.filter(item => item.company === company);
+        const data = uniqueDates.map((date) => {
+            const item = companyData.find(d => d.date === date);
+            return item ? item.profit : 0;
+        });
+        return { company, data };
+    });
+
+    // 转换为 Area 组件需要的格式
+    const data = {
+        labels: uniqueDates.map(date => {
+            const d = new Date(date);
+            return \`\${d.getMonth() + 1}/\${d.getDate()}\`;
+        }),
+        datasets: [
+            {
+                label: "科技公司A 日收益",
+                data: profitLossDatasets[0].data,
+                fillColor: "#3b82f6",
+                fillOpacity: 0.4,
+                borderColor: "#2563eb",
+                borderWidth: 2,
+                point: false
+            },
+        ],
+    };
+
+    return (
+        <Area
+            data={data}
+            width={600}
+            height={300}
+            crossZero={true}  // 启用穿越零点模式
+            xAxis={{ display: true, title: { text: '日期' } }}
+            yAxis={{ display: true, title: { text: '收益 (万元)' } }}
+            legend={{ display: true, position: 'top' }}
+        />
+    );
+};`;
+
+    // 多系列正负值面积图代码
+    const crossZeroMultiCode = `import { Area } from '@zjpcy/charts-design';
+import profitLossDataJson from './profit-loss-data.json';
+
+const CrossZeroMultiAreaExample = () => {
+    // 处理盈亏数据：获取所有唯一的日期和公司
+    const uniqueDates = Array.from(new Set(profitLossDataJson.map(item => item.date))).sort();
+    const uniqueCompanies = Array.from(new Set(profitLossDataJson.map(item => item.company)));
+
+    // 创建按公司组织的数据集
+    const profitLossDatasets = uniqueCompanies.map((company) => {
+        const companyData = profitLossDataJson.filter(item => item.company === company);
+        const data = uniqueDates.map((date) => {
+            const item = companyData.find(d => d.date === date);
+            return item ? item.profit : 0;
+        });
+        return { company, data };
+    });
+
+    // 转换为 Area 组件需要的格式
+    const data = {
+        labels: uniqueDates.map(date => {
+            const d = new Date(date);
+            return \`\${d.getMonth() + 1}/\${d.getDate()}\`;
+        }),
+        datasets: [
+            {
+                label: "科技公司A",
+                data: profitLossDatasets[0].data,
+                fillColor: "#3b82f6",
+                fillOpacity: 0.4,
+                borderColor: "#2563eb",
+                borderWidth: 2,
+                point: false
+            },
+            {
+                label: "科技公司B",
+                data: profitLossDatasets[1].data,
+                fillColor: "#10b981",
+                fillOpacity: 0.4,
+                borderColor: "#059669",
+                borderWidth: 2,
+                point: false
+            },
+            {
+                label: "金融集团C",
+                data: profitLossDatasets[2].data,
+                fillColor: "#f59e0b",
+                fillOpacity: 0.4,
+                borderColor: "#d97706",
+                borderWidth: 2,
+                point: false
+            },
+        ],
+    };
+
+    return (
+        <Area
+            data={data}
+            width={700}
+            height={400}
+            crossZero={true}  // 启用穿越零点模式，X轴显示在Y=0位置
+            xAxis={{
+                display: true,
+                title: { text: '日期' },
+                customTicks: ['1/2', '1/8', '1/15', '1/22', '1/29', '2/5', '2/9'],
+            }}
+            yAxis={{ display: true, title: { text: '收益 (万元)' } }}
+            legend={{ display: true, position: 'top' }}
+        />
+    );
+};`;
+
 // 失业数据堆叠面积图代码示例
 const unemploymentCode = `import { Area } from '@zjpcy/charts-design';
 import unemploymentDataJson from './unemployment-by-industry.json';
@@ -642,6 +840,7 @@ const areaPropsData = [
         { param: 'tooltip', description: '提示框配置', type: 'AreaTooltipConfig', default: '{ enabled: true }' },
         { param: 'smooth', description: '是否平滑曲线', type: 'boolean', default: 'false' },
         { param: 'stacked', description: '是否堆叠显示', type: 'boolean', default: 'false' },
+        { param: 'crossZero', description: '是否启用穿越零点模式（十字坐标轴），当数据同时包含正负值时，面积图从0线开始填充，X轴显示在Y=0位置', type: 'boolean', default: 'false' },
         { param: 'animationDuration', description: '动画时长（毫秒）', type: 'number', default: '1000' },
         { param: 'onDataClick', description: '数据点击回调', type: '(datasetIndex, dataIndex, value) => void', default: '-' },
         { param: 'onChartReady', description: '图表渲染完成回调', type: '() => void', default: '-' },
@@ -697,7 +896,6 @@ const areaPropsData = [
         { param: 'tickInterval', description: '标签间隔，每 n 个标签显示一个', type: 'number', default: '1' },
         { param: 'customTicks', description: '自定义刻度标签数组，传入后只显示指定的标签，会在图表范围内均匀分布显示', type: 'string[]', default: '-' },
         { param: 'customTickIndices', description: '自定义刻度位置数组，可选。如果提供，customTicks 会按指定索引位置显示；如果不提供，customTicks 会在图表范围内均匀分布', type: 'number[]', default: '均匀分布' },
-        { param: 'grid', description: '网格线配置', type: 'AreaGridConfig', default: '-' },
     ];
 
     // Point 配置数据
@@ -850,6 +1048,74 @@ const areaPropsData = [
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {stackedCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 正负值面积图（穿越零点模式） */}
+                    <div className={styles.exampleSection} id="area-cross-zero">
+                        <h3 className={styles.subsectionTitle}>正负值面积图（十字坐标轴）</h3>
+                        <p className={styles.sectionText}>使用 crossZero 属性启用穿越零点模式，当数据同时包含正负值时，面积图从0线开始填充，X轴显示在Y=0位置， 四像图</p>
+                        <div className={styles.exampleDemo}>
+                            <Area
+                                data={crossZeroData}
+                                width={600}
+                                height={300}
+                                crossZero={true}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '日期' },
+                                    customTicks: profitLossCustomTicks,
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '收益 (万元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={crossZeroCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {crossZeroCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 多系列正负值面积图 */}
+                    <div className={styles.exampleSection} id="area-cross-zero-multi">
+                        <h3 className={styles.subsectionTitle}>多系列正负值面积图</h3>
+                        <p className={styles.sectionText}>在穿越零点模式下展示多个数据系列，适用于同时展示收入和支出等方向相反的数据。</p>
+                        <div className={styles.exampleDemo}>
+                            <Area
+                                data={crossZeroMultiData}
+                                width={700}
+                                height={400}
+                                crossZero={true}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '日期' },
+                                    customTicks: profitLossCustomTicks,
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '收益 (万元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={crossZeroMultiCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {crossZeroMultiCode}
                         </SyntaxHighlighter>
                     </div>
 
@@ -1145,6 +1411,7 @@ const areaPropsData = [
                                 <Anchor.Link href="#area-smooth" title="平滑曲线" />
                                 <Anchor.Link href="#area-multi" title="多系列" />
                                 <Anchor.Link href="#area-stacked" title="堆叠面积图" />
+                                <Anchor.Link href="#area-cross-zero" title="正负值面积图" />
                                 <Anchor.Link href="#area-stock" title="JSON 数据加载" />
                                 <Anchor.Link href="#area-custom-ticks" title="自定义 X 轴刻度" />
                                 <Anchor.Link href="#area-click" title="点击事件" />

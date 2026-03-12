@@ -416,23 +416,46 @@ const drawGrid = (
 };
 
 /**
+ * 获取Y=0对应的Y坐标位置
+ */
+const getZeroY = (config: AreaChartConfig, height: number): number => {
+    const { minValue, valueRange } = config;
+    // 如果0在数据范围内，计算0对应的Y坐标
+    if (minValue <= 0 && minValue + valueRange >= 0) {
+        const normalizedValue = (0 - minValue) / valueRange;
+        return height - config.padding - normalizedValue * config.chartHeight;
+    }
+    // 如果全部为正数，0在底部
+    if (minValue > 0) {
+        return height - config.padding;
+    }
+    // 如果全部为负数，0在顶部
+    return config.padding;
+};
+
+/**
  * 绘制坐标轴
+ * @param crossZero 是否启用穿越零点模式，为true时X轴绘制在Y=0位置
  */
 const drawAxes = (
     ctx: CanvasRenderingContext2D,
     config: AreaChartConfig,
     width: number,
     height: number,
-    axisColor: string
+    axisColor: string,
+    crossZero?: boolean
 ): void => {
     const { padding } = config;
 
     ctx.strokeStyle = axisColor;
     ctx.lineWidth = 1;
 
+    // X轴位置：crossZero模式下绘制在Y=0处，否则绘制在底部
+    const xAxisY = crossZero ? getZeroY(config, height) : height - padding;
+
     ctx.beginPath();
-    ctx.moveTo(padding, height - padding);
-    ctx.lineTo(width - padding, height - padding);
+    ctx.moveTo(padding, xAxisY);
+    ctx.lineTo(width - padding, xAxisY);
     ctx.stroke();
 
     ctx.beginPath();
@@ -443,6 +466,7 @@ const drawAxes = (
 
 /**
  * 绘制面积填充（非堆叠模式）
+ * @param crossZero 是否启用穿越零点模式，为true时从Y=0线开始填充
  */
 const drawFillArea = (
     ctx: CanvasRenderingContext2D,
@@ -450,22 +474,27 @@ const drawFillArea = (
     color: string,
     opacity: number,
     height: number,
-    padding: number
+    padding: number,
+    crossZero?: boolean,
+    zeroY?: number
 ): void => {
     if (points.length < 2) return;
 
     ctx.fillStyle = color;
     ctx.globalAlpha = opacity;
 
+    // 填充基线Y坐标：crossZero模式下使用0线，否则使用底部
+    const baseY = crossZero && zeroY !== undefined ? zeroY : height - padding;
+
     ctx.beginPath();
-    ctx.moveTo(points[0].x, height - padding);
+    ctx.moveTo(points[0].x, baseY);
     ctx.lineTo(points[0].x, points[0].y);
 
     for (let i = 1; i < points.length; i++) {
         ctx.lineTo(points[i].x, points[i].y);
     }
 
-    ctx.lineTo(points[points.length - 1].x, height - padding);
+    ctx.lineTo(points[points.length - 1].x, baseY);
     ctx.closePath();
     ctx.fill();
 
@@ -474,13 +503,17 @@ const drawFillArea = (
 
 /**
  * 绘制堆叠面积填充
+ * @param crossZero 是否启用穿越零点模式
+ * @param zeroY Y=0对应的Y坐标
  */
 const drawStackedFillArea = (
     ctx: CanvasRenderingContext2D,
     points: ComputedPoint[],
     bottomPoints: ComputedPoint[] | null,
     color: string,
-    opacity: number
+    opacity: number,
+    crossZero?: boolean,
+    zeroY?: number
 ): void => {
     if (points.length < 2) return;
 
@@ -489,14 +522,21 @@ const drawStackedFillArea = (
 
     ctx.beginPath();
 
+    // crossZero模式下且没有底部点时，从0线开始
+    const baseY = crossZero && zeroY !== undefined ? zeroY : (points[points.length - 1]?.y ?? 0);
+
     // 从底部线或底部边界的第一个点开始
     if (bottomPoints && bottomPoints.length > 0) {
         ctx.moveTo(bottomPoints[0].x, bottomPoints[0].y);
         for (let i = 1; i < bottomPoints.length; i++) {
             ctx.lineTo(bottomPoints[i].x, bottomPoints[i].y);
         }
+    } else if (crossZero && zeroY !== undefined) {
+        // crossZero模式下，从0线开始
+        ctx.moveTo(points[points.length - 1].x, zeroY);
+        ctx.lineTo(points[0].x, zeroY);
     } else {
-        ctx.moveTo(points[points.length - 1].x, points[points.length - 1].y);
+        ctx.moveTo(points[points.length - 1].x, baseY);
     }
 
     // 绘制顶部的数据线（从右到左）
@@ -576,6 +616,7 @@ export const Area: React.FC<AreaProps> = ({
     animationDuration = DEFAULT_CONFIG.animationDuration,
     smooth = false,
     stacked = false,
+    crossZero = false,
     className,
     style,
     onDataClick,
@@ -651,8 +692,11 @@ export const Area: React.FC<AreaProps> = ({
                 xAxis?.customTickIndices
             );
 
-            // 绘制坐标轴
-            drawAxes(ctx, chartConfig, width, height, DEFAULT_CONFIG.axisColor);
+            // 绘制坐标轴（crossZero模式下X轴绘制在Y=0位置）
+            drawAxes(ctx, chartConfig, width, height, DEFAULT_CONFIG.axisColor, crossZero);
+
+            // 计算0线Y坐标
+            const zeroY = getZeroY(chartConfig, height);
 
             // 动画插值函数
             const interpolateY = (y: number, baseY: number) => {
@@ -660,8 +704,9 @@ export const Area: React.FC<AreaProps> = ({
             };
 
             // 获取当前数据点（考虑动画）
+            // crossZero模式下，动画从0线开始，而不是从底部
             const getAnimatedPoints = (points: ComputedPoint[]) => {
-                const baseY = height - padding;
+                const baseY = crossZero ? zeroY : height - padding;
                 return points.map(p => ({
                     ...p,
                     y: interpolateY(p.y, baseY),
@@ -698,8 +743,8 @@ export const Area: React.FC<AreaProps> = ({
 
                     const animatedBottomPoints = bottomPoints ? getAnimatedPoints(bottomPoints) : null;
 
-                    // 绘制堆叠面积
-                    drawStackedFillArea(ctx, animatedPoints, animatedBottomPoints, fillColor, fillOpacity);
+                    // 绘制堆叠面积（crossZero模式下从0线开始填充）
+                    drawStackedFillArea(ctx, animatedPoints, animatedBottomPoints, fillColor, fillOpacity, crossZero, zeroY);
 
                     // 绘制数据点（不使用悬停效果，悬停效果单独绘制）
                     drawPoints(ctx, animatedPoints, dataset, datasetIndex, false);
@@ -716,8 +761,8 @@ export const Area: React.FC<AreaProps> = ({
                     const fillColor = getDatasetFillColor(datasetIndex, dataset);
                     const fillOpacity = dataset.fillOpacity ?? DEFAULT_FILL_OPACITY;
 
-                    // 绘制填充区域
-                    drawFillArea(ctx, animatedPoints, fillColor, fillOpacity, height, padding);
+                    // 绘制填充区域（crossZero模式下从0线开始填充）
+                    drawFillArea(ctx, animatedPoints, fillColor, fillOpacity, height, padding, crossZero, zeroY);
 
                     // 绘制数据点（不使用悬停效果，悬停效果单独绘制）
                     drawPoints(ctx, animatedPoints, dataset, datasetIndex, false);
@@ -808,7 +853,7 @@ export const Area: React.FC<AreaProps> = ({
             // 保存计算的点用于交互
             pointsRef.current = allPoints;
         },
-        [visibleData, allPoints, chartConfig, width, height, padding, data.labels, xAxis, yAxis, smooth, stacked, verticalLine]
+        [visibleData, allPoints, chartConfig, width, height, padding, data.labels, xAxis, yAxis, smooth, stacked, verticalLine, crossZero]
     );
 
     // 动画效果
