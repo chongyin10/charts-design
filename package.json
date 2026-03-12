@@ -38,6 +38,12 @@
       "require": "./dist/line/index.js"
     },
     "./line/style.css": "./dist/line/style.css",
+    "./pie": {
+      "types": "./dist/pie/index.d.ts",
+      "import": "./dist/pie/index.esm.js",
+      "require": "./dist/pie/index.js"
+    },
+    "./pie/style.css": "./dist/pie/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [
