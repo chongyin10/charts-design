@@ -265,6 +265,127 @@ export default function ScatterChartPage() {
         { prop: 'point', desc: '数据点配置', type: 'ScatterPointConfig', default: '-' },
     ];
 
+    // 类型定义表格列
+    const typeColumns: Column[] = [
+        { title: '类型名称', dataIndex: 'name', key: 'name', width: 200 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+    ];
+
+    // 类型定义数据
+    const typeDefinitionsAPI = [
+        { name: 'ScatterDataPoint', desc: '散点数据点，包含 x 和 y 两个数值属性' },
+        { name: 'ScatterPointConfig', desc: '数据点样式配置，包括颜色、形状、大小等' },
+        { name: 'ScatterDataset', desc: '数据集配置，包含标签、数据点和样式' },
+        { name: 'ScatterChartData', desc: '图表数据，包含多个数据集的数组' },
+        { name: 'ScatterGridConfig', desc: '网格线配置，控制网格线的显示、颜色、透明度等' },
+        { name: 'ScatterAxisConfig', desc: '坐标轴配置，包括标题、范围、网格线等' },
+        { name: 'ScatterLegendConfig', desc: '图例配置，控制图例的显示和样式' },
+        { name: 'ScatterTooltipConfig', desc: '提示框配置，包括背景色、自定义内容等' },
+        { name: 'ScatterTrendlineConfig', desc: '回归线配置，用于显示线性趋势线' },
+        { name: 'ScatterQuadrantConfig', desc: '象限配置，将图表划分为四个区域' },
+        { name: 'ScatterProps', desc: '散点图组件的主要属性接口' },
+    ];
+
+    // ScatterPointConfig API
+    const pointConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterPointConfigAPI = [
+        { prop: 'backgroundColor', desc: '数据点填充颜色', type: 'string', default: '-' },
+        { prop: 'hoverBackgroundColor', desc: '悬停时填充颜色', type: 'string', default: '-' },
+        { prop: 'borderColor', desc: '边框颜色', type: 'string', default: '-' },
+        { prop: 'borderWidth', desc: '边框宽度', type: 'number', default: '-' },
+        { prop: 'style', desc: '数据点样式', type: "'circle' | 'rect' | 'triangle'", default: "'circle'" },
+        { prop: 'radius', desc: '数据点半径', type: 'number', default: '6' },
+        { prop: 'hoverRadius', desc: '悬停时半径', type: 'number', default: '9' },
+    ];
+
+    // ScatterAxisConfig API
+    const axisConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterAxisConfigAPI = [
+        { prop: 'display', desc: '是否显示坐标轴', type: 'boolean', default: 'true' },
+        { prop: 'title', desc: '轴标题配置', type: '{ text: string; color?: string; fontSize?: number }', default: '-' },
+        { prop: 'gridColor', desc: '网格线颜色', type: 'string', default: '-' },
+        { prop: 'tickColor', desc: '刻度标签颜色', type: 'string', default: '-' },
+        { prop: 'tickFontSize', desc: '刻度标签字体大小', type: 'number', default: '12' },
+        { prop: 'min', desc: '最小值（不设置则自动计算）', type: 'number', default: '-' },
+        { prop: 'max', desc: '最大值（不设置则自动计算）', type: 'number', default: '-' },
+        { prop: 'grid', desc: '网格线详细配置', type: 'ScatterGridConfig', default: '-' },
+    ];
+
+    // ScatterLegendConfig API
+    const legendConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterLegendConfigAPI = [
+        { prop: 'display', desc: '是否显示图例', type: 'boolean', default: 'true' },
+        { prop: 'position', desc: '图例位置', type: "'top' | 'bottom'", default: "'top'" },
+        { prop: 'labelColor', desc: '标签颜色', type: 'string', default: '-' },
+        { prop: 'labelFontSize', desc: '标签字体大小', type: 'number', default: '-' },
+    ];
+
+    // ScatterTooltipConfig API
+    const tooltipConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterTooltipConfigAPI = [
+        { prop: 'enabled', desc: '是否启用提示框', type: 'boolean', default: 'true' },
+        { prop: 'backgroundColor', desc: '背景颜色', type: 'string', default: "'#ffffff'" },
+        { prop: 'titleColor', desc: '标题颜色', type: 'string', default: "'#111827'" },
+        { prop: 'bodyColor', desc: '内容颜色', type: 'string', default: "'#374151'" },
+        { prop: 'fontSize', desc: '字体大小', type: 'number', default: '12' },
+        { prop: 'customContent', desc: '自定义内容渲染函数', type: 'Function', default: '-' },
+    ];
+
+    // ScatterTrendlineConfig API
+    const trendlineConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterTrendlineConfigAPI = [
+        { prop: 'enabled', desc: '是否显示回归线', type: 'boolean', default: 'false' },
+        { prop: 'color', desc: '回归线颜色', type: 'string', default: "'#ef4444'" },
+        { prop: 'width', desc: '回归线宽度', type: 'number', default: '2' },
+        { prop: 'dashed', desc: '是否显示为虚线', type: 'boolean', default: 'false' },
+    ];
+
+    // ScatterQuadrantConfig API
+    const quadrantConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterQuadrantConfigAPI = [
+        { prop: 'enabled', desc: '是否启用象限', type: 'boolean', default: 'false' },
+        { prop: 'xDivider', desc: 'X轴分割线位置', type: 'number', default: '0' },
+        { prop: 'yDivider', desc: 'Y轴分割线位置', type: 'number', default: '0' },
+        { prop: 'colors', desc: '四个象限的颜色数组', type: '[string, string, string, string]', default: '-' },
+        { prop: 'opacity', desc: '象限透明度', type: 'number', default: '0.3' },
+    ];
+
     // 代码示例
     const basicCode = `import { Scatter } from '@/components/Scatter';
 
@@ -553,6 +674,51 @@ const jsonData = {
                             <Table columns={datasetColumns} dataSource={scatterDatasetAPI} />
                         </div>
                     </div>
+
+                    {/* 类型定义 */}
+                    <div className={styles.exampleSection} id="scatter-types">
+                        <h2 className={styles.subsectionTitle}>类型定义</h2>
+                        <p className={styles.sectionText}>Scatter 组件使用的 TypeScript 类型定义概览。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={typeColumns} dataSource={typeDefinitionsAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterPointConfig</h3>
+                        <p className={styles.sectionText}>数据点样式配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={pointConfigColumns} dataSource={scatterPointConfigAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterAxisConfig</h3>
+                        <p className={styles.sectionText}>坐标轴配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={axisConfigColumns} dataSource={scatterAxisConfigAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterLegendConfig</h3>
+                        <p className={styles.sectionText}>图例配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={legendConfigColumns} dataSource={scatterLegendConfigAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterTooltipConfig</h3>
+                        <p className={styles.sectionText}>提示框配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={tooltipConfigColumns} dataSource={scatterTooltipConfigAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterTrendlineConfig</h3>
+                        <p className={styles.sectionText}>回归线配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={trendlineConfigColumns} dataSource={scatterTrendlineConfigAPI} />
+                        </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterQuadrantConfig</h3>
+                        <p className={styles.sectionText}>象限配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={quadrantConfigColumns} dataSource={scatterQuadrantConfigAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -574,6 +740,7 @@ const jsonData = {
                                 <Anchor.Link href="#scatter-json" title="JSON 数据" />
                                 <Anchor.Link href="#scatter-api" title="API 参考" />
                                 <Anchor.Link href="#scatter-dataset" title="Dataset 配置" />
+                                <Anchor.Link href="#scatter-types" title="类型定义" />
                             </Anchor>
                         )}
                     </div>

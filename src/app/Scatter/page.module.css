@@ -38,6 +38,14 @@
     margin-bottom: 8px;
 }
 
+.typeSubsectionTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-top: 24px;
+    margin-bottom: 8px;
+}
+
 .exampleDemo {
     background: #f9fafb;
     border-radius: 8px;
