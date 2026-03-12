@@ -44,6 +44,12 @@
       "require": "./dist/pie/index.js"
     },
     "./pie/style.css": "./dist/pie/style.css",
+    "./scatter": {
+      "types": "./dist/scatter/index.d.ts",
+      "import": "./dist/scatter/index.esm.js",
+      "require": "./dist/scatter/index.js"
+    },
+    "./scatter/style.css": "./dist/scatter/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [
