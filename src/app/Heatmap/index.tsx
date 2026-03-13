@@ -1,0 +1,537 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Heatmap } from '@/components/Heatmap';
+import { HeatmapChartData } from '@/components/Heatmap/Heatmap.type';
+import { Flex, Table, Anchor } from '@zjpcy/simple-design';
+import type { Column } from '@zjpcy/simple-design';
+import { Prism } from 'react-syntax-highlighter';
+
+// 修复 react-syntax-highlighter 与 React 18 的类型不兼容问题
+const SyntaxHighlighter = Prism as any;
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import styles from './page.module.css';
+
+// 自定义复制按钮组件
+interface CopyButtonProps {
+    text: string;
+}
+
+const CopyButton: React.FC<CopyButtonProps> = ({ text }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('复制失败:', err);
+        }
+    };
+
+    return (
+        <button
+            className={styles.copyButton}
+            onClick={handleCopy}
+            title="复制代码"
+        >
+            {copied ? '✓ 已复制' : '📋 复制'}
+        </button>
+    );
+};
+
+/**
+ * 热力图示例页面
+ */
+export default function HeatmapChartPage() {
+    const [scrollContainer, setScrollContainer] = useState<HTMLElement | null>(null);
+
+    useEffect(() => {
+        // 获取滚动容器
+        const container = document.querySelector('.app-content') as HTMLElement || document.body;
+        setScrollContainer(container);
+    }, []);
+
+    // 基础热力图数据 - 网站流量分析（小时 × 星期）
+    const basicData: HeatmapChartData = {
+        xLabels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        yLabels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+        datasets: [
+            {
+                label: '访问量',
+                data: [
+                    [120, 80, 90, 110, 150, 300, 350],
+                    [50, 40, 45, 55, 80, 180, 220],
+                    [200, 350, 400, 380, 420, 250, 280],
+                    [450, 520, 580, 600, 650, 480, 420],
+                    [380, 420, 460, 480, 520, 380, 350],
+                    [280, 320, 380, 420, 450, 520, 480],
+                ],
+            },
+        ],
+    };
+
+    // 相关性分析数据 - 变量相关性矩阵
+    const correlationData: HeatmapChartData = {
+        xLabels: ['销售额', '广告投入', '客户满意度', '复购率', '客单价', '转化率'],
+        yLabels: ['销售额', '广告投入', '客户满意度', '复购率', '客单价', '转化率'],
+        datasets: [
+            {
+                label: '相关系数',
+                data: [
+                    [1.00, 0.85, 0.72, 0.68, 0.55, 0.78],
+                    [0.85, 1.00, 0.45, 0.38, 0.42, 0.65],
+                    [0.72, 0.45, 1.00, 0.82, 0.35, 0.58],
+                    [0.68, 0.38, 0.82, 1.00, 0.48, 0.52],
+                    [0.55, 0.42, 0.35, 0.48, 1.00, 0.40],
+                    [0.78, 0.65, 0.58, 0.52, 0.40, 1.00],
+                ],
+            },
+        ],
+    };
+
+    // 包含负值的数据 - 温度异常分析
+    const divergingData: HeatmapChartData = {
+        xLabels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        yLabels: ['北京', '上海', '广州', '成都', '哈尔滨'],
+        datasets: [
+            {
+                label: '温度异常(°C)',
+                data: [
+                    [-2.5, -1.8, 1.2, 3.5, 5.0, 4.2, 2.8, 1.5, -0.5, -2.0, -3.2, -2.8],
+                    [1.2, 1.5, 2.8, 3.2, 4.0, 3.5, 2.2, 1.8, 0.8, 0.2, -0.5, 0.8],
+                    [2.5, 3.2, 4.5, 5.0, 6.2, 5.8, 4.5, 3.8, 2.5, 1.8, 1.2, 2.0],
+                    [0.8, 1.2, 2.5, 3.8, 4.5, 4.0, 3.2, 2.5, 1.2, 0.5, -0.2, 0.5],
+                    [-5.2, -4.5, -2.0, 2.5, 4.2, 3.8, 2.0, 0.5, -1.5, -3.0, -4.5, -5.0],
+                ],
+            },
+        ],
+    };
+
+    // 用户行为分析数据 - 产品功能使用频率
+    const behaviorData: HeatmapChartData = {
+        xLabels: ['新用户', '普通用户', '活跃用户', '忠实用户', 'VIP用户'],
+        yLabels: ['首页', '搜索', '购物车', '支付', '个人中心', '消息', '设置'],
+        datasets: [
+            {
+                label: '使用频率',
+                data: [
+                    [95, 88, 92, 85, 78],
+                    [60, 75, 82, 90, 95],
+                    [20, 45, 88, 92, 85],
+                    [15, 30, 75, 98, 92],
+                    [40, 35, 45, 55, 65],
+                    [25, 40, 55, 70, 80],
+                    [10, 15, 25, 35, 45],
+                ],
+            },
+        ],
+    };
+
+    // 处理单元格点击
+    const handleCellClick = (xIndex: number, yIndex: number, value: number) => {
+        console.log('点击单元格:', { xIndex, yIndex, value });
+        alert(`X索引: ${xIndex}, Y索引: ${yIndex}, 数值: ${value.toFixed(2)}`);
+    };
+
+    // 基础热力图代码
+    const basicCode = `import { Heatmap } from '@zjpcy/charts-design';
+
+const BasicHeatmapExample = () => {
+    const data = {
+        xLabels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+        yLabels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+        datasets: [{
+            label: '访问量',
+            data: [
+                [120, 80, 90, 110, 150, 300, 350],
+                [50, 40, 45, 55, 80, 180, 220],
+                [200, 350, 400, 380, 420, 250, 280],
+                [450, 520, 580, 600, 650, 480, 420],
+                [380, 420, 460, 480, 520, 380, 350],
+                [280, 320, 380, 420, 450, 520, 480],
+            ],
+        }],
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={600}
+            height={350}
+            xAxis={{ title: { text: '星期' } }}
+            yAxis={{ title: { text: '时段' } }}
+            cellLabels={{ display: true, formatter: (v) => v.toString() }}
+            colorScale={{
+                minColor: '#f0f9ff',
+                maxColor: '#0369a1',
+            }}
+        />
+    );
+};`;
+
+    // 相关性矩阵代码
+    const correlationCode = `import { Heatmap } from '@zjpcy/charts-design';
+
+const CorrelationHeatmapExample = () => {
+    const data = {
+        xLabels: ['销售额', '广告投入', '客户满意度', '复购率', '客单价', '转化率'],
+        yLabels: ['销售额', '广告投入', '客户满意度', '复购率', '客单价', '转化率'],
+        datasets: [{
+            label: '相关系数',
+            data: [
+                [1.00, 0.85, 0.72, 0.68, 0.55, 0.78],
+                [0.85, 1.00, 0.45, 0.38, 0.42, 0.65],
+                [0.72, 0.45, 1.00, 0.82, 0.35, 0.58],
+                [0.68, 0.38, 0.82, 1.00, 0.48, 0.52],
+                [0.55, 0.42, 0.35, 0.48, 1.00, 0.40],
+                [0.78, 0.65, 0.58, 0.52, 0.40, 1.00],
+            ],
+        }],
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={600}
+            height={400}
+            xAxis={{ 
+                title: { text: '指标' },
+                tickRotation: 45 
+            }}
+            yAxis={{ title: { text: '指标' } }}
+            cellLabels={{ display: true, formatter: (v) => v.toFixed(2) }}
+            colorScale={{
+                minColor: '#fee2e2',
+                maxColor: '#dc2626',
+            }}
+            borderRadius={4}
+        />
+    );
+};`;
+
+    // 发散型颜色比例尺代码（负值支持）
+    const divergingCode = `import { Heatmap } from '@zjpcy/charts-design';
+
+const DivergingHeatmapExample = () => {
+    const data = {
+        xLabels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        yLabels: ['北京', '上海', '广州', '成都', '哈尔滨'],
+        datasets: [{
+            label: '温度异常(°C)',
+            data: [
+                [-2.5, -1.8, 1.2, 3.5, 5.0, 4.2],
+                [1.2, 1.5, 2.8, 3.2, 4.0, 3.5],
+                [2.5, 3.2, 4.5, 5.0, 6.2, 5.8],
+                [0.8, 1.2, 2.5, 3.8, 4.5, 4.0],
+                [-5.2, -4.5, -2.0, 2.5, 4.2, 3.8],
+            ],
+        }],
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={600}
+            height={350}
+            xAxis={{ title: { text: '月份' } }}
+            yAxis={{ title: { text: '城市' } }}
+            cellLabels={{ display: true, formatter: (v) => (v > 0 ? '+' : '') + v.toFixed(1) }}
+            colorScale={{
+                minColor: '#dc2626',  // 红色（负值）
+                midColor: '#ffffff',  // 白色（零值）
+                maxColor: '#2563eb',  // 蓝色（正值）
+                diverging: true,
+            }}
+        />
+    );
+};`;
+
+    // 用户行为分析代码
+    const behaviorCode = `import { Heatmap } from '@zjpcy/charts-design';
+
+const BehaviorHeatmapExample = () => {
+    const data = {
+        xLabels: ['新用户', '普通用户', '活跃用户', '忠实用户', 'VIP用户'],
+        yLabels: ['首页', '搜索', '购物车', '支付', '个人中心', '消息', '设置'],
+        datasets: [{
+            label: '使用频率',
+            data: [
+                [95, 88, 92, 85, 78],
+                [60, 75, 82, 90, 95],
+                [20, 45, 88, 92, 85],
+                [15, 30, 75, 98, 92],
+                [40, 35, 45, 55, 65],
+                [25, 40, 55, 70, 80],
+                [10, 15, 25, 35, 45],
+            ],
+        }],
+    };
+
+    const handleCellClick = (xIndex, yIndex, value) => {
+        console.log('点击单元格:', { xIndex, yIndex, value });
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={550}
+            height={350}
+            xAxis={{ title: { text: '用户类型' } }}
+            yAxis={{ title: { text: '功能模块' } }}
+            cellLabels={{ display: true, formatter: (v) => \`\${v}%\` }}
+            colorScale={{
+                minColor: '#fef3c7',
+                maxColor: '#d97706',
+            }}
+            borderRadius={3}
+            cellSpacing={2}
+            onCellClick={handleCellClick}
+        />
+    );
+};`;
+
+    // API 表格列定义
+    const apiColumns: Column[] = [
+        { dataIndex: 'param', title: '参数', width: '120px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值', width: '100px' }
+    ];
+
+    // API 数据
+    const apiData = [
+        { param: 'data', description: '图表数据，包含 X/Y 轴标签和数据集', type: 'HeatmapChartData', default: 'required' },
+        { param: 'width', description: '图表宽度（像素）', type: 'number', default: '600' },
+        { param: 'height', description: '图表高度（像素）', type: 'number', default: '400' },
+        { param: 'padding', description: '图表内边距', type: 'number', default: '60' },
+        { param: 'colorScale', description: '颜色比例尺配置，支持线性和发散型', type: 'HeatmapColorScaleConfig', default: '-' },
+        { param: 'xAxis', description: 'X 轴配置', type: 'HeatmapAxisConfig', default: '-' },
+        { param: 'yAxis', description: 'Y 轴配置', type: 'HeatmapAxisConfig', default: '-' },
+        { param: 'cellLabels', description: '单元格标签配置', type: 'HeatmapLabelConfig', default: '-' },
+        { param: 'borderRadius', description: '单元格圆角半径', type: 'number', default: '2' },
+        { param: 'cellSpacing', description: '单元格间距', type: 'number', default: '1' },
+        { param: 'animationEnabled', description: '是否开启动画', type: 'boolean', default: 'true' },
+        { param: 'onCellClick', description: '单元格点击回调函数', type: '(xIndex, yIndex, value) => void', default: '-' },
+    ];
+
+    // ColorScale 配置数据
+    const colorScaleDataAPI = [
+        { param: 'minColor', description: '最小值颜色', type: 'string', default: '"#f0f9ff"' },
+        { param: 'maxColor', description: '最大值颜色', type: 'string', default: '"#0369a1"' },
+        { param: 'midColor', description: '中间值颜色（发散型）', type: 'string', default: '"#ffffff"' },
+        { param: 'diverging', description: '是否使用发散型颜色比例尺', type: 'boolean', default: 'false' },
+    ];
+
+    // Axis 配置数据
+    const axisDataAPI = [
+        { param: 'display', description: '是否显示坐标轴', type: 'boolean', default: 'true' },
+        { param: 'title', description: '轴标题配置', type: '{ text: string }', default: '-' },
+        { param: 'tickRotation', description: '标签旋转角度', type: 'number', default: '0' },
+    ];
+
+    // CellLabels 配置数据
+    const cellLabelsDataAPI = [
+        { param: 'display', description: '是否显示单元格标签', type: 'boolean', default: 'false' },
+        { param: 'formatter', description: '标签格式化函数', type: '(value: number) => string', default: '-' },
+    ];
+
+    return (
+        <div className={styles.examplePage}>
+            <Flex direction="row" gap="large" align="flex-start">
+                {/* 左侧主内容区 */}
+                <div className={styles.mainContent}>
+                    <h2 className={styles.sectionTitle} id="heatmap-intro">Heatmap 热力图</h2>
+                    <p className={styles.sectionText}>
+                        热力图（Heatmap）是一种通过颜色强度映射二维数据密度或数值大小的可视化图表，
+                        擅长揭示数据分布规律、聚类特征及异常点。
+                    </p>
+
+                    {/* 基础热力图 */}
+                    <div className={styles.exampleSection} id="heatmap-basic">
+                        <h3 className={styles.subsectionTitle}>基础热力图</h3>
+                        <p className={styles.sectionText}>展示网站不同时间段和星期的访问量分布，颜色越深表示访问量越高。</p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={basicData}
+                                width={600}
+                                height={350}
+                                xAxis={{ title: { text: '星期' } }}
+                                yAxis={{ title: { text: '时段' } }}
+                                cellLabels={{ display: true, formatter: (v) => v.toString() }}
+                                colorScale={{
+                                    minColor: '#f0f9ff',
+                                    maxColor: '#0369a1',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={basicCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {basicCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 相关性分析 */}
+                    <div className={styles.exampleSection} id="heatmap-correlation">
+                        <h3 className={styles.subsectionTitle}>相关性分析</h3>
+                        <p className={styles.sectionText}>使用热力图展示多个变量之间的相关性矩阵，颜色越深表示相关性越强。</p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={correlationData}
+                                width={600}
+                                height={400}
+                                xAxis={{ 
+                                    title: { text: '指标' },
+                                    tickRotation: 45 
+                                }}
+                                yAxis={{ title: { text: '指标' } }}
+                                cellLabels={{ display: true, formatter: (v) => v.toFixed(2) }}
+                                colorScale={{
+                                    minColor: '#fee2e2',
+                                    maxColor: '#dc2626',
+                                }}
+                                borderRadius={4}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={correlationCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {correlationCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 发散型颜色比例尺 */}
+                    <div className={styles.exampleSection} id="heatmap-diverging">
+                        <h3 className={styles.subsectionTitle}>发散型颜色比例尺</h3>
+                        <p className={styles.sectionText}>当数据包含正负值时，使用发散型颜色比例尺可以直观显示偏离中心值的程度。</p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={divergingData}
+                                width={600}
+                                height={350}
+                                xAxis={{ 
+                                    title: { text: '月份' },
+                                    tickRotation: 30,
+                                }}
+                                yAxis={{ title: { text: '城市' } }}
+                                cellLabels={{ 
+                                    display: true, 
+                                    formatter: (v) => (v > 0 ? '+' : '') + v.toFixed(1) 
+                                }}
+                                colorScale={{
+                                    minColor: '#dc2626',
+                                    midColor: '#ffffff',
+                                    maxColor: '#2563eb',
+                                    diverging: true,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={divergingCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {divergingCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 用户行为分析 */}
+                    <div className={styles.exampleSection} id="heatmap-behavior">
+                        <h3 className={styles.subsectionTitle}>用户行为分析</h3>
+                        <p className={styles.sectionText}>分析不同用户群体对各功能模块的使用频率，支持点击单元格查看详细数据。</p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={behaviorData}
+                                width={550}
+                                height={350}
+                                xAxis={{ title: { text: '用户类型' } }}
+                                yAxis={{ title: { text: '功能模块' } }}
+                                cellLabels={{ display: true, formatter: (v) => `${v}%` }}
+                                colorScale={{
+                                    minColor: '#fef3c7',
+                                    maxColor: '#d97706',
+                                }}
+                                borderRadius={3}
+                                cellSpacing={2}
+                                onCellClick={handleCellClick}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={behaviorCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {behaviorCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* API 参考 */}
+                    <div className={styles.exampleSection} id="heatmap-api">
+                        <h3 className={styles.subsectionTitle}>API 参考</h3>
+                        <p className={styles.sectionText}>Heatmap 组件的属性配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={apiData} />
+                        </div>
+                    </div>
+
+                    {/* ColorScale 配置 */}
+                    <div className={styles.exampleSection} id="heatmap-colorscale-api">
+                        <h3 className={styles.subsectionTitle}>ColorScale 配置</h3>
+                        <p className={styles.sectionText}>颜色比例尺配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={colorScaleDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* Axis 配置 */}
+                    <div className={styles.exampleSection} id="heatmap-axis-api">
+                        <h3 className={styles.subsectionTitle}>Axis 配置</h3>
+                        <p className={styles.sectionText}>坐标轴配置项说明（xAxis/yAxis 通用配置）。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={axisDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* CellLabels 配置 */}
+                    <div className={styles.exampleSection} id="heatmap-celllabels-api">
+                        <h3 className={styles.subsectionTitle}>CellLabels 配置</h3>
+                        <p className={styles.sectionText}>单元格标签配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={cellLabelsDataAPI} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* 右侧锚点导航 */}
+                <div className={styles.anchorNav}>
+                    <div className={styles.anchorWrapper}>
+                        {scrollContainer && (
+                            <Anchor
+                                getContainer={() => scrollContainer}
+                                offsetTop={20}
+                                affix={false}
+                                bounds={30}
+                            >
+                                <Anchor.Link href="#heatmap-intro" title="组件介绍" />
+                                <Anchor.Link href="#heatmap-basic" title="基础热力图" />
+                                <Anchor.Link href="#heatmap-correlation" title="相关性分析" />
+                                <Anchor.Link href="#heatmap-diverging" title="发散型颜色比例尺" />
+                                <Anchor.Link href="#heatmap-behavior" title="用户行为分析" />
+                                <Anchor.Link href="#heatmap-api" title="API 参考" />
+                                <Anchor.Link href="#heatmap-colorscale-api" title="ColorScale 配置" />
+                                <Anchor.Link href="#heatmap-axis-api" title="Axis 配置" />
+                                <Anchor.Link href="#heatmap-celllabels-api" title="CellLabels 配置" />
+                            </Anchor>
+                        )}
+                    </div>
+                </div>
+            </Flex>
+        </div>
+    );
+}

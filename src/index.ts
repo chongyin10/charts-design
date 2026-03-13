@@ -5,6 +5,7 @@ export { Column, default as ColumnDefault } from './components/Column';
 export { Area, default as AreaDefault } from './components/Area';
 export { Pie, default as PieDefault } from './components/Pie';
 export { Funnel, default as FunnelDefault } from './components/Funnel';
+export { Heatmap, default as HeatmapDefault } from './components/Heatmap';
 
 // 导出类型定义
 export type {
@@ -58,6 +59,18 @@ export type {
   FunnelLegendConfig,
   FunnelTooltipConfig,
 } from './components/Funnel/Funnel.type';
+
+export type {
+  HeatmapProps,
+  HeatmapChartData,
+  HeatmapDataset,
+  HeatmapColorScaleConfig,
+  HeatmapAxisConfig,
+  HeatmapGridConfig,
+  HeatmapLegendConfig,
+  HeatmapTooltipConfig,
+  HeatmapLabelConfig,
+} from './components/Heatmap/Heatmap.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';

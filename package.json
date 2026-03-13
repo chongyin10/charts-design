@@ -38,6 +38,12 @@
       "require": "./dist/funnel/index.js"
     },
     "./funnel/style.css": "./dist/funnel/style.css",
+    "./heatmap": {
+      "types": "./dist/heatmap/index.d.ts",
+      "import": "./dist/heatmap/index.esm.js",
+      "require": "./dist/heatmap/index.js"
+    },
+    "./heatmap/style.css": "./dist/heatmap/style.css",
     "./line": {
       "types": "./dist/line/index.d.ts",
       "import": "./dist/line/index.esm.js",
