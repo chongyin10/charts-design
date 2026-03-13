@@ -1,0 +1,21 @@
+/**
+ * 水波图组件样式
+ */
+
+.zcpcyChatsLiquidChartContainer {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.zcpcyChatsLiquidChartContainer:hover {
+  transform: scale(1.02);
+}
+
+.zcpcyChatsLiquidChartCanvas {
+  display: block;
+}

@@ -6,6 +6,7 @@ export { Area, default as AreaDefault } from './components/Area';
 export { Pie, default as PieDefault } from './components/Pie';
 export { Funnel, default as FunnelDefault } from './components/Funnel';
 export { Heatmap, default as HeatmapDefault } from './components/Heatmap';
+export { Liquid, default as LiquidDefault } from './components/Liquid';
 
 // 导出类型定义
 export type {
@@ -71,6 +72,15 @@ export type {
   HeatmapTooltipConfig,
   HeatmapLabelConfig,
 } from './components/Heatmap/Heatmap.type';
+
+export type {
+  LiquidProps,
+  LiquidData,
+  LiquidChartConfig,
+  LiquidWaveConfig,
+  LiquidBorderConfig,
+  LiquidTextConfig,
+} from './components/Liquid/Liquid.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';
