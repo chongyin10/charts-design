@@ -73,16 +73,22 @@ export default function ColumnChartPage() {
                 label: '产品 A',
                 data: [120, 135, 148, 162],
                 backgroundColor: '#3b82f6',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '产品 B',
                 data: [80, 95, 110, 125],
                 backgroundColor: '#ef4444',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '产品 C',
                 data: [60, 75, 85, 95],
                 backgroundColor: '#10b981',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
         ],
     };
@@ -95,16 +101,22 @@ export default function ColumnChartPage() {
                 label: '线上销售',
                 data: [320, 302, 301, 334, 390, 330, 320],
                 backgroundColor: '#3b82f6',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '线下销售',
                 data: [120, 132, 101, 134, 90, 230, 210],
                 backgroundColor: '#10b981',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '分销渠道',
                 data: [220, 182, 191, 234, 290, 330, 310],
                 backgroundColor: '#f59e0b',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
         ],
     };
@@ -130,6 +142,27 @@ export default function ColumnChartPage() {
                 label: '门店数量',
                 data: [85, 72, 68, 65, 45, 38],
                 backgroundColor: '#ec4899',
+            },
+        ],
+    };
+
+    // 直方图数据 - 身高分布
+    const histogramData: ColumnChartData = {
+        labels: ['40', '45', '50', '55', '60', '65', '70', '75', '80', '85', '90', '95', '100', '105', '110', '115', '120', '125', '130', '135', '140', '145', '150', '155', '160'],
+        datasets: [
+            {
+                label: 'female',
+                data: [2, 5, 12, 25, 45, 80, 120, 180, 250, 320, 380, 420, 440, 400, 320, 220, 120, 60, 25, 10, 5, 2, 1, 0, 0],
+                backgroundColor: '#00d9c0',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
+            },
+            {
+                label: 'male',
+                data: [1, 3, 8, 15, 30, 55, 90, 140, 200, 280, 380, 480, 550, 600, 580, 520, 420, 300, 180, 100, 50, 25, 12, 5, 2],
+                backgroundColor: '#0a85ff',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
         ],
     };
@@ -189,16 +222,22 @@ const GroupedColumnExample = () => {
                 label: '产品 A',
                 data: [120, 135, 148, 162],
                 backgroundColor: '#3b82f6',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '产品 B',
                 data: [80, 95, 110, 125],
                 backgroundColor: '#ef4444',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '产品 C',
                 data: [60, 75, 85, 95],
                 backgroundColor: '#10b981',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
         ],
     };
@@ -231,16 +270,22 @@ const StackedColumnExample = () => {
                 label: '线上销售',
                 data: [320, 302, 301, 334, 390, 330, 320],
                 backgroundColor: '#3b82f6',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '线下销售',
                 data: [120, 132, 101, 134, 90, 230, 210],
                 backgroundColor: '#10b981',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
             {
                 label: '分销渠道',
                 data: [220, 182, 191, 234, 290, 330, 310],
                 backgroundColor: '#f59e0b',
+                borderColor: '#ffffff',
+                borderWidth: 1.5,
             },
         ],
     };
@@ -328,8 +373,59 @@ const ClickableColumnExample = () => {
     );
 };`;
 
-    // 网格线配置代码
-    const gridCode = `import { Column } from '@zjpcy/charts-design';
+// 直方图代码
+const histogramCode = `import { Column } from '@zjpcy/charts-design';
+
+const HistogramExample = () => {
+const data = {
+    labels: ['40', '45', '50', '55', '60', '65', '70', '75', '80', '85', '90', '95', '100', '105', '110', '115', '120', '125', '130', '135', '140', '145', '150', '155', '160'],
+    datasets: [
+        {
+            label: 'female',
+            data: [2, 5, 12, 25, 45, 80, 120, 180, 250, 320, 380, 420, 440, 400, 320, 220, 120, 60, 25, 10, 5, 2, 1, 0, 0],
+            backgroundColor: '#00d9c0',
+            borderColor: '#ffffff',
+            borderWidth: 1.5,
+        },
+        {
+            label: 'male',
+            data: [1, 3, 8, 15, 30, 55, 90, 140, 200, 280, 380, 480, 550, 600, 580, 520, 420, 300, 180, 100, 50, 25, 12, 5, 2],
+            backgroundColor: '#0a85ff',
+            borderColor: '#ffffff',
+            borderWidth: 1.5,
+        },
+    ],
+};
+
+return (
+    <Column
+        data={data}
+        width={700}
+        height={400}
+        stacked={true}
+        column={{
+            width: 1,
+            borderRadius: 0,
+            histogram: true,  // 启用直方图模式，优化边框渲染
+        }}
+        xAxis={{
+            display: true,
+            grid: { display: true, vertical: false },
+        }}
+        yAxis={{
+            display: true,
+            grid: { display: true, horizontal: true },
+        }}
+        legend={{
+            display: true,
+            position: 'top',
+        }}
+    />
+);
+};`;
+
+// 网格线配置代码
+const gridCode = `import { Column } from '@zjpcy/charts-design';
 
 const GridColumnExample = () => {
     const data = {
@@ -651,6 +747,44 @@ const FullConfigExample = () => {
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {stackedCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 直方图 */}
+                    <div className={styles.exampleSection} id="column-histogram">
+                        <h3 className={styles.subsectionTitle}>直方图</h3>
+                        <p className={styles.sectionText}>展示连续数据的频率分布，通过设置 stacked=true、column.width=1、borderRadius=0 和 histogram=true 实现紧密排列的直方图效果。使用 histogram 模式可以优化边框渲染，避免相邻柱体边框重叠。</p>
+                        <div className={styles.exampleDemo}>
+                            <Column
+                                data={histogramData}
+                                width={700}
+                                height={400}
+                                stacked={true}
+                                column={{
+                                    width: 1,
+                                    borderRadius: 0,
+                                    histogram: true,
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    grid: { display: true, vertical: false },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    grid: { display: true, horizontal: true },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={histogramCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {histogramCode}
                         </SyntaxHighlighter>
                     </div>
 
@@ -1075,6 +1209,7 @@ const CustomTooltipExample = () => {
                                 <Anchor.Link href="#column-basic" title="基础柱状图" />
                                 <Anchor.Link href="#column-grouped" title="分组柱状图" />
                                 <Anchor.Link href="#column-stacked" title="堆叠柱状图" />
+                                <Anchor.Link href="#column-histogram" title="直方图" />
                                 <Anchor.Link href="#column-rounded" title="圆角柱状图" />
                                 <Anchor.Link href="#column-click" title="点击事件" />
                                 <Anchor.Link href="#column-tooltip-custom" title="Tooltip 自定义" />

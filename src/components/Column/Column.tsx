@@ -120,7 +120,8 @@ const computeColumns = (
   height: number,
   stacked: boolean,
   columnWidth: number,
-  columnSpacing: number
+  columnSpacing: number,
+  visibleDatasetIndices: number[] = data.datasets.map((_, i) => i)
 ): ComputedColumn[][] => {
   const { padding, chartWidth, minValue } = config;
   const categoryCount = Math.max(1, data.labels.length);
@@ -129,8 +130,22 @@ const computeColumns = (
   const categoryWidth = chartWidth / categoryCount;
   const effectiveColumnWidth = categoryWidth * columnWidth;
 
-  // 存储堆叠状态下的累计高度
+  // 存储堆叠状态下的累计高度（只针对可见数据集）
   const stackAccumulated: number[] = new Array(categoryCount).fill(0);
+  
+  // 预计算每个分类的可见数据集累计值，用于确定 Y 轴起始位置
+  if (stacked) {
+    for (let dataIndex = 0; dataIndex < categoryCount; dataIndex++) {
+      let accumulated = 0;
+      for (let datasetIndex = 0; datasetIndex < datasetCount; datasetIndex++) {
+        if (visibleDatasetIndices.includes(datasetIndex)) {
+          const dataset = data.datasets[datasetIndex];
+          accumulated += dataset.data[dataIndex] || 0;
+        }
+      }
+      stackAccumulated[dataIndex] = accumulated;
+    }
+  }
 
   return data.datasets.map((dataset, datasetIndex) => {
     return dataset.data.map((value, dataIndex) => {
@@ -142,31 +157,63 @@ const computeColumns = (
         columnX = padding + dataIndex * categoryWidth + (categoryWidth - effectiveColumnWidth) / 2;
         columnWidth_actual = effectiveColumnWidth;
       } else {
-        // 分组模式：每个数据集在分类内有自己的位置
-        const groupWidth = effectiveColumnWidth;
-        const singleColumnWidth = (groupWidth - (datasetCount - 1) * columnSpacing) / datasetCount;
-        const groupStartX = padding + dataIndex * categoryWidth + (categoryWidth - groupWidth) / 2;
-        columnX = groupStartX + datasetIndex * (singleColumnWidth + columnSpacing);
-        columnWidth_actual = singleColumnWidth;
+        // 分组模式：只考虑可见数据集
+        const visibleDatasetsInGroup = visibleDatasetIndices.filter(i => i >= 0 && i < datasetCount);
+        const visibleIndex = visibleDatasetsInGroup.indexOf(datasetIndex);
+        
+        if (visibleIndex === -1) {
+          // 当前数据集不可见，返回默认位置（会被隐藏）
+          columnX = padding;
+          columnWidth_actual = 0;
+        } else {
+          // 根据可见数据集数量重新计算柱体宽度和位置
+          const visibleCount = visibleDatasetsInGroup.length;
+          const groupWidth = effectiveColumnWidth;
+          const singleColumnWidth = (groupWidth - (visibleCount - 1) * columnSpacing) / visibleCount;
+          const groupStartX = padding + dataIndex * categoryWidth + (categoryWidth - groupWidth) / 2;
+          columnX = groupStartX + visibleIndex * (singleColumnWidth + columnSpacing);
+          columnWidth_actual = singleColumnWidth;
+        }
       }
 
       let columnY: number;
       let columnHeight: number;
 
       if (stacked) {
-        // 堆叠模式：基于累计高度计算位置
-        const normalizedValue = (value - minValue) / config.valueRange;
-        const normalizedAccumulated = (stackAccumulated[dataIndex] - minValue) / config.valueRange;
-        
-        columnHeight = normalizedValue * config.chartHeight;
-        columnY = height - padding - normalizedAccumulated * config.chartHeight - columnHeight;
-        
-        // 更新累计高度
-        stackAccumulated[dataIndex] += value;
+        if (visibleDatasetIndices.includes(datasetIndex)) {
+          // 当前数据集可见，重新计算其在可见堆叠中的位置
+          // 需要计算在此数据集之前有多少可见数据集的值
+          let visibleAccumulated = 0;
+          for (let i = 0; i < datasetIndex; i++) {
+            if (visibleDatasetIndices.includes(i)) {
+              visibleAccumulated += data.datasets[i].data[dataIndex] || 0;
+            }
+          }
+          
+          // 计算当前数据集的值
+          const currentValue = value;
+          
+          // 归一化计算
+          const normalizedValue = (currentValue - minValue) / config.valueRange;
+          const normalizedAccumulated = (visibleAccumulated - minValue) / config.valueRange;
+          
+          columnHeight = normalizedValue * config.chartHeight;
+          columnY = height - padding - normalizedAccumulated * config.chartHeight - columnHeight;
+        } else {
+          // 当前数据集不可见，返回零高度的柱体
+          columnHeight = 0;
+          columnY = height - padding;
+        }
       } else {
-        // 分组模式：直接从底部计算
-        columnY = valueToY(value, config, height);
-        columnHeight = valueToHeight(value, config, height);
+        // 分组模式：只绘制可见数据集的柱体
+        if (visibleDatasetIndices.includes(datasetIndex)) {
+          columnY = valueToY(value, config, height);
+          columnHeight = valueToHeight(value, config, height);
+        } else {
+          // 当前数据集不可见，返回零高度的柱体
+          columnHeight = 0;
+          columnY = height - padding;
+        }
       }
 
       return {
@@ -416,6 +463,59 @@ const drawColumns = (
 };
 
 /**
+ * 绘制直方图柱体（带分隔线）
+ * 只在柱体顶部绘制边框，避免相邻柱体边框重叠
+ */
+const drawHistogramColumns = (
+  ctx: CanvasRenderingContext2D,
+  columns: ComputedColumn[],
+  dataset: ColumnDataset,
+  datasetIndex: number,
+  animationProgress: number,
+  defaultBorderRadius: number | number[]
+): void => {
+  const borderColor = dataset.borderColor;
+  const borderWidth = dataset.borderWidth ?? DEFAULT_CONFIG.borderWidth;
+
+  columns.forEach((column) => {
+    // 根据动画进度调整高度
+    const animatedHeight = column.height * animationProgress;
+    const animatedY = column.y + (column.height - animatedHeight);
+
+    // 绘制柱体
+    ctx.fillStyle = column.color;
+    ctx.fillRect(column.x, animatedY, column.width, animatedHeight);
+
+    // 只在柱体顶部和左右绘制边框（直方图效果）
+    if (borderColor && borderWidth > 0) {
+      ctx.save();
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = borderWidth;
+      
+      // 绘制顶部边框
+      ctx.beginPath();
+      ctx.moveTo(column.x, animatedY);
+      ctx.lineTo(column.x + column.width, animatedY);
+      ctx.stroke();
+      
+      // 绘制左侧边框（只在第一个柱体或相邻柱体颜色不同时绘制）
+      ctx.beginPath();
+      ctx.moveTo(column.x, animatedY);
+      ctx.lineTo(column.x, animatedY + animatedHeight);
+      ctx.stroke();
+      
+      // 绘制右侧边框
+      ctx.beginPath();
+      ctx.moveTo(column.x + column.width, animatedY);
+      ctx.lineTo(column.x + column.width, animatedY + animatedHeight);
+      ctx.stroke();
+      
+      ctx.restore();
+    }
+  });
+};
+
+/**
  * 绘制高亮柱体
  */
 const drawHighlightedColumn = (
@@ -470,6 +570,11 @@ export const Column: React.FC<ColumnProps> = ({
   const columnsRef = useRef<ComputedColumn[][]>([]);
   const ANIMATION_DURATION = 300;
 
+  // 柱体位置动画相关
+  const previousColumnsRef = useRef<ComputedColumn[][]>([]);
+  const [columnsAnimationProgress, setColumnsAnimationProgress] = useState(1);
+  const [isColumnsAnimating, setIsColumnsAnimating] = useState(false);
+
   const getDatasetOpacity = useCallback((datasetIndex: number): number => {
     return datasetOpacityRef.current.get(datasetIndex) ?? 1;
   }, [opacityVersion]);
@@ -480,6 +585,18 @@ export const Column: React.FC<ColumnProps> = ({
     [data, width, height, padding, stacked, yAxis?.min, yAxis?.max]
   );
 
+  // 计算可见的数据集索引（透明度大于 0.1 的视为可见）
+  const visibleDatasetIndices = useMemo(() => {
+    const indices: number[] = [];
+    data.datasets.forEach((_, datasetIndex) => {
+      const opacity = datasetOpacityRef.current.get(datasetIndex) ?? 1;
+      if (opacity > 0.1) {
+        indices.push(datasetIndex);
+      }
+    });
+    return indices;
+  }, [data, opacityVersion]);
+
   // 计算所有柱体
   const allColumns = useMemo(
     () => computeColumns(
@@ -489,12 +606,13 @@ export const Column: React.FC<ColumnProps> = ({
       height,
       stacked,
       column?.width ?? DEFAULT_CONFIG.columnWidth,
-      column?.spacing ?? DEFAULT_CONFIG.columnSpacing
+      column?.spacing ?? DEFAULT_CONFIG.columnSpacing,
+      visibleDatasetIndices
     ),
-    [data, chartConfig, width, height, stacked, column?.width, column?.spacing]
+    [data, chartConfig, width, height, stacked, column?.width, column?.spacing, visibleDatasetIndices]
   );
 
-  // 动画效果
+  // 初始动画效果
   useEffect(() => {
     const startTime = Date.now();
     const animate = () => {
@@ -509,6 +627,48 @@ export const Column: React.FC<ColumnProps> = ({
     };
     requestAnimationFrame(animate);
   }, [animationDuration, data]);
+
+  // 柱体位置变化时触发动画
+  useEffect(() => {
+    // 保存当前柱体位置作为动画起点
+    if (allColumns.length > 0 && allColumns[0].length > 0) {
+      // 检查是否有位置变化
+      const hasPositionChanged = previousColumnsRef.current.length > 0 &&
+        allColumns.some((dataset, datasetIndex) =>
+          dataset.some((column, dataIndex) => {
+            const prev = previousColumnsRef.current[datasetIndex]?.[dataIndex];
+            if (!prev) return true;
+            return Math.abs(column.y - prev.y) > 0.1 || Math.abs(column.height - prev.height) > 0.1;
+          })
+        );
+
+      if (hasPositionChanged) {
+        setIsColumnsAnimating(true);
+        setColumnsAnimationProgress(0);
+
+        const startTime = Date.now();
+        const animateColumns = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / ANIMATION_DURATION, 1);
+          const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+          setColumnsAnimationProgress(eased);
+
+          if (progress < 1) {
+            requestAnimationFrame(animateColumns);
+          } else {
+            setIsColumnsAnimating(false);
+            setColumnsAnimationProgress(1);
+            // 动画完成后更新参考位置
+            previousColumnsRef.current = allColumns;
+          }
+        };
+        requestAnimationFrame(animateColumns);
+      } else {
+        // 没有位置变化，直接更新参考位置
+        previousColumnsRef.current = allColumns;
+      }
+    }
+  }, [allColumns]);
 
   // 绘制图表
   const drawChart = useCallback(() => {
@@ -551,14 +711,46 @@ export const Column: React.FC<ColumnProps> = ({
       ctx.save();
       ctx.globalAlpha = opacity;
 
-      drawColumns(
-        ctx,
-        columns,
-        dataset,
-        datasetIndex,
-        animationProgress,
-        column?.borderRadius ?? DEFAULT_CONFIG.borderRadius
-      );
+      // 如果正在播放位置动画，使用插值后的位置
+      let renderColumns = columns;
+      if (isColumnsAnimating && previousColumnsRef.current.length > 0) {
+        const prevColumns = previousColumnsRef.current[datasetIndex];
+        if (prevColumns) {
+          renderColumns = columns.map((col, idx) => {
+            const prevCol = prevColumns[idx];
+            if (!prevCol) return col;
+            
+            // 插值计算当前位置
+            const eased = columnsAnimationProgress;
+            return {
+              ...col,
+              y: prevCol.y + (col.y - prevCol.y) * eased,
+              height: prevCol.height + (col.height - prevCol.height) * eased,
+            };
+          });
+        }
+      }
+
+      // 根据是否为直方图模式选择绘制方式
+      if (column?.histogram) {
+        drawHistogramColumns(
+          ctx,
+          renderColumns,
+          dataset,
+          datasetIndex,
+          animationProgress,
+          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius
+        );
+      } else {
+        drawColumns(
+          ctx,
+          renderColumns,
+          dataset,
+          datasetIndex,
+          animationProgress,
+          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius
+        );
+      }
 
       ctx.restore();
     });
@@ -597,17 +789,19 @@ export const Column: React.FC<ColumnProps> = ({
     hoveredColumn,
     isLoading,
     onChartReady,
+    isColumnsAnimating,
+    columnsAnimationProgress,
   ]);
 
   useEffect(() => {
     drawChart();
-  }, [drawChart, opacityVersion]);
+  }, [drawChart, opacityVersion, columnsAnimationProgress]);
 
   // 处理鼠标移动
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
-      if (!canvas || animationProgress < 1) return;
+      if (!canvas || animationProgress < 1 || isColumnsAnimating) return;
 
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -638,7 +832,7 @@ export const Column: React.FC<ColumnProps> = ({
       // 更改鼠标样式
       canvas.style.cursor = closestColumn ? 'pointer' : 'default';
     },
-    [animationProgress, getDatasetOpacity]
+    [animationProgress, getDatasetOpacity, isColumnsAnimating]
   );
 
   // 处理鼠标离开

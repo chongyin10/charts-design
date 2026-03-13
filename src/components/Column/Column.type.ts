@@ -125,6 +125,8 @@ export interface ColumnConfig {
   borderRadius?: number | number[];
   /** 柱体间距 (分组柱状图中组内柱体间距) */
   spacing?: number;
+  /** 是否为直方图模式 (优化边框渲染，避免相邻柱体重叠) */
+  histogram?: boolean;
 }
 
 /**

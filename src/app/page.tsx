@@ -36,35 +36,43 @@ export default function Home() {
     const menuItems = [
         {
             key: 'line',
-            label: '折线图示例',
+            label: 'Line',
+            description: '折线图'
         },
         {
             key: 'column',
-            label: '柱状图示例',
+            label: 'Column',
+            description: '柱状图'
         },
         {
             key: 'bar',
-            label: '条形图示例',
+            label: 'Bar',
+            description: '条形图'
         },
         {
             key: 'area',
-            label: '面积图示例',
+            label: 'Area',
+            description: '面积图'
         },
         {
             key: 'pie',
-            label: '饼图示例',
+            label: 'Pie',
+            description: '饼图'
         },
         {
             key: 'scatter',
-            label: '散点图示例',
+            label: 'Scatter',
+            description: '散点图'
         },
         {
             key: 'funnel',
-            label: '漏斗图示例',
+            label: 'Funnel',
+            description: '漏斗图'
         },
         {
             key: 'heatmap',
-            label: '热力图示例',
+            label: 'Beatmap',
+            description: '热力图'
         },
     ];
 
