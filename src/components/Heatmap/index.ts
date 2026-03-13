@@ -17,4 +17,6 @@ export type {
   HeatmapLegendConfig,
   HeatmapTooltipConfig,
   HeatmapLabelConfig,
+  DensityPoint,
+  DensityConfig,
 } from './Heatmap.type';

@@ -12,6 +12,9 @@ const SyntaxHighlighter = Prism as any;
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styles from './page.module.css';
 
+// 导入密度热力图数据
+import densityDataJson from './Json/heatmap.json';
+
 // 自定义复制按钮组件
 interface CopyButtonProps {
     text: string;
@@ -129,10 +132,30 @@ export default function HeatmapChartPage() {
         ],
     };
 
+    // 密度热力图数据 - 从 JSON 转换
+    const densityHeatmapData: HeatmapChartData = {
+        xLabels: [],
+        yLabels: [],
+        datasets: [],
+        densityPoints: (densityDataJson as Array<{ g: number; l: number; tmp: number }>).map(item => ({
+            x: item.g,
+            y: item.l,
+            value: item.tmp,
+        })),
+        xRange: [0, 1000],
+        yRange: [0, 500],
+    };
+
     // 处理单元格点击
     const handleCellClick = (xIndex: number, yIndex: number, value: number) => {
         console.log('点击单元格:', { xIndex, yIndex, value });
         alert(`X索引: ${xIndex}, Y索引: ${yIndex}, 数值: ${value.toFixed(2)}`);
+    };
+
+    // 处理密度热力图点击
+    const handleDensityClick = (x: number, y: number, density: number) => {
+        console.log('点击密度区域:', { x, y, density });
+        alert(`坐标: (${x}, ${y}), 密度: ${density.toFixed(2)}`);
     };
 
     // 基础热力图代码
@@ -292,6 +315,60 @@ const BehaviorHeatmapExample = () => {
     );
 };`;
 
+    // 密度热力图代码
+    const densityCode = `import { Heatmap } from '@zjpcy/charts-design';
+import densityData from './heatmap.json';
+
+const DensityHeatmapExample = () => {
+    const data = {
+        xLabels: [],
+        yLabels: [],
+        datasets: [],
+        // 密度数据点：包含 x、y 坐标和可选的权重值
+        densityPoints: densityData.map(item => ({
+            x: item.g,  // X 坐标
+            y: item.l,  // Y 坐标
+            value: item.tmp,  // 权重值
+        })),
+        xRange: [0, 1000],  // X 轴范围
+        yRange: [0, 500],   // Y 轴范围
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={600}
+            height={400}
+            densityMode={true}  // 启用密度热力图模式
+            densityConfig={{
+                gridSize: 100,     // 网格分辨率（越高越平滑）
+                radius: 35,        // 搜索半径
+                weighted: true,    // 使用加权密度
+                minOpacity: 0,     // 最小透明度
+                maxOpacity: 1,     // 最大透明度
+            }}
+            xAxis={{ title: { text: '经度' } }}
+            yAxis={{ title: { text: '纬度' } }}
+            colorScale={{
+                minColor: '#ffffff',
+                maxColor: '#ff0000',
+                colorStops: [
+                    { offset: 0, color: '#ffffff' },    // 白色 - 无数据
+                    { offset: 0.05, color: '#f5f5ff' }, // 极淡蓝
+                    { offset: 0.15, color: '#d0d8f0' }, // 淡蓝灰
+                    { offset: 0.25, color: '#a0b8e0' }, // 浅蓝紫
+                    { offset: 0.35, color: '#40ff60' }, // 亮绿
+                    { offset: 0.50, color: '#80ff40' }, // 黄绿
+                    { offset: 0.65, color: '#ffff00' }, // 黄色
+                    { offset: 0.80, color: '#ff8000' }, // 橙色
+                    { offset: 0.90, color: '#ff4000' }, // 红橙
+                    { offset: 1, color: '#ff0000' },    // 红色
+                ],
+            }}
+        />
+    );
+};`;
+
     // API 表格列定义
     const apiColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -314,6 +391,9 @@ const BehaviorHeatmapExample = () => {
         { param: 'cellSpacing', description: '单元格间距', type: 'number', default: '1' },
         { param: 'animationEnabled', description: '是否开启动画', type: 'boolean', default: 'true' },
         { param: 'onCellClick', description: '单元格点击回调函数', type: '(xIndex, yIndex, value) => void', default: '-' },
+        { param: 'densityMode', description: '是否启用密度热力图模式', type: 'boolean', default: 'false' },
+        { param: 'densityConfig', description: '密度热力图配置', type: 'DensityConfig', default: '-' },
+        { param: 'onDensityClick', description: '密度区域点击回调', type: '(x, y, density) => void', default: '-' },
     ];
 
     // ColorScale 配置数据
@@ -335,6 +415,15 @@ const BehaviorHeatmapExample = () => {
     const cellLabelsDataAPI = [
         { param: 'display', description: '是否显示单元格标签', type: 'boolean', default: 'false' },
         { param: 'formatter', description: '标签格式化函数', type: '(value: number) => string', default: '-' },
+    ];
+
+    // DensityConfig 配置数据
+    const densityConfigDataAPI = [
+        { param: 'gridSize', description: '网格分辨率（每行/列的单元格数量）', type: 'number', default: '20' },
+        { param: 'radius', description: '搜索半径，用于计算密度的影响范围', type: 'number', default: '30' },
+        { param: 'weighted', description: '是否使用加权密度计算', type: 'boolean', default: 'true' },
+        { param: 'minOpacity', description: '最小透明度', type: 'number', default: '0.1' },
+        { param: 'maxOpacity', description: '最大透明度', type: 'number', default: '0.9' },
     ];
 
     return (
@@ -366,13 +455,15 @@ const BehaviorHeatmapExample = () => {
                                 }}
                             />
                         </div>
-                        <div className={styles.codeHeader}>
-                            <span>示例代码</span>
-                            <CopyButton text={basicCode} />
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={basicCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {basicCode}
+                            </SyntaxHighlighter>
                         </div>
-                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {basicCode}
-                        </SyntaxHighlighter>
                     </div>
 
                     {/* 相关性分析 */}
@@ -397,13 +488,15 @@ const BehaviorHeatmapExample = () => {
                                 borderRadius={4}
                             />
                         </div>
-                        <div className={styles.codeHeader}>
-                            <span>示例代码</span>
-                            <CopyButton text={correlationCode} />
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={correlationCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {correlationCode}
+                            </SyntaxHighlighter>
                         </div>
-                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {correlationCode}
-                        </SyntaxHighlighter>
                     </div>
 
                     {/* 发散型颜色比例尺 */}
@@ -432,13 +525,15 @@ const BehaviorHeatmapExample = () => {
                                 }}
                             />
                         </div>
-                        <div className={styles.codeHeader}>
-                            <span>示例代码</span>
-                            <CopyButton text={divergingCode} />
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={divergingCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {divergingCode}
+                            </SyntaxHighlighter>
                         </div>
-                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {divergingCode}
-                        </SyntaxHighlighter>
                     </div>
 
                     {/* 用户行为分析 */}
@@ -462,13 +557,67 @@ const BehaviorHeatmapExample = () => {
                                 onCellClick={handleCellClick}
                             />
                         </div>
-                        <div className={styles.codeHeader}>
-                            <span>示例代码</span>
-                            <CopyButton text={behaviorCode} />
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={behaviorCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {behaviorCode}
+                            </SyntaxHighlighter>
                         </div>
-                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {behaviorCode}
-                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 密度热力图 */}
+                    <div className={styles.exampleSection} id="heatmap-density">
+                        <h3 className={styles.subsectionTitle}>密度热力图</h3>
+                        <p className={styles.sectionText}>
+                            展示数据点的密度分布，适用于展示大量离散数据的聚集情况。
+                            基于高斯核密度估计算法，通过颜色深浅表示数据密集程度。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={densityHeatmapData}
+                                width={600}
+                                height={400}
+                                densityMode={true}
+                                densityConfig={{
+                                    gridSize: 100,
+                                    radius: 35,
+                                    weighted: true,
+                                    minOpacity: 0,
+                                    maxOpacity: 1,
+                                }}
+                                xAxis={{ title: { text: '经度' } }}
+                                yAxis={{ title: { text: '纬度' } }}
+                                colorScale={{
+                                    minColor: '#ffffff',
+                                    maxColor: '#ff0000',
+                                    colorStops: [
+                                        { offset: 0, color: '#ffffff' },    // 白色 - 无数据
+                                        { offset: 0.05, color: '#f5f5ff' }, // 极淡蓝
+                                        { offset: 0.15, color: '#d0d8f0' }, // 淡蓝灰
+                                        { offset: 0.25, color: '#a0b8e0' }, // 浅蓝紫
+                                        { offset: 0.35, color: '#40ff60' }, // 亮绿
+                                        { offset: 0.50, color: '#80ff40' }, // 黄绿
+                                        { offset: 0.65, color: '#ffff00' }, // 黄色
+                                        { offset: 0.80, color: '#ff8000' }, // 橙色
+                                        { offset: 0.90, color: '#ff4000' }, // 红橙
+                                        { offset: 1, color: '#ff0000' },    // 红色
+                                    ],
+                                }}
+                                onDensityClick={handleDensityClick}
+                            />
+                        </div>
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={densityCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {densityCode}
+                            </SyntaxHighlighter>
+                        </div>
                     </div>
 
                     {/* API 参考 */}
@@ -506,6 +655,15 @@ const BehaviorHeatmapExample = () => {
                             <Table columns={apiColumns} dataSource={cellLabelsDataAPI} />
                         </div>
                     </div>
+
+                    {/* DensityConfig 配置 */}
+                    <div className={styles.exampleSection} id="heatmap-density-api">
+                        <h3 className={styles.subsectionTitle}>DensityConfig 配置</h3>
+                        <p className={styles.sectionText}>密度热力图配置项说明。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={densityConfigDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -523,10 +681,12 @@ const BehaviorHeatmapExample = () => {
                                 <Anchor.Link href="#heatmap-correlation" title="相关性分析" />
                                 <Anchor.Link href="#heatmap-diverging" title="发散型颜色比例尺" />
                                 <Anchor.Link href="#heatmap-behavior" title="用户行为分析" />
+                                <Anchor.Link href="#heatmap-density" title="密度热力图" />
                                 <Anchor.Link href="#heatmap-api" title="API 参考" />
                                 <Anchor.Link href="#heatmap-colorscale-api" title="ColorScale 配置" />
                                 <Anchor.Link href="#heatmap-axis-api" title="Axis 配置" />
                                 <Anchor.Link href="#heatmap-celllabels-api" title="CellLabels 配置" />
+                                <Anchor.Link href="#heatmap-density-api" title="DensityConfig 配置" />
                             </Anchor>
                         )}
                     </div>

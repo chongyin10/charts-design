@@ -15,6 +15,18 @@ export interface HeatmapCell {
 }
 
 /**
+ * 密度数据点 - 用于密度热力图
+ */
+export interface DensityPoint {
+  /** X轴坐标值 */
+  x: number;
+  /** Y轴坐标值 */
+  y: number;
+  /** 权重值（可选，用于加权密度计算） */
+  value?: number;
+}
+
+/**
  * 数据集配置
  */
 export interface HeatmapDataset {
@@ -36,6 +48,28 @@ export interface HeatmapChartData {
   yLabels: string[];
   /** 数据集数组 */
   datasets: HeatmapDataset[];
+  /** 密度数据点数组（用于密度热力图） */
+  densityPoints?: DensityPoint[];
+  /** X轴数据范围（用于密度热力图） */
+  xRange?: [number, number];
+  /** Y轴数据范围（用于密度热力图） */
+  yRange?: [number, number];
+}
+
+/**
+ * 密度热力图配置
+ */
+export interface DensityConfig {
+  /** 网格分辨率（每行/列的单元格数量） */
+  gridSize?: number;
+  /** 搜索半径（用于计算密度） */
+  radius?: number;
+  /** 是否使用加权密度 */
+  weighted?: boolean;
+  /** 最小透明度 */
+  minOpacity?: number;
+  /** 最大透明度 */
+  maxOpacity?: number;
 }
 
 /**
@@ -73,6 +107,16 @@ export interface HeatmapAxisConfig {
 }
 
 /**
+ * 颜色停止点
+ */
+export interface ColorStop {
+  /** 位置 (0-1) */
+  offset: number;
+  /** 颜色值 */
+  color: string;
+}
+
+/**
  * 颜色比例尺配置
  */
 export interface HeatmapColorScaleConfig {
@@ -86,6 +130,8 @@ export interface HeatmapColorScaleConfig {
   diverging?: boolean;
   /** 发散型颜色比例尺的中间颜色（用于0值） */
   neutralColor?: string;
+  /** 自定义颜色停止点数组，用于多色阶渐变 */
+  colorStops?: ColorStop[];
 }
 
 /**
@@ -178,12 +224,18 @@ export interface HeatmapProps {
   animationDuration?: number;
   /** 是否开启动画 */
   animationEnabled?: boolean;
+  /** 是否启用密度热力图模式 */
+  densityMode?: boolean;
+  /** 密度热力图配置 */
+  densityConfig?: DensityConfig;
   /** 自定义类名 */
   className?: string;
   /** 自定义样式 */
   style?: React.CSSProperties;
   /** 点击单元格回调 */
   onCellClick?: (xIndex: number, yIndex: number, value: number) => void;
+  /** 点击密度区域回调 */
+  onDensityClick?: (x: number, y: number, density: number) => void;
 }
 
 /**
