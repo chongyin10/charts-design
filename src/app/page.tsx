@@ -10,6 +10,7 @@ import BarExample from './Bar';
 import AreaExample from './Area';
 import PieExample from './Pie';
 import ScatterExample from './Scatter';
+import FunnelExample from './Funnel';
 
 const { Header, Sider, Content } = Layout;
 
@@ -19,7 +20,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -56,6 +57,10 @@ export default function Home() {
             key: 'scatter',
             label: '散点图示例',
         },
+        {
+            key: 'funnel',
+            label: '漏斗图示例',
+        },
     ];
 
     // 渲染对应的内容组件
@@ -73,6 +78,8 @@ export default function Home() {
                 return <PieExample />;
             case 'scatter':
                 return <ScatterExample />;
+            case 'funnel':
+                return <FunnelExample />;
             default:
                 return <LineExample />;
         }

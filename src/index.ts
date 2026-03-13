@@ -4,6 +4,7 @@ export { Line, default as LineDefault } from './components/Line';
 export { Column, default as ColumnDefault } from './components/Column';
 export { Area, default as AreaDefault } from './components/Area';
 export { Pie, default as PieDefault } from './components/Pie';
+export { Funnel, default as FunnelDefault } from './components/Funnel';
 
 // 导出类型定义
 export type {
@@ -47,6 +48,16 @@ export type {
   PieTooltipConfig,
   ComputedSlice,
 } from './components/Pie/Pie.type';
+
+export type {
+  FunnelProps,
+  FunnelChartData,
+  FunnelDataItem,
+  FunnelLabelConfig,
+  FunnelConversionConfig,
+  FunnelLegendConfig,
+  FunnelTooltipConfig,
+} from './components/Funnel/Funnel.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';

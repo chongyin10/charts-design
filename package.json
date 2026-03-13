@@ -32,6 +32,12 @@
       "require": "./dist/column/index.js"
     },
     "./column/style.css": "./dist/column/style.css",
+    "./funnel": {
+      "types": "./dist/funnel/index.d.ts",
+      "import": "./dist/funnel/index.esm.js",
+      "require": "./dist/funnel/index.js"
+    },
+    "./funnel/style.css": "./dist/funnel/style.css",
     "./line": {
       "types": "./dist/line/index.d.ts",
       "import": "./dist/line/index.esm.js",
