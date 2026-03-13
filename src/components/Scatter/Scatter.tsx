@@ -447,7 +447,13 @@ const drawPoints = (
                 break;
         }
 
-        ctx.fill();
+        // 支持空心圆点：当背景色为透明时不填充
+        const isTransparent = finalBackgroundColor === 'transparent' ||
+                              finalBackgroundColor === 'rgba(0,0,0,0)' ||
+                              finalBackgroundColor === 'rgba(0, 0, 0, 0)';
+        if (!isTransparent) {
+            ctx.fill();
+        }
         ctx.stroke();
     });
 };
