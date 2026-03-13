@@ -15,6 +15,7 @@ import type {
     ScatterDataset,
     ScatterTooltipItem,
     ScatterSelectedPoint,
+    ScatterLabelConfig,
 } from './Scatter.type';
 
 /**
@@ -123,6 +124,7 @@ const computePoints = (
             dataY: point.y,
             datasetIndex,
             dataIndex,
+            label: point.label,
         }))
     );
 };
@@ -480,6 +482,111 @@ const drawSelectionBox = (
 };
 
 /**
+ * 绘制数据点标签
+ */
+const drawPointLabels = (
+    ctx: CanvasRenderingContext2D,
+    points: ComputedScatterPoint[],
+    dataset: ScatterDataset,
+    globalLabelConfig?: ScatterLabelConfig,
+    hoveredPoint: ComputedScatterPoint | null = null
+): void => {
+    // 合并标签配置（数据集配置优先于全局配置）
+    const labelConfig: ScatterLabelConfig = {
+        display: false,
+        position: 'top',
+        color: '#374151',
+        fontSize: 10,
+        offset: { x: 0, y: -8 },
+        ...globalLabelConfig,
+        ...dataset.labelConfig,
+    };
+
+    if (!labelConfig.display) return;
+
+    const { position = 'top', color = '#374151', fontSize = 10, offset = { x: 0, y: -8 }, field } = labelConfig;
+
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = `${fontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    points.forEach((point) => {
+        // 获取标签文本
+        let labelText = '';
+        
+        // 优先使用 point.label（如果存在）
+        // 从 ComputedScatterPoint 获取标签（在 computePoints 时已设置）
+        if (point.label) {
+            labelText = point.label;
+        } else if (field && dataset.data[point.dataIndex]) {
+            // 如果指定了字段名，从原始数据中获取
+            const dataItem = dataset.data[point.dataIndex] as unknown as Record<string, unknown>;
+            const fieldValue = dataItem[field];
+            if (typeof fieldValue === 'string') {
+                labelText = fieldValue;
+            } else if (typeof fieldValue === 'number') {
+                labelText = String(fieldValue);
+            }
+        }
+
+        if (!labelText) return;
+
+        // 只在悬停时显示标签，或者始终显示
+        const isHovered = hoveredPoint?.datasetIndex === point.datasetIndex && hoveredPoint?.dataIndex === point.dataIndex;
+        
+        // 计算标签位置
+        let labelX = point.x + (offset.x || 0);
+        let labelY = point.y + (offset.y || 0);
+        let textBaseline: CanvasTextBaseline = 'bottom';
+
+        switch (position) {
+            case 'top':
+                labelY = point.y - 8 + (offset.y || 0);
+                textBaseline = 'bottom';
+                break;
+            case 'bottom':
+                labelY = point.y + 8 + (offset.y || 0);
+                textBaseline = 'top';
+                break;
+            case 'left':
+                labelX = point.x - 8 + (offset.x || 0);
+                ctx.textAlign = 'right';
+                textBaseline = 'middle';
+                break;
+            case 'right':
+                labelX = point.x + 8 + (offset.x || 0);
+                ctx.textAlign = 'left';
+                textBaseline = 'middle';
+                break;
+        }
+
+        ctx.textBaseline = textBaseline;
+        
+        // 绘制标签背景（半透明）
+        const textMetrics = ctx.measureText(labelText);
+        const textWidth = textMetrics.width;
+        const textHeight = fontSize;
+        const padding = 2;
+        
+        ctx.save();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillRect(
+            labelX - textWidth / 2 - padding,
+            labelY - textHeight - padding,
+            textWidth + padding * 2,
+            textHeight + padding * 2
+        );
+        ctx.restore();
+        
+        ctx.fillText(labelText, labelX, labelY);
+    });
+
+    ctx.restore();
+};
+
+/**
  * 散点图组件
  */
 export const Scatter: React.FC<ScatterProps> = ({
@@ -494,6 +601,7 @@ export const Scatter: React.FC<ScatterProps> = ({
     trendline,
     quadrant,
     selection,
+    label,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     className,
     style,
@@ -559,6 +667,7 @@ export const Scatter: React.FC<ScatterProps> = ({
         trendline?: any;
         quadrant?: any;
         selection?: any;
+        label?: ScatterLabelConfig;
     } | null>(null);
 
     // 动画持续时间（毫秒）
@@ -751,13 +860,14 @@ export const Scatter: React.FC<ScatterProps> = ({
             trendline,
             quadrant,
             selection,
+            label,
         };
 
         drawDataRef.current = newDrawData;
         
         // 数据变化时触发重绘
         scheduleRedraw();
-    }, [data, chartConfig, allPoints, width, height, padding, xAxis, yAxis, legend, trendline, quadrant, selection, scheduleRedraw]);
+    }, [data, chartConfig, allPoints, width, height, padding, xAxis, yAxis, legend, trendline, quadrant, selection, label, scheduleRedraw]);
 
     // 绘制图表（只依赖必要的触发器）
     const drawChart = useCallback(() => {
@@ -770,17 +880,18 @@ export const Scatter: React.FC<ScatterProps> = ({
         const drawData = drawDataRef.current;
         if (!drawData) return;
 
-        const { 
-            width: w, 
-            height: h, 
-            chartConfig: config, 
-            allPoints: points, 
+        const {
+            width: w,
+            height: h,
+            chartConfig: config,
+            allPoints: points,
             data: chartData,
             xAxis: xConfig,
             yAxis: yConfig,
             trendline: trendConfig,
             quadrant: quadrantConfig,
             selection: selectionConfig,
+            label: labelConfig,
         } = drawData;
 
         // 获取当前动画进度
@@ -881,6 +992,9 @@ export const Scatter: React.FC<ScatterProps> = ({
             drawPoints(ctx, datasetPoints, dataset, datasetIndex, hoveredPointRef.current, selectedPointsRef.current, selectionConfig?.selectedPointStyle);
 
             ctx.restore();
+
+            // 绘制数据点标签
+            drawPointLabels(ctx, datasetPoints, dataset, labelConfig, hoveredPointRef.current);
         });
 
         // 绘制选择框（从状态中读取）
@@ -969,9 +1083,14 @@ export const Scatter: React.FC<ScatterProps> = ({
                 const opacity = getDatasetOpacity(datasetIndex);
                 if (opacity < 0.1) return;
 
+                // 获取当前数据集的 hoverRadius 配置
+                const dataset = data.datasets[datasetIndex];
+                const hoverRadius = dataset?.point?.hoverRadius ?? DEFAULT_CONFIG.pointHoverRadius;
+
                 datasetPoints.forEach((point) => {
                     const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
-                    if (distance < 20 && distance < minDistance) {
+                    // 使用数据集配置的 hoverRadius 作为触发阈值
+                    if (distance < hoverRadius && distance < minDistance) {
                         minDistance = distance;
                         foundPoint = point;
                     }
@@ -993,7 +1112,7 @@ export const Scatter: React.FC<ScatterProps> = ({
 
             setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
         },
-        [getDatasetOpacity, isSelecting, selectionStart, scheduleRedraw]
+        [getDatasetOpacity, isSelecting, selectionStart, scheduleRedraw, data.datasets]
     );
 
     // 处理鼠标抬起（结束选择）
@@ -1103,7 +1222,7 @@ export const Scatter: React.FC<ScatterProps> = ({
 
         const dataset = data.datasets[hoveredPt.datasetIndex];
         const items: ScatterTooltipItem[] = [{
-            label: dataset.label,
+            label: dataset?.label,
             x: hoveredPt.dataX,
             y: hoveredPt.dataY,
             color: getDatasetColor(hoveredPt.datasetIndex, dataset),

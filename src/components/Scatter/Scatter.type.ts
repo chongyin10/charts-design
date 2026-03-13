@@ -10,6 +10,26 @@ export interface ScatterDataPoint {
   x: number;
   /** Y 坐标值 */
   y: number;
+  /** 数据点标签（如汽车名称） */
+  label?: string;
+}
+
+/**
+ * 标签配置
+ */
+export interface ScatterLabelConfig {
+  /** 是否显示标签 */
+  display?: boolean;
+  /** 标签字段名，用于从数据中获取标签文本（如 'name'） */
+  field?: string;
+  /** 标签颜色 */
+  color?: string;
+  /** 标签字体大小 */
+  fontSize?: number;
+  /** 标签位置偏移（相对于数据点） */
+  offset?: { x?: number; y?: number };
+  /** 标签位置：'top' | 'bottom' | 'left' | 'right' */
+  position?: 'top' | 'bottom' | 'left' | 'right';
 }
 
 /**
@@ -46,6 +66,8 @@ export interface ScatterDataset {
   borderColor?: string;
   /** 数据点配置 */
   point?: ScatterPointConfig;
+  /** 标签配置 */
+  labelConfig?: ScatterLabelConfig;
 }
 
 /**
@@ -253,6 +275,8 @@ export interface ScatterProps {
   quadrant?: ScatterQuadrantConfig;
   /** 区域选择配置 */
   selection?: ScatterSelectionConfig;
+  /** 标签配置（全局） */
+  label?: ScatterLabelConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 自定义类名 */
@@ -283,6 +307,8 @@ export interface ComputedScatterPoint {
   datasetIndex: number;
   /** 数据点索引 */
   dataIndex: number;
+  /** 数据点标签 */
+  label?: string;
 }
 
 /**

@@ -24,4 +24,5 @@ export type {
   ScatterSelectedPoint,
   ComputedScatterPoint,
   ScatterChartConfig,
+  ScatterLabelConfig,
 } from './Scatter.type';

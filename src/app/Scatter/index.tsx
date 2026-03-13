@@ -12,6 +12,7 @@ const SyntaxHighlighter = Prism as any;
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styles from './page.module.css';
 import cscaraData from './Json/cscara.json';
+import scatterPointLabelData from './Json/scatter-point-label.json';
 
 // 自定义复制按钮组件
 interface CopyButtonProps {
@@ -251,6 +252,32 @@ export default function ScatterChartPage() {
         ],
     };
 
+    // 带标签的数据点示例（汽车油耗 vs 重量）
+    const labeledData: ScatterChartData = {
+        datasets: [
+            {
+                label: '汽车数据',
+                data: scatterPointLabelData.map((d: { name: string; mpg: number; hp: number }) => ({
+                    x: d.mpg,
+                    y: d.hp,
+                    label: d.name,
+                })),
+                backgroundColor: '#3b82f6',
+                point: {
+                    radius: 5,
+                    hoverRadius: 8,
+                },
+                labelConfig: {
+                    display: true,
+                    position: 'top',
+                    color: '#374151',
+                    fontSize: 9,
+                    offset: { x: 0, y: -4 },
+                },
+            },
+        ],
+    };
+
     // 处理区域选择变化
     const handleSelectionChange = (points: ScatterSelectedPoint[]) => {
         setSelectedPoints(points);
@@ -282,6 +309,7 @@ export default function ScatterChartPage() {
         { prop: 'trendline', desc: '回归线配置', type: 'ScatterTrendlineConfig', default: '-' },
         { prop: 'quadrant', desc: '象限配置', type: 'ScatterQuadrantConfig', default: '-' },
         { prop: 'selection', desc: '区域选择配置', type: 'ScatterSelectionConfig', default: '-' },
+        { prop: 'label', desc: '标签配置（全局）', type: 'ScatterLabelConfig', default: '-' },
         { prop: 'animationDuration', desc: '动画时长（毫秒）', type: 'number', default: '1000' },
         { prop: 'onDataClick', desc: '数据点击回调', type: '(datasetIndex, dataIndex, point) => void', default: '-' },
         { prop: 'onSelectionChange', desc: '区域选择回调', type: '(selectedPoints: ScatterSelectedPoint[]) => void', default: '-' },
@@ -301,6 +329,7 @@ export default function ScatterChartPage() {
         { prop: 'backgroundColor', desc: '数据点填充颜色', type: 'string', default: '-' },
         { prop: 'borderColor', desc: '数据点边框颜色', type: 'string', default: '-' },
         { prop: 'point', desc: '数据点配置', type: 'ScatterPointConfig', default: '-' },
+        { prop: 'labelConfig', desc: '标签配置（数据集级别）', type: 'ScatterLabelConfig', default: '-' },
     ];
 
     // 类型定义表格列
@@ -324,6 +353,7 @@ export default function ScatterChartPage() {
         { name: 'ScatterSelectionConfig', desc: '区域选择配置，用于框选数据点' },
         { name: 'ScatterSelectedPoint', desc: '选中的数据点信息' },
         { name: 'ScatterProps', desc: '散点图组件的主要属性接口' },
+        { name: 'ScatterLabelConfig', desc: '数据点标签配置，控制标签的显示、位置、样式等' },
     ];
 
     // ScatterPointConfig API
@@ -439,6 +469,23 @@ export default function ScatterChartPage() {
         { prop: 'borderColor', desc: '选择框边框颜色', type: 'string', default: "'#3b82f6'" },
         { prop: 'fillColor', desc: '选择框填充颜色', type: 'string', default: "'rgba(59, 130, 246, 0.2)'" },
         { prop: 'selectedPointStyle', desc: '选中点的样式配置', type: 'Object', default: '-' },
+    ];
+
+    // ScatterLabelConfig API
+    const labelConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterLabelConfigAPI = [
+        { prop: 'display', desc: '是否显示标签', type: 'boolean', default: 'false' },
+        { prop: 'field', desc: '从原始数据读取标签的字段名', type: 'string', default: '-' },
+        { prop: 'color', desc: '标签颜色', type: 'string', default: "'#374151'" },
+        { prop: 'fontSize', desc: '标签字体大小', type: 'number', default: '10' },
+        { prop: 'offset', desc: '标签位置偏移', type: '{ x?: number; y?: number }', default: "{ x: 0, y: -8 }" },
+        { prop: 'position', desc: '标签位置', type: "'top' | 'bottom' | 'left' | 'right'", default: "'top'" },
     ];
 
     // 代码示例
@@ -625,6 +672,51 @@ const jsonData = {
   trendline={{ enabled: true }}
 />`;
 
+    const labeledDataCode = `import scatterPointLabelData from './Json/scatter-point-label.json';
+
+// 带标签的数据点示例（汽车油耗 vs 重量）
+const labeledData = {
+  datasets: [
+    {
+      label: '汽车数据',
+      data: scatterPointLabelData.map(d => ({
+        x: d.mpg,    // 油耗
+        y: d.wt,     // 重量
+        label: d.name,  // 汽车名称作为标签
+      })),
+      backgroundColor: '#3b82f6',
+      point: {
+        radius: 5,
+        hoverRadius: 8,
+      },
+      // 数据集级别的标签配置
+      labelConfig: {
+        display: true,
+        position: 'top',
+        color: '#374151',
+        fontSize: 9,
+        offset: { x: 0, y: -4 },
+      },
+    },
+  ],
+};
+
+// 或者使用全局标签配置
+<Scatter
+  data={labeledData}
+  width={600}
+  height={400}
+  label={{
+    display: true,
+    field: 'name',  // 从原始数据字段读取标签
+    position: 'top',
+    color: '#374151',
+    fontSize: 10,
+  }}
+  xAxis={{ title: { text: '油耗 (mpg)' } }}
+  yAxis={{ title: { text: '重量 (1000 lbs)' } }}
+/>`;
+
     return (
         <div className={styles.examplePage}>
             <Flex gap={24} align="flex-start">
@@ -736,6 +828,35 @@ const jsonData = {
                         </div>
                         <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
                             {quadrantCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 带标签的数据点 */}
+                    <div className={styles.exampleSection} id="scatter-labels">
+                        <h2 className={styles.subsectionTitle}>带标签的数据点</h2>
+                        <p className={styles.sectionText}>
+                            为数据点添加标签，显示额外信息。支持通过数据点的 label 属性直接设置标签，
+                            或通过 field 配置从原始数据中提取标签文本。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <Scatter
+                                data={labeledData}
+                                width={600}
+                                height={400}
+                                // trendline={{ enabled: true, color: '#ef4444', dashed: true }}
+                                xAxis={{ title: { text: '油耗 (mpg)' } }}
+                                yAxis={{ title: { text: '重量 (1000 lbs)' } }}
+                                label={{
+                                    display: true,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={labeledDataCode} />
+                        </div>
+                        <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
+                            {labeledDataCode}
                         </SyntaxHighlighter>
                     </div>
 
@@ -890,6 +1011,12 @@ const jsonData = {
                         <div className={styles.apiTable}>
                             <Table columns={selectionConfigColumns} dataSource={scatterSelectionConfigAPI} />
                         </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterLabelConfig</h3>
+                        <p className={styles.sectionText}>数据点标签配置，支持在数据点上显示标签文本。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={labelConfigColumns} dataSource={scatterLabelConfigAPI} />
+                        </div>
                     </div>
                 </div>
 
@@ -909,6 +1036,7 @@ const jsonData = {
                                 <Anchor.Link href="#scatter-shape" title="数据点形状" />
                                 <Anchor.Link href="#scatter-trendline" title="回归线" />
                                 <Anchor.Link href="#scatter-quadrant" title="象限分析" />
+                                <Anchor.Link href="#scatter-labels" title="带标签的数据点" />
                                 <Anchor.Link href="#scatter-selection" title="区域选择" />
                                 <Anchor.Link href="#scatter-json" title="JSON 数据" />
                                 <Anchor.Link href="#scatter-api" title="API 参考" />
