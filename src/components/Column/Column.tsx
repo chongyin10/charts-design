@@ -111,6 +111,13 @@ const valueToHeight = (value: number, config: ColumnChartConfig, height: number)
 };
 
 /**
+ * 获取0刻度线的Y坐标
+ */
+const getZeroY = (config: ColumnChartConfig, height: number): number => {
+  return valueToY(0, config, height);
+};
+
+/**
  * 计算柱体数据
  */
 const computeColumns = (
@@ -129,6 +136,9 @@ const computeColumns = (
 
   const categoryWidth = chartWidth / categoryCount;
   const effectiveColumnWidth = categoryWidth * columnWidth;
+
+  // 获取0刻度线的Y坐标
+  const zeroY = getZeroY(config, height);
 
   // 存储堆叠状态下的累计高度（只针对可见数据集）
   const stackAccumulated: number[] = new Array(categoryCount).fill(0);
@@ -207,12 +217,17 @@ const computeColumns = (
       } else {
         // 分组模式：只绘制可见数据集的柱体
         if (visibleDatasetIndices.includes(datasetIndex)) {
-          columnY = valueToY(value, config, height);
           columnHeight = valueToHeight(value, config, height);
+          // 正值向上，负值向下
+          if (value >= 0) {
+            columnY = zeroY - columnHeight;
+          } else {
+            columnY = zeroY;
+          }
         } else {
           // 当前数据集不可见，返回零高度的柱体
           columnHeight = 0;
-          columnY = height - padding;
+          columnY = zeroY;
         }
       }
 
@@ -248,7 +263,7 @@ const drawGrid = (
   yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
   xAxisTickInterval?: number
 ): void => {
-  const { padding, chartWidth, chartHeight, maxValue, minValue } = config;
+  const { padding, chartWidth, chartHeight, maxValue, minValue, valueRange } = config;
 
   const showGrid = xAxisGrid?.display !== false || yAxisGrid?.display !== false;
   const defaultGridColor = '#e5e7eb';
@@ -348,6 +363,21 @@ const drawGrid = (
     ctx.restore();
   }
 
+  // 绘制0刻度线（当minValue < 0 < maxValue时）
+  if (minValue < 0 && maxValue > 0) {
+    ctx.save();
+    const zeroRatio = -minValue / valueRange;
+    const zeroY = height - padding - zeroRatio * chartHeight;
+    ctx.strokeStyle = '#374151'; // 深灰色
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding, zeroY);
+    ctx.lineTo(width - padding, zeroY);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   // 绘制轴标题
   if (xAxisTitle) {
     ctx.save();
@@ -437,7 +467,8 @@ const drawColumns = (
   dataset: ColumnDataset,
   datasetIndex: number,
   animationProgress: number,
-  defaultBorderRadius: number | number[]
+  defaultBorderRadius: number | number[],
+  zeroY: number
 ): void => {
   const borderRadius = dataset.borderRadius ?? defaultBorderRadius;
   const borderColor = dataset.borderColor;
@@ -446,11 +477,33 @@ const drawColumns = (
   columns.forEach((column) => {
     // 根据动画进度调整高度
     const animatedHeight = column.height * animationProgress;
-    const animatedY = column.y + (column.height - animatedHeight);
+    
+    // 正值柱体：从下往上生长（y减小）
+    // 负值柱体：从上往下生长（y增大）
+    let animatedY: number;
+    if (column.value >= 0) {
+      animatedY = column.y + (column.height - animatedHeight);
+    } else {
+      animatedY = column.y;
+    }
+
+    // 根据正负值调整圆角方向
+    let adjustedRadius: number | number[];
+    if (column.value >= 0) {
+      // 正值：圆角在顶部
+      adjustedRadius = Array.isArray(borderRadius)
+        ? borderRadius
+        : [borderRadius, borderRadius, 0, 0];
+    } else {
+      // 负值：圆角在底部
+      adjustedRadius = Array.isArray(borderRadius)
+        ? [0, 0, borderRadius[2] ?? borderRadius, borderRadius[3] ?? borderRadius]
+        : [0, 0, borderRadius, borderRadius];
+    }
 
     // 绘制柱体
     ctx.fillStyle = column.color;
-    drawRoundedRect(ctx, column.x, animatedY, column.width, animatedHeight, borderRadius);
+    drawRoundedRect(ctx, column.x, animatedY, column.width, animatedHeight, adjustedRadius);
     ctx.fill();
 
     // 绘制边框
@@ -472,7 +525,8 @@ const drawHistogramColumns = (
   dataset: ColumnDataset,
   datasetIndex: number,
   animationProgress: number,
-  defaultBorderRadius: number | number[]
+  defaultBorderRadius: number | number[],
+  zeroY: number
 ): void => {
   const borderColor = dataset.borderColor;
   const borderWidth = dataset.borderWidth ?? DEFAULT_CONFIG.borderWidth;
@@ -480,7 +534,15 @@ const drawHistogramColumns = (
   columns.forEach((column) => {
     // 根据动画进度调整高度
     const animatedHeight = column.height * animationProgress;
-    const animatedY = column.y + (column.height - animatedHeight);
+    
+    // 正值柱体：从下往上生长（y减小）
+    // 负值柱体：从上往下生长（y增大）
+    let animatedY: number;
+    if (column.value >= 0) {
+      animatedY = column.y + (column.height - animatedHeight);
+    } else {
+      animatedY = column.y;
+    }
 
     // 绘制柱体
     ctx.fillStyle = column.color;
@@ -492,22 +554,33 @@ const drawHistogramColumns = (
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = borderWidth;
       
+      // 正值柱体：顶部边框在animatedY处
+      // 负值柱体：底部边框在animatedY + animatedHeight处
+      const topY = animatedY;
+      const bottomY = animatedY + animatedHeight;
+      
       // 绘制顶部边框
       ctx.beginPath();
-      ctx.moveTo(column.x, animatedY);
-      ctx.lineTo(column.x + column.width, animatedY);
+      ctx.moveTo(column.x, topY);
+      ctx.lineTo(column.x + column.width, topY);
       ctx.stroke();
       
-      // 绘制左侧边框（只在第一个柱体或相邻柱体颜色不同时绘制）
+      // 绘制左侧边框
       ctx.beginPath();
-      ctx.moveTo(column.x, animatedY);
-      ctx.lineTo(column.x, animatedY + animatedHeight);
+      ctx.moveTo(column.x, topY);
+      ctx.lineTo(column.x, bottomY);
       ctx.stroke();
       
       // 绘制右侧边框
       ctx.beginPath();
-      ctx.moveTo(column.x + column.width, animatedY);
-      ctx.lineTo(column.x + column.width, animatedY + animatedHeight);
+      ctx.moveTo(column.x + column.width, topY);
+      ctx.lineTo(column.x + column.width, bottomY);
+      ctx.stroke();
+      
+      // 绘制底部边框
+      ctx.beginPath();
+      ctx.moveTo(column.x, bottomY);
+      ctx.lineTo(column.x + column.width, bottomY);
       ctx.stroke();
       
       ctx.restore();
@@ -533,6 +606,47 @@ const drawHighlightedColumn = (
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 2;
   ctx.stroke();
+  ctx.restore();
+};
+
+/**
+ * 绘制数据标签
+ * 在每个柱体上方显示数值
+ */
+const drawDataLabels = (
+  ctx: CanvasRenderingContext2D,
+  columns: ComputedColumn[],
+  animationProgress: number,
+  fontSize: number = 11,
+  textColor: string = '#374151'
+): void => {
+  if (animationProgress < 1) return; // 动画未完成时不显示标签
+
+  ctx.save();
+  ctx.font = `${fontSize}px sans-serif`;
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+
+  columns.forEach((column) => {
+    if (column.height <= 0) return;
+
+    const label = column.value.toString();
+    const x = column.x + column.width / 2;
+    
+    // 正值标签在柱体上方，负值标签在柱体下方
+    let y: number;
+    if (column.value >= 0) {
+      y = column.y - 4;
+    } else {
+      y = column.y + column.height + fontSize + 2;
+      ctx.textBaseline = 'top';
+    }
+
+    ctx.fillText(label, x, y);
+    ctx.textBaseline = 'bottom'; // 重置为默认值
+  });
+
   ctx.restore();
 };
 
@@ -731,6 +845,9 @@ export const Column: React.FC<ColumnProps> = ({
         }
       }
 
+      // 获取0刻度线Y坐标
+      const zeroY = getZeroY(chartConfig, height);
+      
       // 根据是否为直方图模式选择绘制方式
       if (column?.histogram) {
         drawHistogramColumns(
@@ -739,7 +856,8 @@ export const Column: React.FC<ColumnProps> = ({
           dataset,
           datasetIndex,
           animationProgress,
-          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius
+          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
+          zeroY
         );
       } else {
         drawColumns(
@@ -748,11 +866,26 @@ export const Column: React.FC<ColumnProps> = ({
           dataset,
           datasetIndex,
           animationProgress,
-          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius
+          column?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
+          zeroY
         );
       }
 
       ctx.restore();
+    });
+
+    // 绘制数据标签
+    allColumns.forEach((datasetColumns, datasetIndex) => {
+      const opacity = getDatasetOpacity(datasetIndex);
+      if (opacity <= 0.01) return;
+      
+      drawDataLabels(
+        ctx,
+        datasetColumns,
+        animationProgress,
+        DEFAULT_CONFIG.fontSize,
+        xAxis?.tickColor || DEFAULT_CONFIG.textColor
+      );
     });
 
     // 绘制高亮柱体

@@ -167,6 +167,33 @@ export default function ColumnChartPage() {
         ],
     };
 
+    // 正负值柱状图数据 - 月度利润分析
+    const positiveNegativeData: ColumnChartData = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '收入',
+                data: [274, 426, 432, 361, 395, 179, 422, 289, 483, 478, 296, 439],
+                backgroundColor: '#0d9488', // 青色
+            },
+            {
+                label: '成本',
+                data: [154, 280, 116, 387, 164, -270, 166, 144, 188, 185, 248, 289],
+                backgroundColor: '#d97706', // 琥珀色
+            },
+            {
+                label: '利润',
+                data: [116, -49, -74, -25, 361, 38, 385, 139, 452, 193, -115, -245],
+                backgroundColor: '#059669', // 绿色
+            },
+            {
+                label: '亏损',
+                data: [-430, 0, 0, 319, 0, 0, 0, 0, 99, 0, 489, 357],
+                backgroundColor: '#dc2626', // 红色
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (datasetIndex: number, dataIndex: number, value: number) => {
         console.log('点击柱体:', { datasetIndex, dataIndex, value });
@@ -465,6 +492,38 @@ const GridColumnExample = () => {
                     opacity: 0.2,
                 }
             }}
+        />
+    );
+};`;
+
+    // 正负值柱状图代码
+    const positiveNegativeCode = `import { Column } from '@zjpcy/charts-design';
+
+const PositiveNegativeExample = () => {
+    const data = {
+        labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        datasets: [
+            {
+                label: '收入',
+                data: [274, 426, 432, 361, 395, 179, 422, 289, 483, 478, 296, 439],
+                backgroundColor: '#0d9488',
+            },
+            {
+                label: '成本',
+                data: [154, 280, 116, 387, 164, -270, 166, 144, 188, 185, 248, 289],
+                backgroundColor: '#d97706',
+            },
+        ],
+    };
+
+    return (
+        <Column
+            data={data}
+            width={700}
+            height={400}
+            xAxis={{ display: true, title: { text: '月份' } }}
+            yAxis={{ display: true, title: { text: '金额 (万元)' } }}
+            legend={{ display: true, position: 'top' }}
         />
     );
 };`;
@@ -1052,6 +1111,38 @@ const CustomTooltipExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 正负值柱状图 */}
+                    <div className={styles.exampleSection} id="column-positive-negative">
+                        <h3 className={styles.subsectionTitle}>正负值柱状图</h3>
+                        <p className={styles.sectionText}>支持正负值的柱状图，正值向上，负值向下，自动显示0刻度线。</p>
+                        <div className={styles.exampleDemo}>
+                            <Column
+                                data={positiveNegativeData}
+                                width={700}
+                                height={400}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '月份' },
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '金额 (万元)' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={positiveNegativeCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {positiveNegativeCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 完整配置 */}
                     <div className={styles.exampleSection} id="column-full">
                         <h3 className={styles.subsectionTitle}>完整配置</h3>
@@ -1214,6 +1305,7 @@ const CustomTooltipExample = () => {
                                 <Anchor.Link href="#column-click" title="点击事件" />
                                 <Anchor.Link href="#column-tooltip-custom" title="Tooltip 自定义" />
                                 <Anchor.Link href="#column-grid" title="网格线配置" />
+                                <Anchor.Link href="#column-positive-negative" title="正负值柱状图" />
                                 <Anchor.Link href="#column-full" title="完整配置" />
                                 <Anchor.Link href="#column-api" title="API 参考" />
                                 <Anchor.Link href="#column-dataset" title="Dataset 配置" />

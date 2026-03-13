@@ -50,6 +50,12 @@
       "require": "./dist/line/index.js"
     },
     "./line/style.css": "./dist/line/style.css",
+    "./liquid": {
+      "types": "./dist/liquid/index.d.ts",
+      "import": "./dist/liquid/index.esm.js",
+      "require": "./dist/liquid/index.js"
+    },
+    "./liquid/style.css": "./dist/liquid/style.css",
     "./pie": {
       "types": "./dist/pie/index.d.ts",
       "import": "./dist/pie/index.esm.js",
