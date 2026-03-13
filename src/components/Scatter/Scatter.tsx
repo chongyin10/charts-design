@@ -1,6 +1,7 @@
 /**
  * 散点图组件
  * 用于展示两个变量之间的关系，适用于相关性分析、分布规律展示等场景
+ * 支持区域勾选功能
  */
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
@@ -13,6 +14,7 @@ import type {
     ComputedScatterPoint,
     ScatterDataset,
     ScatterTooltipItem,
+    ScatterSelectedPoint,
 } from './Scatter.type';
 
 /**
@@ -391,7 +393,9 @@ const drawPoints = (
     points: ComputedScatterPoint[],
     dataset: ScatterDataset,
     datasetIndex: number,
-    hoveredPoint: ComputedScatterPoint | null
+    hoveredPoint: ComputedScatterPoint | null,
+    selectedPoints: Set<string>,
+    selectedPointStyle?: { backgroundColor?: string; borderColor?: string; borderWidth?: number; radius?: number }
 ): void => {
     const datasetColor = getDatasetColor(datasetIndex, dataset);
     const pointConfig = dataset.point;
@@ -405,15 +409,23 @@ const drawPoints = (
     const pointStyle = pointConfig?.style ?? 'circle';
 
     points.forEach((point) => {
+        const pointKey = `${point.datasetIndex}-${point.dataIndex}`;
+        const isSelected = selectedPoints.has(pointKey);
         const isThisPointHovered = hoveredPoint?.datasetIndex === datasetIndex && hoveredPoint?.dataIndex === point.dataIndex;
-        const finalRadius = isThisPointHovered ? hoverRadius : baseRadius;
-        const finalBackgroundColor = isThisPointHovered
-            ? (pointConfig?.hoverBackgroundColor ?? backgroundColor)
-            : backgroundColor;
+        const finalRadius = isThisPointHovered ? hoverRadius : (isSelected ? (selectedPointStyle?.radius ?? baseRadius + 2) : baseRadius);
+        const finalBackgroundColor = isSelected
+            ? (selectedPointStyle?.backgroundColor ?? '#ef4444')
+            : (isThisPointHovered ? (pointConfig?.hoverBackgroundColor ?? backgroundColor) : backgroundColor);
+        const finalBorderColor = isSelected
+            ? (selectedPointStyle?.borderColor ?? '#dc2626')
+            : borderColor;
+        const finalBorderWidth = isSelected
+            ? (selectedPointStyle?.borderWidth ?? 3)
+            : borderWidth;
 
         ctx.fillStyle = finalBackgroundColor;
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = borderWidth;
+        ctx.strokeStyle = finalBorderColor;
+        ctx.lineWidth = finalBorderWidth;
 
         ctx.beginPath();
 
@@ -439,6 +451,35 @@ const drawPoints = (
 };
 
 /**
+ * 绘制选择框
+ */
+const drawSelectionBox = (
+    ctx: CanvasRenderingContext2D,
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    borderColor: string,
+    fillColor: string
+): void => {
+    const x = Math.min(startX, endX);
+    const y = Math.min(startY, endY);
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
+
+    ctx.save();
+    ctx.strokeStyle = borderColor;
+    ctx.fillStyle = fillColor;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeRect(x, y, width, height);
+
+    ctx.restore();
+};
+
+/**
  * 散点图组件
  */
 export const Scatter: React.FC<ScatterProps> = ({
@@ -452,18 +493,23 @@ export const Scatter: React.FC<ScatterProps> = ({
     tooltip,
     trendline,
     quadrant,
+    selection,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     className,
     style,
     onDataClick,
     onChartReady,
+    onSelectionChange,
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [hoveredPoint, setHoveredPoint] = useState<ComputedScatterPoint | null>(null);
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-    const [animationProgress, setAnimationProgress] = useState(0);
+    // 用于触发 tooltip 更新的版本号
+    const [tooltipVersion, setTooltipVersion] = useState(0);
+    // 动画进度 - 使用 ref 避免触发重渲染，用 animationVersion 触发重绘
+    const animationProgressRef = useRef(1);
+    const [animationVersion, setAnimationVersion] = useState(0);
     // 存储隐藏的数据集索引
     const [hiddenDatasets, setHiddenDatasets] = useState<Set<number>>(new Set());
     // 存储数据集的动画透明度
@@ -473,7 +519,47 @@ export const Scatter: React.FC<ScatterProps> = ({
     // 用于触发透明度动画重绘
     const [opacityVersion, setOpacityVersion] = useState(0);
 
+    // 区域选择相关状态
+    const [isSelecting, setIsSelecting] = useState(false);
+    const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
+    const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null);
+    const selectedPointsRef = useRef<Set<string>>(new Set());
+    const [selectedVersion, setSelectedVersion] = useState(0);
+
     const pointsRef = useRef<ComputedScatterPoint[][]>([]);
+    // 使用 ref 存储 hoveredPoint，避免不必要的状态更新
+    const hoveredPointRef = useRef<ComputedScatterPoint | null>(null);
+    // 重绘调度相关
+    const redrawScheduledRef = useRef(false);
+    const [, forceUpdate] = useState(0);
+
+    // ===== 虚拟数据缓存机制 =====
+    // 存储上一次的数据快照（用于 diff 对比）
+    const dataSnapshotRef = useRef<{
+        datasets: { label?: string; data: { x: number; y: number }[] }[];
+    } | null>(null);
+    // 缓存计算后的点坐标（虚拟 DOM 概念）
+    const virtualPointsRef = useRef<ComputedScatterPoint[][] | null>(null);
+    // 标记是否是首次渲染
+    const isFirstRenderRef = useRef(true);
+    // 标记数据是否真正变化
+    const dataChangedRef = useRef(false);
+
+    // 存储必要的绘制数据（避免在 drawChart 依赖中直接引用复杂对象）
+    const drawDataRef = useRef<{
+        data: ScatterChartData;
+        chartConfig: ScatterChartConfig;
+        allPoints: ComputedScatterPoint[][];
+        width: number;
+        height: number;
+        padding: number;
+        xAxis?: any;
+        yAxis?: any;
+        legend?: any;
+        trendline?: any;
+        quadrant?: any;
+        selection?: any;
+    } | null>(null);
 
     // 动画持续时间（毫秒）
     const ANIMATION_DURATION = 300;
@@ -483,35 +569,197 @@ export const Scatter: React.FC<ScatterProps> = ({
         return datasetOpacityRef.current.get(datasetIndex) ?? 1;
     }, [opacityVersion]);
 
-    // 计算图表配置
-    const chartConfig = useMemo(
-        () => calculateChartConfig(data, width, height, padding, xAxis?.min, xAxis?.max, yAxis?.min, yAxis?.max),
-        [data, width, height, padding, xAxis?.min, xAxis?.max, yAxis?.min, yAxis?.max]
-    );
+    // 调度重绘（使用 requestAnimationFrame 合并多次重绘请求）
+    const scheduleRedraw = useCallback(() => {
+        if (redrawScheduledRef.current) return;
+        
+        redrawScheduledRef.current = true;
+        requestAnimationFrame(() => {
+            redrawScheduledRef.current = false;
+            forceUpdate(v => v + 1);
+        });
+    }, []);
 
-    // 计算所有数据点
-    const allPoints = useMemo(
-        () => computePoints(data, chartConfig, height),
-        [data, chartConfig, height]
-    );
+    // ===== Diff 算法：对比数据是否真正变化 =====
+    const diffData = useCallback((newData: ScatterChartData): boolean => {
+        const prevSnapshot = dataSnapshotRef.current;
+        
+        // 首次渲染，肯定变化
+        if (!prevSnapshot) {
+            dataSnapshotRef.current = {
+                datasets: newData.datasets.map(d => ({
+                    label: d.label,
+                    data: d.data.map(p => ({ x: p.x, y: p.y })),
+                })),
+            };
+            return true;
+        }
 
-    // 动画效果
+        // 快速检查：数据集数量变化
+        if (prevSnapshot.datasets.length !== newData.datasets.length) {
+            dataSnapshotRef.current = {
+                datasets: newData.datasets.map(d => ({
+                    label: d.label,
+                    data: d.data.map(p => ({ x: p.x, y: p.y })),
+                })),
+            };
+            return true;
+        }
+
+        // 逐数据集对比
+        for (let i = 0; i < newData.datasets.length; i++) {
+            const prevDataset = prevSnapshot.datasets[i];
+            const newDataset = newData.datasets[i];
+
+            // 检查标签变化
+            if (prevDataset.label !== newDataset.label) {
+                dataSnapshotRef.current = {
+                    datasets: newData.datasets.map(d => ({
+                        label: d.label,
+                        data: d.data.map(p => ({ x: p.x, y: p.y })),
+                    })),
+                };
+                return true;
+            }
+
+            // 快速检查：数据点数量变化
+            if (prevDataset.data.length !== newDataset.data.length) {
+                dataSnapshotRef.current = {
+                    datasets: newData.datasets.map(d => ({
+                        label: d.label,
+                        data: d.data.map(p => ({ x: p.x, y: p.y })),
+                    })),
+                };
+                return true;
+            }
+
+            // 逐点对比坐标
+            for (let j = 0; j < newDataset.data.length; j++) {
+                const prevPoint = prevDataset.data[j];
+                const newPoint = newDataset.data[j];
+                if (prevPoint.x !== newPoint.x || prevPoint.y !== newPoint.y) {
+                    dataSnapshotRef.current = {
+                        datasets: newData.datasets.map(d => ({
+                            label: d.label,
+                            data: d.data.map(p => ({ x: p.x, y: p.y })),
+                        })),
+                    };
+                    return true;
+                }
+            }
+        }
+
+        // 数据没有变化
+        return false;
+    }, []);
+
+    // 计算图表配置（带缓存）
+    const chartConfig = useMemo(() => {
+        const newConfig = calculateChartConfig(
+            data, 
+            width, 
+            height, 
+            padding, 
+            xAxis?.min, 
+            xAxis?.max, 
+            yAxis?.min, 
+            yAxis?.max
+        );
+        return newConfig;
+    }, [data, width, height, padding, xAxis?.min, xAxis?.max, yAxis?.min, yAxis?.max]);
+
+    // 计算所有数据点（带缓存，只有数据变化时才重新计算）
+    const allPoints = useMemo(() => {
+        const hasDataChanged = diffData(data);
+        dataChangedRef.current = hasDataChanged;
+
+        // 如果数据没有变化，使用缓存的点
+        if (!hasDataChanged && virtualPointsRef.current) {
+            return virtualPointsRef.current;
+        }
+
+        // 数据变化，重新计算
+        const newPoints = computePoints(data, chartConfig, height);
+        virtualPointsRef.current = newPoints;
+        return newPoints;
+    }, [data, chartConfig, height, diffData]);
+
+    // 动画效果 - 只在首次渲染或数据真正变化时触发
     useEffect(() => {
+        // 如果不是数据变化导致的渲染，不触发动画
+        if (!dataChangedRef.current && !isFirstRenderRef.current) {
+            return;
+        }
+
+        // 重置动画进度
+        animationProgressRef.current = 0;
+        
         const startTime = Date.now();
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / animationDuration, 1);
             const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-            setAnimationProgress(eased);
+            
+            animationProgressRef.current = eased;
+            setAnimationVersion(v => v + 1); // 只触发重绘，不触发重新计算
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
+            } else {
+                isFirstRenderRef.current = false;
             }
         };
+        
         requestAnimationFrame(animate);
     }, [animationDuration, data]);
 
-    // 绘制图表
+    // 获取选择框内的点
+    const getPointsInSelection = useCallback((start: { x: number; y: number }, end: { x: number; y: number }): ComputedScatterPoint[] => {
+        const minX = Math.min(start.x, end.x);
+        const maxX = Math.max(start.x, end.x);
+        const minY = Math.min(start.y, end.y);
+        const maxY = Math.max(start.y, end.y);
+
+        const selected: ComputedScatterPoint[] = [];
+
+        pointsRef.current.forEach((datasetPoints, datasetIndex) => {
+            const opacity = getDatasetOpacity(datasetIndex);
+            if (opacity < 0.1) return;
+
+            datasetPoints.forEach((point) => {
+                if (point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY) {
+                    selected.push(point);
+                }
+            });
+        });
+
+        return selected;
+    }, [getDatasetOpacity]);
+
+    // 更新绘制数据（只在数据真正变化时更新）
+    useEffect(() => {
+        const newDrawData = {
+            data,
+            chartConfig,
+            allPoints,
+            width,
+            height,
+            padding,
+            xAxis,
+            yAxis,
+            legend,
+            trendline,
+            quadrant,
+            selection,
+        };
+
+        drawDataRef.current = newDrawData;
+        
+        // 数据变化时触发重绘
+        scheduleRedraw();
+    }, [data, chartConfig, allPoints, width, height, padding, xAxis, yAxis, legend, trendline, quadrant, selection, scheduleRedraw]);
+
+    // 绘制图表（只依赖必要的触发器）
     const drawChart = useCallback(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -519,49 +767,68 @@ export const Scatter: React.FC<ScatterProps> = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        const drawData = drawDataRef.current;
+        if (!drawData) return;
+
+        const { 
+            width: w, 
+            height: h, 
+            chartConfig: config, 
+            allPoints: points, 
+            data: chartData,
+            xAxis: xConfig,
+            yAxis: yConfig,
+            trendline: trendConfig,
+            quadrant: quadrantConfig,
+            selection: selectionConfig,
+        } = drawData;
+
+        // 获取当前动画进度
+        const progress = animationProgressRef.current;
+
         // 清空画布
-        ctx.clearRect(0, 0, width, height);
+        ctx.clearRect(0, 0, w, h);
 
         // 绘制象限背景（如果启用）
-        if (quadrant?.enabled) {
+        if (quadrantConfig?.enabled) {
             const defaultColors: [string, string, string, string] = ['#e0f2fe', '#fef3c7', '#dbeafe', '#fce7f3'];
             drawQuadrantBackground(
                 ctx,
-                chartConfig,
-                width,
-                height,
-                quadrant.xDivider ?? 0,
-                quadrant.yDivider ?? 0,
-                quadrant.colors ?? defaultColors,
-                quadrant.opacity ?? 0.3
+                config,
+                w,
+                h,
+                quadrantConfig.xDivider ?? 0,
+                quadrantConfig.yDivider ?? 0,
+                quadrantConfig.colors ?? defaultColors,
+                quadrantConfig.opacity ?? 0.3
             );
         }
 
         // 绘制网格
         drawGrid(
             ctx,
-            chartConfig,
-            width,
-            height,
-            xAxis?.tickColor || DEFAULT_CONFIG.textColor,
-            xAxis?.tickFontSize || DEFAULT_CONFIG.fontSize,
-            xAxis?.display !== false ? xAxis?.title?.text : undefined,
-            yAxis?.display !== false ? yAxis?.title?.text : undefined,
-            xAxis?.grid,
-            yAxis?.grid,
-            xAxis?.gridColor || DEFAULT_CONFIG.gridColor
+            config,
+            w,
+            h,
+            xConfig?.tickColor || DEFAULT_CONFIG.textColor,
+            xConfig?.tickFontSize || DEFAULT_CONFIG.fontSize,
+            xConfig?.display !== false ? xConfig?.title?.text : undefined,
+            yConfig?.display !== false ? yConfig?.title?.text : undefined,
+            xConfig?.grid,
+            yConfig?.grid,
+            xConfig?.gridColor || DEFAULT_CONFIG.gridColor
         );
 
         // 绘制坐标轴
-        drawAxes(ctx, chartConfig, width, height, xAxis?.gridColor || DEFAULT_CONFIG.axisColor);
+        drawAxes(ctx, config, w, h, xConfig?.gridColor || DEFAULT_CONFIG.axisColor);
 
         // 绘制回归线（如果启用）
-        if (trendline?.enabled) {
+        if (trendConfig?.enabled) {
             // 收集所有可见的数据点用于计算回归线
             const visiblePoints: ComputedScatterPoint[] = [];
-            data.datasets.forEach((dataset, datasetIndex) => {
+            chartData.datasets.forEach((dataset, datasetIndex) => {
                 if (getDatasetOpacity(datasetIndex) > 0.1) {
-                    allPoints[datasetIndex]?.forEach((point) => {
+                    points[datasetIndex]?.forEach((point) => {
                         visiblePoints.push(point);
                     });
                 }
@@ -570,21 +837,21 @@ export const Scatter: React.FC<ScatterProps> = ({
             const regression = calculateLinearRegression(visiblePoints);
             if (regression) {
                 const [slope, intercept] = regression;
-                const { xMin, xMax } = chartConfig;
+                const { xMin, xMax } = config;
 
                 // 计算回归线在图表边界上的两点
                 const y1 = slope * xMin + intercept;
                 const y2 = slope * xMax + intercept;
 
-                const x1Canvas = valueToX(xMin, chartConfig);
-                const y1Canvas = valueToY(y1, chartConfig, height);
-                const x2Canvas = valueToX(xMax, chartConfig);
-                const y2Canvas = valueToY(y2, chartConfig, height);
+                const x1Canvas = valueToX(xMin, config);
+                const y1Canvas = valueToY(y1, config, h);
+                const x2Canvas = valueToX(xMax, config);
+                const y2Canvas = valueToY(y2, config, h);
 
                 ctx.save();
-                ctx.strokeStyle = trendline.color || '#ef4444';
-                ctx.lineWidth = trendline.width || 2;
-                if (trendline.dashed) {
+                ctx.strokeStyle = trendConfig.color || '#ef4444';
+                ctx.lineWidth = trendConfig.width || 2;
+                if (trendConfig.dashed) {
                     ctx.setLineDash([5, 5]);
                 }
                 ctx.beginPath();
@@ -596,68 +863,106 @@ export const Scatter: React.FC<ScatterProps> = ({
         }
 
         // 绘制数据点（支持透明度动画）
-        data.datasets.forEach((dataset, datasetIndex) => {
+        chartData.datasets.forEach((dataset, datasetIndex) => {
             const opacity = getDatasetOpacity(datasetIndex);
             if (opacity <= 0.01) return;
 
-            const fullPoints = allPoints[datasetIndex];
+            const fullPoints = points[datasetIndex];
             if (!fullPoints || fullPoints.length === 0) return;
 
             // 根据动画进度截取点
-            const visibleCount = Math.max(1, Math.floor(fullPoints.length * animationProgress));
-            const points = fullPoints.slice(0, visibleCount);
+            const visibleCount = Math.max(1, Math.floor(fullPoints.length * progress));
+            const datasetPoints = fullPoints.slice(0, visibleCount);
 
             ctx.save();
             ctx.globalAlpha = opacity;
 
-            // 绘制数据点
-            drawPoints(ctx, points, dataset, datasetIndex, hoveredPoint);
+            // 绘制数据点（使用 ref 中的 hoveredPoint）
+            drawPoints(ctx, datasetPoints, dataset, datasetIndex, hoveredPointRef.current, selectedPointsRef.current, selectionConfig?.selectedPointStyle);
 
             ctx.restore();
         });
 
+        // 绘制选择框（从状态中读取）
+        if (isSelecting && selectionStart && selectionEnd) {
+            drawSelectionBox(
+                ctx,
+                selectionStart.x,
+                selectionStart.y,
+                selectionEnd.x,
+                selectionEnd.y,
+                selectionConfig?.borderColor || '#3b82f6',
+                selectionConfig?.fillColor || 'rgba(59, 130, 246, 0.2)'
+            );
+        }
+
         // 保存计算的点用于交互
-        pointsRef.current = allPoints;
+        pointsRef.current = points;
 
         if (isLoading) {
             setIsLoading(false);
             onChartReady?.();
         }
+    // 注意：drawChart 现在只依赖必要的触发器，数据从 ref 中读取
     }, [
-        data,
-        width,
-        height,
-        padding,
-        chartConfig,
-        allPoints,
-        xAxis,
-        yAxis,
-        legend,
-        trendline,
-        quadrant,
-        animationProgress,
-        hoveredPoint,
         isLoading,
         onChartReady,
         getDatasetOpacity,
+        isSelecting,
+        selectionStart,
+        selectionEnd,
     ]);
 
     useEffect(() => {
         drawChart();
-    }, [drawChart, opacityVersion]);
+    }, [drawChart, opacityVersion, selectedVersion, animationVersion]);
 
-    // 处理鼠标移动
-    const handleMouseMove = useCallback(
+    // 处理鼠标按下（开始选择）
+    const handleMouseDown = useCallback(
         (e: React.MouseEvent<HTMLCanvasElement>) => {
+            if (!selection?.enabled) return;
+
             const canvas = canvasRef.current;
-            if (!canvas || animationProgress < 1) return;
+            if (!canvas) return;
 
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
+            // 检查是否在图表区域内
+            const { padding, chartWidth, chartHeight } = chartConfig;
+            if (
+                x >= padding &&
+                x <= padding + chartWidth &&
+                y >= padding &&
+                y <= padding + chartHeight
+            ) {
+                setIsSelecting(true);
+                setSelectionStart({ x, y });
+                setSelectionEnd({ x, y });
+            }
+        },
+        [selection?.enabled, chartConfig]
+    );
+
+    // 处理鼠标移动
+    const handleMouseMove = useCallback(
+        (e: React.MouseEvent<HTMLCanvasElement>) => {
+            const canvas = canvasRef.current;
+            if (!canvas || animationProgressRef.current < 1) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            // 更新选择框
+            if (isSelecting && selectionStart) {
+                setSelectionEnd({ x, y });
+                return;
+            }
+
             // 查找最近的数据点（只对可见数据集）
-            let closestPoint: ComputedScatterPoint | null = null;
+            let foundPoint: ComputedScatterPoint | null = null;
             let minDistance = Infinity;
 
             pointsRef.current.forEach((datasetPoints, datasetIndex) => {
@@ -668,24 +973,84 @@ export const Scatter: React.FC<ScatterProps> = ({
                     const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
                     if (distance < 20 && distance < minDistance) {
                         minDistance = distance;
-                        closestPoint = point;
+                        foundPoint = point;
                     }
                 });
             });
 
-            setHoveredPoint(closestPoint);
+            // 只在 hover 状态变化时才触发重绘
+            const prevHoveredPoint = hoveredPointRef.current;
+            const isHoverChanged =
+                (prevHoveredPoint?.datasetIndex !== (foundPoint as ComputedScatterPoint | null)?.datasetIndex) ||
+                (prevHoveredPoint?.dataIndex !== (foundPoint as ComputedScatterPoint | null)?.dataIndex);
+
+            if (isHoverChanged) {
+                hoveredPointRef.current = foundPoint;
+                scheduleRedraw();
+                // 触发 tooltip 更新
+                setTooltipVersion(v => v + 1);
+            }
+
             setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
         },
-        [animationProgress, getDatasetOpacity]
+        [getDatasetOpacity, isSelecting, selectionStart, scheduleRedraw]
     );
+
+    // 处理鼠标抬起（结束选择）
+    const handleMouseUp = useCallback(() => {
+        if (!isSelecting || !selectionStart || !selectionEnd) {
+            setIsSelecting(false);
+            return;
+        }
+
+        // 计算选择框内的点
+        const pointsInBox = getPointsInSelection(selectionStart, selectionEnd);
+
+        // 更新选中的点
+        const newSelectedPoints = new Set<string>();
+        const selectedPointsData: ScatterSelectedPoint[] = [];
+
+        pointsInBox.forEach((point) => {
+            const pointKey = `${point.datasetIndex}-${point.dataIndex}`;
+            newSelectedPoints.add(pointKey);
+
+            const dataset = data.datasets[point.datasetIndex];
+            selectedPointsData.push({
+                datasetIndex: point.datasetIndex,
+                dataIndex: point.dataIndex,
+                point: { x: point.dataX, y: point.dataY },
+                datasetLabel: dataset?.label || '',
+            });
+        });
+
+        selectedPointsRef.current = newSelectedPoints;
+        setSelectedVersion(v => v + 1);
+        onSelectionChange?.(selectedPointsData);
+
+        setIsSelecting(false);
+        setSelectionStart(null);
+        setSelectionEnd(null);
+    }, [isSelecting, selectionStart, selectionEnd, getPointsInSelection, data.datasets, onSelectionChange]);
 
     // 处理鼠标离开
     const handleMouseLeave = useCallback(() => {
-        setHoveredPoint(null);
+        // 只在之前有 hover 点时才重绘
+        if (hoveredPointRef.current) {
+            hoveredPointRef.current = null;
+            scheduleRedraw();
+            // 触发 tooltip 更新
+            setTooltipVersion(v => v + 1);
+        }
         if (canvasRef.current) {
             canvasRef.current.style.cursor = 'default';
         }
-    }, []);
+        // 如果正在选择，取消选择
+        if (isSelecting) {
+            setIsSelecting(false);
+            setSelectionStart(null);
+            setSelectionEnd(null);
+        }
+    }, [isSelecting, scheduleRedraw]);
 
     // 执行透明度动画
     const animateOpacity = useCallback((datasetIndex: number, targetOpacity: number) => {
@@ -718,35 +1083,40 @@ export const Scatter: React.FC<ScatterProps> = ({
     // 处理点击
     const handleClick = useCallback(
         (e: React.MouseEvent<HTMLCanvasElement>) => {
-            if (!hoveredPoint || !onDataClick) return;
-            onDataClick(hoveredPoint.datasetIndex, hoveredPoint.dataIndex, {
-                x: hoveredPoint.dataX,
-                y: hoveredPoint.dataY,
+            // 如果正在选择，不触发点击事件
+            if (isSelecting) return;
+
+            const hoveredPt = hoveredPointRef.current;
+            if (!hoveredPt || !onDataClick) return;
+            onDataClick(hoveredPt.datasetIndex, hoveredPt.dataIndex, {
+                x: hoveredPt.dataX,
+                y: hoveredPt.dataY,
             });
         },
-        [hoveredPoint, onDataClick]
+        [onDataClick, isSelecting]
     );
 
     // 生成提示框内容
     const tooltipContent = useMemo(() => {
-        if (!hoveredPoint) return null;
+        const hoveredPt = hoveredPointRef.current;
+        if (!hoveredPt) return null;
 
-        const dataset = data.datasets[hoveredPoint.datasetIndex];
+        const dataset = data.datasets[hoveredPt.datasetIndex];
         const items: ScatterTooltipItem[] = [{
             label: dataset.label,
-            x: hoveredPoint.dataX,
-            y: hoveredPoint.dataY,
-            color: getDatasetColor(hoveredPoint.datasetIndex, dataset),
-            datasetIndex: hoveredPoint.datasetIndex,
+            x: hoveredPt.dataX,
+            y: hoveredPt.dataY,
+            color: getDatasetColor(hoveredPt.datasetIndex, dataset),
+            datasetIndex: hoveredPt.datasetIndex,
         }];
 
         return {
-            dataIndex: hoveredPoint.dataIndex,
+            dataIndex: hoveredPt.dataIndex,
             label: dataset.label,
-            point: { x: hoveredPoint.dataX, y: hoveredPoint.dataY },
+            point: { x: hoveredPt.dataX, y: hoveredPt.dataY },
             items,
         };
-    }, [hoveredPoint, data]);
+    }, [data, tooltipVersion]);
 
     return (
         <div
@@ -805,14 +1175,19 @@ export const Scatter: React.FC<ScatterProps> = ({
                 ref={canvasRef}
                 width={width}
                 height={height}
-                className={styles.zcpcyChatsScatterChartCanvas}
+                className={classNames(
+                    styles.zcpcyChatsScatterChartCanvas,
+                    selection?.enabled && styles.zcpcyChatsScatterChartSelectable
+                )}
+                onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
                 onClick={handleClick}
             />
 
             {/* 提示框 */}
-            {tooltip?.enabled !== false && tooltipContent && hoveredPoint && (
+            {tooltip?.enabled !== false && tooltipContent && (
                 <div
                     className={classNames(styles.zcpcyChatsTooltip, styles.zcpcyChatsTooltipVisible)}
                     style={{

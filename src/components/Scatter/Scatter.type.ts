@@ -190,6 +190,44 @@ export interface ScatterQuadrantConfig {
 }
 
 /**
+ * 区域选择配置
+ * 用于在图表中框选数据点
+ */
+export interface ScatterSelectionConfig {
+  /** 是否启用区域选择 */
+  enabled?: boolean;
+  /** 选择框边框颜色 */
+  borderColor?: string;
+  /** 选择框填充颜色 */
+  fillColor?: string;
+  /** 选中点的样式 */
+  selectedPointStyle?: {
+    /** 选中点的填充颜色 */
+    backgroundColor?: string;
+    /** 选中点的边框颜色 */
+    borderColor?: string;
+    /** 选中点的边框宽度 */
+    borderWidth?: number;
+    /** 选中点半径 */
+    radius?: number;
+  };
+}
+
+/**
+ * 选中的数据点
+ */
+export interface ScatterSelectedPoint {
+  /** 数据集索引 */
+  datasetIndex: number;
+  /** 数据点索引 */
+  dataIndex: number;
+  /** 数据点 */
+  point: ScatterDataPoint;
+  /** 数据集标签 */
+  datasetLabel: string;
+}
+
+/**
  * 散点图组件属性
  */
 export interface ScatterProps {
@@ -213,6 +251,8 @@ export interface ScatterProps {
   trendline?: ScatterTrendlineConfig;
   /** 象限配置 */
   quadrant?: ScatterQuadrantConfig;
+  /** 区域选择配置 */
+  selection?: ScatterSelectionConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 自定义类名 */
@@ -223,6 +263,8 @@ export interface ScatterProps {
   onDataClick?: (datasetIndex: number, dataIndex: number, point: ScatterDataPoint) => void;
   /** 图表渲染完成回调 */
   onChartReady?: () => void;
+  /** 区域选择完成回调，返回选中的数据点 */
+  onSelectionChange?: (selectedPoints: ScatterSelectedPoint[]) => void;
 }
 
 /**

@@ -20,6 +20,8 @@ export type {
   ScatterTooltipItem,
   ScatterTrendlineConfig,
   ScatterQuadrantConfig,
+  ScatterSelectionConfig,
+  ScatterSelectedPoint,
   ComputedScatterPoint,
   ScatterChartConfig,
 } from './Scatter.type';

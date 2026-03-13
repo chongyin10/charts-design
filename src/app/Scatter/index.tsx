@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Scatter } from '@/components/Scatter';
-import { ScatterChartData } from '@/components/Scatter/Scatter.type';
+import { ScatterChartData, ScatterSelectedPoint } from '@/components/Scatter/Scatter.type';
 import { Flex, Table, Anchor } from '@zjpcy/simple-design';
 import type { Column } from '@zjpcy/simple-design';
 import { Prism } from 'react-syntax-highlighter';
@@ -47,6 +47,8 @@ const CopyButton: React.FC<CopyButtonProps> = ({ text }) => {
  */
 export default function ScatterChartPage() {
     const [scrollContainer, setScrollContainer] = useState<HTMLElement | null>(null);
+    const [selectedPoints, setSelectedPoints] = useState<ScatterSelectedPoint[]>([]);
+    const [jsonSelectedPoints, setJsonSelectedPoints] = useState<ScatterSelectedPoint[]>([]);
 
     useEffect(() => {
         // 获取滚动容器
@@ -225,6 +227,40 @@ export default function ScatterChartPage() {
         ],
     };
 
+    // 区域选择示例数据
+    const selectionData: ScatterChartData = {
+        datasets: [
+            {
+                label: '数据点',
+                data: [
+                    { x: 10, y: 15 },
+                    { x: 20, y: 25 },
+                    { x: 30, y: 35 },
+                    { x: 40, y: 45 },
+                    { x: 50, y: 55 },
+                    { x: 60, y: 65 },
+                    { x: 70, y: 75 },
+                    { x: 25, y: 40 },
+                    { x: 35, y: 50 },
+                    { x: 45, y: 60 },
+                    { x: 15, y: 30 },
+                    { x: 55, y: 70 },
+                ],
+                backgroundColor: '#3b82f6',
+            },
+        ],
+    };
+
+    // 处理区域选择变化
+    const handleSelectionChange = (points: ScatterSelectedPoint[]) => {
+        setSelectedPoints(points);
+    };
+
+    // 处理 JSON 数据区域选择变化
+    const handleJsonSelectionChange = (points: ScatterSelectedPoint[]) => {
+        setJsonSelectedPoints(points);
+    };
+
     // API 表格列定义
     const propColumns: Column[] = [
         { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
@@ -245,8 +281,10 @@ export default function ScatterChartPage() {
         { prop: 'tooltip', desc: '提示框配置', type: 'ScatterTooltipConfig', default: '-' },
         { prop: 'trendline', desc: '回归线配置', type: 'ScatterTrendlineConfig', default: '-' },
         { prop: 'quadrant', desc: '象限配置', type: 'ScatterQuadrantConfig', default: '-' },
+        { prop: 'selection', desc: '区域选择配置', type: 'ScatterSelectionConfig', default: '-' },
         { prop: 'animationDuration', desc: '动画时长（毫秒）', type: 'number', default: '1000' },
         { prop: 'onDataClick', desc: '数据点击回调', type: '(datasetIndex, dataIndex, point) => void', default: '-' },
+        { prop: 'onSelectionChange', desc: '区域选择回调', type: '(selectedPoints: ScatterSelectedPoint[]) => void', default: '-' },
     ];
 
     // Dataset API 数据
@@ -283,6 +321,8 @@ export default function ScatterChartPage() {
         { name: 'ScatterTooltipConfig', desc: '提示框配置，包括背景色、自定义内容等' },
         { name: 'ScatterTrendlineConfig', desc: '回归线配置，用于显示线性趋势线' },
         { name: 'ScatterQuadrantConfig', desc: '象限配置，将图表划分为四个区域' },
+        { name: 'ScatterSelectionConfig', desc: '区域选择配置，用于框选数据点' },
+        { name: 'ScatterSelectedPoint', desc: '选中的数据点信息' },
         { name: 'ScatterProps', desc: '散点图组件的主要属性接口' },
     ];
 
@@ -384,6 +424,21 @@ export default function ScatterChartPage() {
         { prop: 'yDivider', desc: 'Y轴分割线位置', type: 'number', default: '0' },
         { prop: 'colors', desc: '四个象限的颜色数组', type: '[string, string, string, string]', default: '-' },
         { prop: 'opacity', desc: '象限透明度', type: 'number', default: '0.3' },
+    ];
+
+    // ScatterSelectionConfig API
+    const selectionConfigColumns: Column[] = [
+        { title: '属性', dataIndex: 'prop', key: 'prop', width: 180 },
+        { title: '说明', dataIndex: 'desc', key: 'desc' },
+        { title: '类型', dataIndex: 'type', key: 'type', width: 200 },
+        { title: '默认值', dataIndex: 'default', key: 'default', width: 120 },
+    ];
+
+    const scatterSelectionConfigAPI = [
+        { prop: 'enabled', desc: '是否启用区域选择', type: 'boolean', default: 'false' },
+        { prop: 'borderColor', desc: '选择框边框颜色', type: 'string', default: "'#3b82f6'" },
+        { prop: 'fillColor', desc: '选择框填充颜色', type: 'string', default: "'rgba(59, 130, 246, 0.2)'" },
+        { prop: 'selectedPointStyle', desc: '选中点的样式配置', type: 'Object', default: '-' },
     ];
 
     // 代码示例
@@ -492,6 +547,44 @@ const data = {
   yAxis={{ min: 0, max: 100, title: { text: '满意度' } }}
 />`;
 
+    const selectionCode = `import { Scatter } from '@/components/Scatter';
+import type { ScatterSelectedPoint } from '@/components/Scatter/Scatter.type';
+
+const [selectedPoints, setSelectedPoints] = useState<ScatterSelectedPoint[]>([]);
+
+const data = {
+  datasets: [{
+    label: '数据点',
+    data: [
+      { x: 10, y: 15 },
+      { x: 20, y: 25 },
+      { x: 30, y: 35 },
+    ],
+    backgroundColor: '#3b82f6',
+  }],
+};
+
+<Scatter
+  data={data}
+  width={600}
+  height={400}
+  selection={{
+    enabled: true,
+    borderColor: '#3b82f6',
+    fillColor: 'rgba(59, 130, 246, 0.2)',
+    selectedPointStyle: {
+      backgroundColor: '#ef4444',
+      borderColor: '#dc2626',
+      borderWidth: 3,
+      radius: 8,
+    },
+  }}
+  onSelectionChange={(points) => setSelectedPoints(points)}
+/>
+
+// 显示选中的点数
+<p>已选中 {selectedPoints.length} 个数据点</p>`;
+
     const jsonDataCode = `import cscaraData from './Json/cscara.json';
 
 // 处理 JSON 数据
@@ -518,6 +611,17 @@ const jsonData = {
   data={jsonData}
   width={600}
   height={400}
+  selection={{
+    enabled: true,
+    borderColor: '#3b82f6',
+    fillColor: 'rgba(59, 130, 246, 0.2)',
+    selectedPointStyle: {
+      backgroundColor: '#ef4444',
+      borderColor: '#dc2626',
+      borderWidth: 3,
+      radius: 4,
+    },
+  }}
   trendline={{ enabled: true }}
 />`;
 
@@ -533,6 +637,7 @@ const jsonData = {
                             散点图通过在二维坐标系中绘制离散数据点来展示两个变量之间的关系。
                             每个点的横纵坐标分别对应两个变量的观测值，点的分布形态可直观反映变量间的相关性、分布规律或异常值。
                             适用于相关性分析、聚类分析、异常值检测等场景。
+                            支持区域勾选功能，可以在图表中框选数据点。
                         </p>
                     </div>
 
@@ -634,19 +739,80 @@ const jsonData = {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 区域选择 */}
+                    <div className={styles.exampleSection} id="scatter-selection">
+                        <h2 className={styles.subsectionTitle}>区域选择</h2>
+                        <p className={styles.sectionText}>
+                            支持在图表中框选数据点，选中的点会以不同样式高亮显示。
+                            在图表区域内按住鼠标左键拖动即可框选数据点。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <Scatter
+                                data={selectionData}
+                                width={600}
+                                height={400}
+                                selection={{
+                                    enabled: true,
+                                    borderColor: '#3b82f6',
+                                    fillColor: 'rgba(59, 130, 246, 0.2)',
+                                    selectedPointStyle: {
+                                        backgroundColor: '#ef4444',
+                                        borderColor: '#dc2626',
+                                        borderWidth: 3,
+                                        radius: 8,
+                                    },
+                                }}
+                                onSelectionChange={handleSelectionChange}
+                            />
+                            <div style={{ marginTop: 12, color: '#374151', fontSize: 14 }}>
+                                已选中 <strong>{selectedPoints.length}</strong> 个数据点
+                                {selectedPoints.length > 0 && (
+                                    <span style={{ marginLeft: 8, color: '#6b7280' }}>
+                                        (可通过 onSelectionChange 回调获取详细数据)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={selectionCode} />
+                        </div>
+                        <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
+                            {selectionCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* JSON 数据示例 */}
                     <div className={styles.exampleSection} id="scatter-json">
                         <h2 className={styles.subsectionTitle}>JSON 数据示例</h2>
-                        <p className={styles.sectionText}>展示如何从 JSON 文件加载数据，显示男性和女性身高体重的分布关系。</p>
+                        <p className={styles.sectionText}>
+                            展示如何从 JSON 文件加载数据，显示男性和女性身高体重的分布关系。
+                            支持区域选择功能，可以框选数据点进行分析。
+                        </p>
                         <div className={styles.exampleDemo}>
                             <Scatter
                                 data={jsonData}
                                 width={600}
                                 height={400}
                                 trendline={{ enabled: true, color: '#ef4444', dashed: true }}
+                                selection={{
+                                    enabled: true,
+                                    borderColor: '#3b82f6',
+                                    fillColor: 'rgba(59, 130, 246, 0.2)',
+                                    selectedPointStyle: {
+                                        backgroundColor: '#ef4444',
+                                        borderColor: '#dc2626',
+                                        borderWidth: 3,
+                                        radius: 4,
+                                    },
+                                }}
+                                onSelectionChange={handleJsonSelectionChange}
                                 xAxis={{ title: { text: '身高 (cm)' } }}
                                 yAxis={{ title: { text: '体重 (kg)' } }}
                             />
+                            <div style={{ marginTop: 12, color: '#374151', fontSize: 14 }}>
+                                已选中 <strong>{jsonSelectedPoints.length}</strong> 个数据点
+                            </div>
                         </div>
                         <div className={styles.codeHeader}>
                             <span>示例代码</span>
@@ -718,6 +884,12 @@ const jsonData = {
                         <div className={styles.apiTable}>
                             <Table columns={quadrantConfigColumns} dataSource={scatterQuadrantConfigAPI} />
                         </div>
+
+                        <h3 className={styles.typeSubsectionTitle}>ScatterSelectionConfig</h3>
+                        <p className={styles.sectionText}>区域选择配置。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={selectionConfigColumns} dataSource={scatterSelectionConfigAPI} />
+                        </div>
                     </div>
                 </div>
 
@@ -737,6 +909,7 @@ const jsonData = {
                                 <Anchor.Link href="#scatter-shape" title="数据点形状" />
                                 <Anchor.Link href="#scatter-trendline" title="回归线" />
                                 <Anchor.Link href="#scatter-quadrant" title="象限分析" />
+                                <Anchor.Link href="#scatter-selection" title="区域选择" />
                                 <Anchor.Link href="#scatter-json" title="JSON 数据" />
                                 <Anchor.Link href="#scatter-api" title="API 参考" />
                                 <Anchor.Link href="#scatter-dataset" title="Dataset 配置" />
