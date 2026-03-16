@@ -56,6 +56,12 @@
       "require": "./dist/funnel/index.js"
     },
     "./funnel/style.css": "./dist/funnel/style.css",
+    "./gauge": {
+      "types": "./dist/gauge/index.d.ts",
+      "import": "./dist/gauge/index.esm.js",
+      "require": "./dist/gauge/index.js"
+    },
+    "./gauge/style.css": "./dist/gauge/style.css",
     "./heatmap": {
       "types": "./dist/heatmap/index.d.ts",
       "import": "./dist/heatmap/index.esm.js",

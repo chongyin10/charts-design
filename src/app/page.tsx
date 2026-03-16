@@ -16,6 +16,7 @@ import LiquidExample from './Liquid';
 import DualAxesExample from './DualAxes';
 import BidirectionalBarExample from './BidirectionalBar';
 import BoxExample from './Box';
+import GaugeExample from './Gauge';
 
 const { Header, Sider, Content } = Layout;
 
@@ -25,7 +26,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -98,6 +99,11 @@ export default function Home() {
             label: 'Box',
             description: '箱线图'
         },
+        {
+            key: 'gauge',
+            label: 'Gauge',
+            description: '仪表盘'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -127,6 +133,8 @@ export default function Home() {
                 return <BidirectionalBarExample />;
             case 'box':
                 return <BoxExample />;
+            case 'gauge':
+                return <GaugeExample />;
             default:
                 return <LineExample />;
         }
