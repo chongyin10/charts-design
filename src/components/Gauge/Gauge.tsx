@@ -17,6 +17,7 @@ import type {
   ComputedPivot,
   ComputedText,
   ComputedRange,
+  ComputedPanel,
   GaugeGeometry,
 } from './Gauge.type';
 
@@ -91,6 +92,23 @@ const DEFAULT_CONFIG: Required<GaugeChartConfig> = {
     fontWeight: 400,
     visible: true,
     offsetY: -35,
+  },
+  panel: {
+    visible: true,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    borderColor: 'rgba(0, 0, 0, 0.06)',
+    borderWidth: 1,
+    borderRadius: 8,
+    waveEnabled: false,
+    wave: {
+      amplitude: 4,
+      period: 0.03,
+      color: ['#3b82f6', '#60a5fa', '#93c5fd'],
+      opacity: 0.3,
+      speed: 0.015,
+      direction: 1,
+      layers: 3,
+    },
   },
   ranges: [],
   animationDuration: 1000,
@@ -201,6 +219,42 @@ const computeTextConfig = (config?: GaugeChartConfig['valueText']): ComputedText
     fontWeight: text.fontWeight!,
     visible: text.visible!,
     offsetY: text.offsetY!,
+  };
+};
+
+/**
+ * 计算面板配置
+ */
+const computePanelConfig = (config?: GaugeChartConfig['panel']): ComputedPanel => {
+  const panel = { ...DEFAULT_CONFIG.panel, ...config };
+  const wave = { ...DEFAULT_CONFIG.panel.wave, ...panel.wave };
+  
+  let colors: string[];
+  if (Array.isArray(wave.color)) {
+    colors = wave.color.filter((c): c is string => typeof c === 'string');
+  } else if (typeof wave.color === 'string') {
+    colors = [wave.color, wave.color];
+  } else {
+    colors = ['#3b82f6', '#60a5fa', '#93c5fd'];
+  }
+
+  return {
+    visible: panel.visible!,
+    backgroundColor: panel.backgroundColor!,
+    borderColor: panel.borderColor!,
+    borderWidth: panel.borderWidth!,
+    borderRadius: panel.borderRadius!,
+    waveEnabled: panel.waveEnabled!,
+    wave: {
+      amplitude: wave.amplitude!,
+      period: wave.period!,
+      colors,
+      opacity: wave.opacity!,
+      speed: wave.speed!,
+      direction: wave.direction!,
+      layers: wave.layers!,
+      phase: 0,
+    },
   };
 };
 
@@ -587,7 +641,81 @@ const drawText = (
 };
 
 /**
+ * 绘制面板背景（支持水波动画）
+ */
+const drawPanelBackground = (
+  ctx: CanvasRenderingContext2D,
+  panelX: number,
+  panelY: number,
+  panelWidth: number,
+  panelHeight: number,
+  panelConfig: ComputedPanel,
+  wavePhase: number
+): void => {
+  const { backgroundColor, borderColor, borderWidth, borderRadius, waveEnabled, wave } = panelConfig;
+
+  ctx.save();
+
+  // 创建面板裁剪区域
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, borderRadius);
+  ctx.clip();
+
+  // 绘制基础背景
+  ctx.fillStyle = backgroundColor;
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, borderRadius);
+  ctx.fill();
+
+  // 绘制水波动画背景
+  if (waveEnabled) {
+    const waveY = panelY + panelHeight * 0.6;
+
+    wave.colors.forEach((color, index) => {
+      const layerPhase = wavePhase + (index * Math.PI) / wave.layers;
+      const layerAmplitude = wave.amplitude * (1 - index * 0.2);
+      const layerOpacity = wave.opacity * (1 - index * 0.15);
+
+      ctx.beginPath();
+      ctx.moveTo(panelX, panelY + panelHeight);
+
+      for (let x = 0; x <= panelWidth; x += 2) {
+        const normalizedX = x - panelWidth / 2;
+        const y =
+          waveY +
+          Math.sin(normalizedX * wave.period + layerPhase) * layerAmplitude +
+          Math.sin(normalizedX * wave.period * 1.5 + layerPhase * 0.8) * (layerAmplitude * 0.5);
+        ctx.lineTo(panelX + x, y);
+      }
+
+      ctx.lineTo(panelX + panelWidth, panelY + panelHeight);
+      ctx.closePath();
+
+      ctx.globalAlpha = layerOpacity;
+      ctx.fillStyle = color;
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+
+  // 绘制面板边框
+  if (borderWidth > 0) {
+    ctx.save();
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
+    ctx.beginPath();
+    ctx.roundRect(panelX, panelY, panelWidth, panelHeight, borderRadius);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+/**
  * 绘制信息面板（包含 value、name、unit 的 div 区域）
+ * 返回面板的几何信息，用于动画
  */
 const drawInfoPanel = (
   ctx: CanvasRenderingContext2D,
@@ -595,10 +723,14 @@ const drawInfoPanel = (
   data: GaugeData,
   valueText: ComputedText,
   titleText: ComputedText,
-  axis: ComputedAxis
-): void => {
+  axis: ComputedAxis,
+  panelConfig: ComputedPanel,
+  wavePhase: number = 0
+): { panelX: number; panelY: number; panelWidth: number; panelHeight: number } | null => {
+  if (!panelConfig.visible) return null;
+
   const { centerX, centerY, radius } = geometry;
-  const { name, unit, value } = data;
+  const { name, unit } = data;
 
   // 计算内容尺寸
   ctx.save();
@@ -642,28 +774,8 @@ const drawInfoPanel = (
   const panelX = centerX - panelWidth / 2;
   const panelY = centerY - radius * 0.45 - panelHeight / 2;
 
-  const cornerRadius = 8;
-
-  // 绘制阴影（淡阴影效果）
-  ctx.save();
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 2;
-
-  // 绘制面板背景（圆角矩形）- 更淡的背景
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, cornerRadius);
-  ctx.fill();
-  ctx.restore();
-
-  // 绘制面板边框（更淡的边框）
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, cornerRadius);
-  ctx.stroke();
+  // 绘制面板背景（支持水波动画）
+  drawPanelBackground(ctx, panelX, panelY, panelWidth, panelHeight, panelConfig, wavePhase);
 
   // 绘制 value 和 unit
   // 计算 value + unit 组合的总宽度，使它们在面板中水平居中
@@ -698,6 +810,9 @@ const drawInfoPanel = (
   }
 
   ctx.restore();
+
+  // 返回面板几何信息
+  return { panelX, panelY, panelWidth, panelHeight };
 };
 
 /**
@@ -718,6 +833,8 @@ export const Gauge: React.FC<GaugeProps> = ({
   const [animationProgress, setAnimationProgress] = useState(0);
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const prevValueRef = useRef<number>(0);
+  const panelWavePhaseRef = useRef<number>(0);
+  const panelAnimationRef = useRef<number>(0);
 
   // 响应式尺寸状态
   const [containerSize, setContainerSize] = useState({
@@ -817,6 +934,7 @@ export const Gauge: React.FC<GaugeProps> = ({
       pivot: { ...DEFAULT_CONFIG.pivot, ...config.pivot },
       valueText: { ...DEFAULT_CONFIG.valueText, ...config.valueText },
       titleText: { ...DEFAULT_CONFIG.titleText, ...config.titleText },
+      panel: { ...DEFAULT_CONFIG.panel, ...config.panel },
     };
 
     return {
@@ -826,6 +944,7 @@ export const Gauge: React.FC<GaugeProps> = ({
       pivot: computePivotConfig(mergedConfig.pivot),
       valueText: computeTextConfig(mergedConfig.valueText),
       titleText: computeTitleConfig(mergedConfig.titleText),
+      panel: computePanelConfig(mergedConfig.panel),
       animationDuration: mergedConfig.animationDuration,
       animation: mergedConfig.animation,
       type: mergedConfig.type,
@@ -941,7 +1060,8 @@ export const Gauge: React.FC<GaugeProps> = ({
     drawPointer(ctx, geometry, pointer, currentAngle);
 
     // 绘制信息面板（包含 value、name、unit）
-    drawInfoPanel(ctx, geometry, { ...data, value: Math.round(currentValue) }, valueText, titleText, axis);
+    const { panel } = computedConfig;
+    drawInfoPanel(ctx, geometry, { ...data, value: Math.round(currentValue) }, valueText, titleText, axis, panel, panelWavePhaseRef.current);
 
     // 绘制中心点（半径为指针长度的 3/4）- 最后绘制确保在最上层
     drawPivot(ctx, geometry, pivot, pointer);
@@ -963,6 +1083,35 @@ export const Gauge: React.FC<GaugeProps> = ({
   useEffect(() => {
     drawChart();
   }, [drawChart]);
+
+  // 面板水波动画循环
+  useEffect(() => {
+    const { panel } = computedConfig;
+    if (!panel.waveEnabled) return;
+
+    let isActive = true;
+
+    const animateWave = () => {
+      if (!isActive) return;
+
+      // 更新波浪相位
+      panelWavePhaseRef.current += panel.wave.speed * panel.wave.direction;
+      
+      // 触发重绘
+      drawChart();
+      
+      panelAnimationRef.current = requestAnimationFrame(animateWave);
+    };
+
+    panelAnimationRef.current = requestAnimationFrame(animateWave);
+
+    return () => {
+      isActive = false;
+      if (panelAnimationRef.current) {
+        cancelAnimationFrame(panelAnimationRef.current);
+      }
+    };
+  }, [computedConfig.panel, drawChart]);
 
   // 监听数值变化
   useEffect(() => {

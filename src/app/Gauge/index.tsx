@@ -711,6 +711,296 @@ const EventsExample = () => {
                     </SyntaxHighlighter>
                 </section>
 
+                {/* 面板水波动画 */}
+                <section className={styles.exampleSection} id="panel-wave">
+                    <h2 className={styles.subsectionTitle}>面板水波动画</h2>
+                    <p className={styles.subsectionText}>面板背景支持类似水波图的多层波浪动画效果，为数据展示增添活力。</p>
+                    <div className={styles.exampleDemo}>
+                        <Gauge
+                            data={{ value: 72, name: '湿度', unit: '%' }}
+                            config={{
+                                type: 'semi',
+                                progress: {
+                                    color: '#3b82f6',
+                                    width: 10,
+                                },
+                                pointer: {
+                                    color: '#3b82f6',
+                                },
+                                panel: {
+                                    visible: true,
+                                    waveEnabled: true,
+                                    wave: {
+                                        amplitude: 5,
+                                        period: 0.025,
+                                        color: ['#3b82f6', '#60a5fa', '#93c5fd'],
+                                        opacity: 0.35,
+                                        speed: 0.02,
+                                        direction: 1,
+                                        layers: 3,
+                                    },
+                                },
+                            }}
+                        />
+                    </div>
+                    <div className={styles.codeHeader}>
+                        <span>示例代码</span>
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelWaveExample = () => {
+    return (
+        <Gauge
+            data={{ value: 72, name: '湿度', unit: '%' }}
+            config={{
+                type: 'semi',
+                progress: {
+                    color: '#3b82f6',
+                    width: 10,
+                },
+                panel: {
+                    visible: true,
+                    waveEnabled: true,
+                    wave: {
+                        amplitude: 5,           // 波浪振幅
+                        period: 0.025,          // 波浪周期
+                        color: ['#3b82f6', '#60a5fa', '#93c5fd'], // 波浪颜色数组
+                        opacity: 0.35,          // 波浪透明度
+                        speed: 0.02,            // 动画速度
+                        direction: 1,           // 波浪方向: 1 向右, -1 向左
+                        layers: 3,              // 波浪层数
+                    },
+                },
+            }}
+        />
+    );
+};`} />
+                    </div>
+                    <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                        {`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelWaveExample = () => {
+    return (
+        <Gauge
+            data={{ value: 72, name: '湿度', unit: '%' }}
+            config={{
+                type: 'semi',
+                progress: {
+                    color: '#3b82f6',
+                    width: 10,
+                },
+                panel: {
+                    visible: true,
+                    waveEnabled: true,
+                    wave: {
+                        amplitude: 5,           // 波浪振幅
+                        period: 0.025,          // 波浪周期
+                        color: ['#3b82f6', '#60a5fa', '#93c5fd'],
+                        opacity: 0.35,          // 波浪透明度
+                        speed: 0.02,            // 动画速度
+                        direction: 1,           // 波浪方向: 1 向右, -1 向左
+                        layers: 3,              // 波浪层数
+                    },
+                },
+            }}
+        />
+    );
+};`}
+                    </SyntaxHighlighter>
+                </section>
+
+                {/* 面板动画配置选项 */}
+                <section className={styles.exampleSection} id="panel-wave-config">
+                    <h2 className={styles.subsectionTitle}>面板动画配置选项</h2>
+                    <p className={styles.subsectionText}>自定义面板背景、边框和水波动画的各种属性。</p>
+                    <div className={styles.exampleDemo}>
+                        <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <Gauge
+                                data={{ value: 85, name: '健康度' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#10b981', width: 8 },
+                                    panel: {
+                                        visible: true,
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        borderColor: 'rgba(16, 185, 129, 0.3)',
+                                        borderWidth: 2,
+                                        borderRadius: 12,
+                                        waveEnabled: true,
+                                        wave: {
+                                            amplitude: 3,
+                                            color: ['#10b981', '#34d399'],
+                                            opacity: 0.25,
+                                            speed: 0.015,
+                                            layers: 2,
+                                        },
+                                    },
+                                }}
+                            />
+                            <Gauge
+                                data={{ value: 45, name: '温度', unit: '°C' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#f59e0b', width: 8 },
+                                    panel: {
+                                        visible: true,
+                                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                        borderColor: 'rgba(245, 158, 11, 0.3)',
+                                        waveEnabled: true,
+                                        wave: {
+                                            amplitude: 6,
+                                            color: ['#f59e0b', '#fbbf24'],
+                                            opacity: 0.3,
+                                            speed: 0.025,
+                                            direction: -1,
+                                            layers: 2,
+                                        },
+                                    },
+                                }}
+                            />
+                            <Gauge
+                                data={{ value: 92, name: '完成率', unit: '%' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#8b5cf6', width: 8 },
+                                    panel: {
+                                        visible: true,
+                                        waveEnabled: false, // 关闭水波动画，只显示静态背景
+                                    },
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.codeHeader}>
+                        <span>示例代码</span>
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelConfigExample = () => {
+    return (
+        <div style={{ display: 'flex', gap: '40px' }}>
+            {/* 绿色主题 + 水波动画 */}
+            <Gauge
+                data={{ value: 85, name: '健康度' }}
+                config={{
+                    progress: { color: '#10b981' },
+                    panel: {
+                        visible: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderColor: 'rgba(16, 185, 129, 0.3)',
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        waveEnabled: true,
+                        wave: {
+                            amplitude: 3,
+                            color: ['#10b981', '#34d399'],
+                            opacity: 0.25,
+                            speed: 0.015,
+                            layers: 2,
+                        },
+                    },
+                }}
+            />
+
+            {/* 橙色主题 + 向左波浪 */}
+            <Gauge
+                data={{ value: 45, name: '温度', unit: '°C' }}
+                config={{
+                    progress: { color: '#f59e0b' },
+                    panel: {
+                        visible: true,
+                        waveEnabled: true,
+                        wave: {
+                            amplitude: 6,
+                            color: ['#f59e0b', '#fbbf24'],
+                            opacity: 0.3,
+                            speed: 0.025,
+                            direction: -1,  // 向左
+                            layers: 2,
+                        },
+                    },
+                }}
+            />
+
+            {/* 静态面板背景 */}
+            <Gauge
+                data={{ value: 92, name: '完成率', unit: '%' }}
+                config={{
+                    progress: { color: '#8b5cf6' },
+                    panel: {
+                        visible: true,
+                        waveEnabled: false,  // 关闭水波动画
+                    },
+                }}
+            />
+        </div>
+    );
+};`} />
+                    </div>
+                    <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                        {`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelConfigExample = () => {
+    return (
+        <div style={{ display: 'flex', gap: '40px' }}>
+            {/* 绿色主题 + 水波动画 */}
+            <Gauge
+                data={{ value: 85, name: '健康度' }}
+                config={{
+                    progress: { color: '#10b981' },
+                    panel: {
+                        visible: true,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderColor: 'rgba(16, 185, 129, 0.3)',
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        waveEnabled: true,
+                        wave: {
+                            amplitude: 3,
+                            color: ['#10b981', '#34d399'],
+                            opacity: 0.25,
+                            speed: 0.015,
+                            layers: 2,
+                        },
+                    },
+                }}
+            />
+
+            {/* 橙色主题 + 向左波浪 */}
+            <Gauge
+                data={{ value: 45, name: '温度', unit: '°C' }}
+                config={{
+                    progress: { color: '#f59e0b' },
+                    panel: {
+                        visible: true,
+                        waveEnabled: true,
+                        wave: {
+                            amplitude: 6,
+                            color: ['#f59e0b', '#fbbf24'],
+                            opacity: 0.3,
+                            speed: 0.025,
+                            direction: -1,
+                            layers: 2,
+                        },
+                    },
+                }}
+            />
+
+            {/* 静态面板背景 */}
+            <Gauge
+                data={{ value: 92, name: '完成率', unit: '%' }}
+                config={{
+                    progress: { color: '#8b5cf6' },
+                    panel: {
+                        visible: true,
+                        waveEnabled: false,
+                    },
+                }}
+            />
+        </div>
+    );
+};`}
+                    </SyntaxHighlighter>
+                </section>
+
                 {/* API 文档 */}
                 <section className={styles.exampleSection} id="api">
                     <h2 className={styles.subsectionTitle}>API</h2>
@@ -769,6 +1059,8 @@ const EventsExample = () => {
                             <Anchor.Link href="#large-range" title="大数值范围" />
                             <Anchor.Link href="#custom-style" title="自定义样式" />
                             <Anchor.Link href="#events" title="事件回调" />
+                            <Anchor.Link href="#panel-wave" title="面板水波动画" />
+                            <Anchor.Link href="#panel-wave-config" title="面板动画配置" />
                             <Anchor.Link href="#api" title="API" />
                         </Anchor>
                     )}

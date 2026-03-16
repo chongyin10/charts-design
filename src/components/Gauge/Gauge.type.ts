@@ -118,6 +118,46 @@ export interface GaugeData {
 }
 
 /**
+ * 仪表盘面板波浪配置
+ */
+export interface GaugePanelWaveConfig {
+  /** 波浪振幅 */
+  amplitude?: number;
+  /** 波浪周期 */
+  period?: number;
+  /** 波浪颜色 */
+  color?: string | string[];
+  /** 波浪透明度 (0-1) */
+  opacity?: number;
+  /** 波浪动画速度 */
+  speed?: number;
+  /** 波浪方向：1 向右，-1 向左 */
+  direction?: 1 | -1;
+  /** 波浪数量（层数） */
+  layers?: number;
+}
+
+/**
+ * 仪表盘面板配置
+ */
+export interface GaugePanelConfig {
+  /** 是否显示面板背景 */
+  visible?: boolean;
+  /** 面板背景颜色 */
+  backgroundColor?: string;
+  /** 面板边框颜色 */
+  borderColor?: string;
+  /** 面板边框宽度 */
+  borderWidth?: number;
+  /** 面板圆角 */
+  borderRadius?: number;
+  /** 是否显示波浪动画背景 */
+  waveEnabled?: boolean;
+  /** 波浪配置 */
+  wave?: GaugePanelWaveConfig;
+}
+
+/**
  * 仪表盘配置
  */
 export interface GaugeChartConfig {
@@ -147,6 +187,8 @@ export interface GaugeChartConfig {
   valueText?: GaugeTextConfig;
   /** 标题文本配置 */
   titleText?: GaugeTextConfig;
+  /** 面板配置 */
+  panel?: GaugePanelConfig;
   /** 区间颜色配置 */
   ranges?: GaugeRangeConfig[];
   /** 动画持续时间（毫秒） */
@@ -234,6 +276,33 @@ export interface ComputedText {
   fontWeight: string | number;
   visible: boolean;
   offsetY: number;
+}
+
+/**
+ * 内部使用的计算后面板波浪配置
+ */
+export interface ComputedPanelWave {
+  amplitude: number;
+  period: number;
+  colors: string[];
+  opacity: number;
+  speed: number;
+  direction: 1 | -1;
+  layers: number;
+  phase: number;
+}
+
+/**
+ * 内部使用的计算后面板配置
+ */
+export interface ComputedPanel {
+  visible: boolean;
+  backgroundColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderRadius: number;
+  waveEnabled: boolean;
+  wave: ComputedPanelWave;
 }
 
 /**
