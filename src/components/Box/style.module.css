@@ -1,0 +1,75 @@
+/**
+ * 箱线图组件样式
+ */
+
+.zcpcyChatsBoxPlotChartContainer {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.zcpcyChatsBoxPlotChartCanvas {
+  display: block;
+  cursor: crosshair;
+}
+
+/* 提示框样式 */
+.zcpcyChatsTooltip {
+  position: absolute;
+  pointer-events: none;
+  background: #ffffff;
+  color: #374151;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transform: translateY(-4px);
+  min-width: 120px;
+}
+
+.zcpcyChatsTooltipVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.zcpcyChatsTooltipTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #111827;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 6px;
+}
+
+.zcpcyChatsTooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.zcpcyChatsTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.zcpcyChatsTooltipLabel {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.zcpcyChatsTooltipValue {
+  font-weight: 500;
+  font-family: 'SF Mono', Monaco, monospace;
+}

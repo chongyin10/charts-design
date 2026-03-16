@@ -15,6 +15,7 @@ import HeatmapExample from './Heatmap';
 import LiquidExample from './Liquid';
 import DualAxesExample from './DualAxes';
 import BidirectionalBarExample from './BidirectionalBar';
+import BoxExample from './Box';
 
 const { Header, Sider, Content } = Layout;
 
@@ -24,7 +25,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -92,6 +93,11 @@ export default function Home() {
             label: 'BidirectionalBar',
             description: '对称条形图'
         },
+        {
+            key: 'box',
+            label: 'Box',
+            description: '箱线图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -119,6 +125,8 @@ export default function Home() {
                 return <DualAxesExample />;
             case 'bidirectionalbar':
                 return <BidirectionalBarExample />;
+            case 'box':
+                return <BoxExample />;
             default:
                 return <LineExample />;
         }

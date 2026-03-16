@@ -26,12 +26,30 @@
       "require": "./dist/bar/index.js"
     },
     "./bar/style.css": "./dist/bar/style.css",
+    "./bidirectionalbar": {
+      "types": "./dist/bidirectionalbar/index.d.ts",
+      "import": "./dist/bidirectionalbar/index.esm.js",
+      "require": "./dist/bidirectionalbar/index.js"
+    },
+    "./bidirectionalbar/style.css": "./dist/bidirectionalbar/style.css",
+    "./box": {
+      "types": "./dist/box/index.d.ts",
+      "import": "./dist/box/index.esm.js",
+      "require": "./dist/box/index.js"
+    },
+    "./box/style.css": "./dist/box/style.css",
     "./column": {
       "types": "./dist/column/index.d.ts",
       "import": "./dist/column/index.esm.js",
       "require": "./dist/column/index.js"
     },
     "./column/style.css": "./dist/column/style.css",
+    "./dualaxes": {
+      "types": "./dist/dualaxes/index.d.ts",
+      "import": "./dist/dualaxes/index.esm.js",
+      "require": "./dist/dualaxes/index.js"
+    },
+    "./dualaxes/style.css": "./dist/dualaxes/style.css",
     "./funnel": {
       "types": "./dist/funnel/index.d.ts",
       "import": "./dist/funnel/index.esm.js",

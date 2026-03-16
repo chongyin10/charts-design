@@ -7,6 +7,7 @@ export { Pie, default as PieDefault } from './components/Pie';
 export { Funnel, default as FunnelDefault } from './components/Funnel';
 export { Heatmap, default as HeatmapDefault } from './components/Heatmap';
 export { Liquid, default as LiquidDefault } from './components/Liquid';
+export { BoxPlot, default as BoxPlotDefault } from './components/Box';
 
 // 导出类型定义
 export type {
@@ -81,6 +82,20 @@ export type {
   LiquidBorderConfig,
   LiquidTextConfig,
 } from './components/Liquid/Liquid.type';
+
+export type {
+  BoxPlotProps,
+  BoxPlotChartData,
+  BoxPlotDataset,
+  BoxPlotItem,
+  BoxPlotChartConfig,
+  ComputedBox,
+  BoxPlotTooltipItem,
+  BoxPlotGridConfig,
+  BoxPlotXAxisConfig,
+  BoxPlotYAxisConfig,
+  BoxPlotTooltipConfig,
+} from './components/Box/Box.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';
