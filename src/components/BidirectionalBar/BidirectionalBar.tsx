@@ -11,6 +11,7 @@ import type {
   BidirectionalBarProps,
   BidirectionalBarChartData,
   BidirectionalBarSignedData,
+  BidirectionalBarMirrorData,
   BidirectionalBarChartConfig,
   ComputedBidirectionalBar,
   BidirectionalBarDataset,
@@ -97,6 +98,43 @@ const calculateSignedChartConfig = (
 
   const leftMaxValue = xAxisMax ?? Math.max(negativeMax, 0);
   const rightMaxValue = xAxisMax ?? Math.max(positiveMax, 0);
+
+  const leftValueRange = leftMaxValue || 1;
+  const rightValueRange = rightMaxValue || 1;
+
+  // 中心轴位置：图表中心
+  const centerX = width / 2;
+
+  return {
+    padding,
+    chartWidth: width - padding * 2,
+    chartHeight: height - padding * 2,
+    leftMaxValue,
+    rightMaxValue,
+    leftValueRange,
+    rightValueRange,
+    centerX,
+  };
+};
+
+/**
+ * 计算图表配置（镜像模式）
+ * 标签在中间，左右两侧各自有独立的坐标轴
+ */
+const calculateMirrorChartConfig = (
+  data: BidirectionalBarMirrorData,
+  width: number,
+  height: number,
+  padding: number,
+  xAxisMin?: number,
+  xAxisMax?: number
+): BidirectionalBarChartConfig => {
+  const leftValues = data.leftData.data;
+  const rightValues = data.rightData.data;
+
+  // 计算左右两侧的最大值
+  const leftMaxValue = xAxisMax ?? Math.max(...leftValues, 0);
+  const rightMaxValue = xAxisMax ?? Math.max(...rightValues, 0);
 
   const leftValueRange = leftMaxValue || 1;
   const rightValueRange = rightMaxValue || 1;
@@ -225,6 +263,75 @@ const computeSignedBars = (
 };
 
 /**
+ * 计算条形数据（镜像模式）
+ * 标签在中间，左右两侧分别显示不同的数值
+ */
+const computeMirrorBars = (
+  data: BidirectionalBarMirrorData,
+  config: BidirectionalBarChartConfig,
+  width: number,
+  height: number,
+  barHeight: number
+): ComputedBidirectionalBar[] => {
+  const { padding, chartHeight, centerX, leftValueRange, rightValueRange } = config;
+  const categoryCount = Math.max(1, data.labels.length);
+  const categoryHeight = chartHeight / categoryCount;
+  const effectiveBarHeight = categoryHeight * barHeight;
+
+  const bars: ComputedBidirectionalBar[] = [];
+
+  // 中间标签区域宽度（左右条形之间的间隙）
+  const labelGap = 80;
+  const halfLabelGap = labelGap / 2;
+
+  // 左侧条形 - 从中心左侧向左延伸，留出中间间隙
+  const leftColor = data.leftData.backgroundColor || DEFAULT_COLORS.left;
+  data.leftData.data.forEach((value, index) => {
+    const normalizedValue = Math.abs(value) / leftValueRange;
+    const availableWidth = centerX - padding - halfLabelGap;
+    const barWidth = (normalizedValue * availableWidth) || 0;
+    const barX = centerX - halfLabelGap - barWidth;
+    const barY = padding + index * categoryHeight + (categoryHeight - effectiveBarHeight) / 2;
+
+    bars.push({
+      x: barX,
+      y: barY,
+      width: barWidth,
+      height: effectiveBarHeight,
+      value,
+      label: data.labels[index] || '',
+      direction: 'left',
+      dataIndex: index,
+      color: leftColor,
+    });
+  });
+
+  // 右侧条形 - 从中心右侧向右延伸，留出中间间隙
+  const rightColor = data.rightData.backgroundColor || DEFAULT_COLORS.right;
+  data.rightData.data.forEach((value, index) => {
+    const normalizedValue = Math.abs(value) / rightValueRange;
+    const availableWidth = width - padding - centerX - halfLabelGap;
+    const barWidth = (normalizedValue * availableWidth) || 0;
+    const barX = centerX + halfLabelGap;
+    const barY = padding + index * categoryHeight + (categoryHeight - effectiveBarHeight) / 2;
+
+    bars.push({
+      x: barX,
+      y: barY,
+      width: barWidth,
+      height: effectiveBarHeight,
+      value,
+      label: data.labels[index] || '',
+      direction: 'right',
+      dataIndex: index,
+      color: rightColor,
+    });
+  });
+
+  return bars;
+};
+
+/**
  * 绘制圆角矩形
  */
 const drawRoundedRect = (
@@ -271,7 +378,8 @@ const drawGrid = (
   yAxisTitle?: string,
   xAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
   yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
-  yAxisTickInterval?: number
+  yAxisTickInterval?: number,
+  isMirrorMode?: boolean
 ): void => {
   const { padding, chartHeight, centerX, leftMaxValue, rightMaxValue } = config;
 
@@ -283,18 +391,31 @@ const drawGrid = (
   ctx.fillStyle = textColor;
   ctx.font = `${fontSize}px sans-serif`;
 
-  // 绘制 Y 轴标签（分类标签）- 显示在中心轴
+  // 绘制 Y 轴标签（分类标签）
   const categoryHeight = chartHeight / Math.max(1, labels.length);
   const tickInterval = Math.max(1, yAxisTickInterval || 1);
 
-  ctx.textAlign = 'right';
-  ctx.textBaseline = 'middle';
+  // 镜像模式下，标签显示在中心轴位置
+  if (isMirrorMode) {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-  labels.forEach((label, index) => {
-    if (index % tickInterval !== 0) return;
-    const y = padding + index * categoryHeight + categoryHeight / 2;
-    ctx.fillText(label, padding - 8, y);
-  });
+    labels.forEach((label, index) => {
+      if (index % tickInterval !== 0) return;
+      const y = padding + index * categoryHeight + categoryHeight / 2;
+      ctx.fillText(label, centerX, y);
+    });
+  } else {
+    // 普通模式下，标签显示在左侧
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    labels.forEach((label, index) => {
+      if (index % tickInterval !== 0) return;
+      const y = padding + index * categoryHeight + categoryHeight / 2;
+      ctx.fillText(label, padding - 8, y);
+    });
+  }
 
   // 绘制 X 轴标签（数值标签）- 左右对称
   const xGridCount = 5;
@@ -337,12 +458,28 @@ const drawGrid = (
     ctx.lineWidth = yAxisGrid?.lineWidth || defaultLineWidth;
     ctx.globalAlpha = yAxisGrid?.opacity ?? defaultOpacity;
 
+    // 镜像模式下中间的 labels 区域宽度
+    const labelGap = isMirrorMode ? 80 : 0;
+    const halfLabelGap = labelGap / 2;
+
     labels.forEach((_, index) => {
       const y = padding + index * categoryHeight;
       ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(width - padding, y);
-      ctx.stroke();
+      if (isMirrorMode) {
+        // 镜像模式下，水平网格线分成两段，中间留出 labels 区域
+        ctx.moveTo(padding, y);
+        ctx.lineTo(centerX - halfLabelGap, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX + halfLabelGap, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+      } else {
+        // 普通模式，水平网格线贯穿整个图表
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+      }
     });
     ctx.restore();
   }
@@ -355,10 +492,17 @@ const drawGrid = (
     ctx.lineWidth = xAxisGrid?.lineWidth || yAxisGrid?.lineWidth || defaultLineWidth;
     ctx.globalAlpha = xAxisGrid?.opacity ?? yAxisGrid?.opacity ?? defaultOpacity;
 
+    // 镜像模式下中间的 labels 区域宽度
+    const labelGap = isMirrorMode ? 80 : 0;
+    const halfLabelGap = labelGap / 2;
+
     // 左侧垂直网格线
     for (let i = 0; i <= xGridCount; i++) {
       const ratio = i / xGridCount;
-      const x = centerX - ratio * (centerX - padding);
+      // 镜像模式下，从中心左侧留出 labelGap 空间开始绘制
+      const x = isMirrorMode
+        ? centerX - halfLabelGap - ratio * (centerX - halfLabelGap - padding)
+        : centerX - ratio * (centerX - padding);
       ctx.beginPath();
       ctx.moveTo(x, padding);
       ctx.lineTo(x, height - padding);
@@ -368,7 +512,10 @@ const drawGrid = (
     // 右侧垂直网格线
     for (let i = 0; i <= xGridCount; i++) {
       const ratio = i / xGridCount;
-      const x = centerX + ratio * (width - padding - centerX);
+      // 镜像模式下，从中心右侧留出 labelGap 空间开始绘制
+      const x = isMirrorMode
+        ? centerX + halfLabelGap + ratio * (width - padding - centerX - halfLabelGap)
+        : centerX + ratio * (width - padding - centerX);
       ctx.beginPath();
       ctx.moveTo(x, padding);
       ctx.lineTo(x, height - padding);
@@ -445,17 +592,22 @@ const drawBar = (
   bar: ComputedBidirectionalBar,
   animationProgress: number,
   borderRadius: number | number[],
-  centerX: number
+  centerX: number,
+  isMirrorMode?: boolean
 ): void => {
   const animatedWidth = bar.width * animationProgress;
   let animatedX: number;
 
-  if (bar.direction === 'left') {
-    // 左侧条形：从中心轴向左延伸
-    animatedX = centerX - animatedWidth;
+  if (isMirrorMode) {
+    // 镜像模式：条形从实际位置开始（已经在 computeMirrorBars 中计算好）
+    animatedX = bar.x;
   } else {
-    // 右侧条形：从中心轴向右延伸
-    animatedX = centerX;
+    // 普通模式：左侧条形从中心轴向左延伸，右侧从中心轴向右延伸
+    if (bar.direction === 'left') {
+      animatedX = centerX - animatedWidth;
+    } else {
+      animatedX = centerX;
+    }
   }
 
   ctx.fillStyle = bar.color;
@@ -536,6 +688,7 @@ const drawHighlightedBar = (
 export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   data,
   signedData,
+  mirrorData,
   width = 600,
   height = 400,
   padding = DEFAULT_CONFIG.padding,
@@ -563,11 +716,13 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   const chartConfig = useMemo(() => {
     if (mode === 'signed' && signedData) {
       return calculateSignedChartConfig(signedData, width, height, padding, xAxis?.min, xAxis?.max);
+    } else if (mode === 'mirror' && mirrorData) {
+      return calculateMirrorChartConfig(mirrorData, width, height, padding, xAxis?.min, xAxis?.max);
     } else if (data) {
       return calculateSplitChartConfig(data, width, height, padding, xAxis?.min, xAxis?.max);
     }
     return null;
-  }, [data, signedData, width, height, padding, mode, xAxis?.min, xAxis?.max]);
+  }, [data, signedData, mirrorData, width, height, padding, mode, xAxis?.min, xAxis?.max]);
 
   // 计算条形数据
   const bars = useMemo(() => {
@@ -583,6 +738,14 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         bar?.spacing ?? DEFAULT_CONFIG.barSpacing
       );
       return signedBars.flat();
+    } else if (mode === 'mirror' && mirrorData) {
+      return computeMirrorBars(
+        mirrorData,
+        chartConfig,
+        width,
+        height,
+        bar?.height ?? DEFAULT_CONFIG.barHeight
+      );
     } else if (data) {
       return computeSplitBars(
         data,
@@ -593,7 +756,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       );
     }
     return [];
-  }, [data, signedData, chartConfig, width, height, mode, bar?.height, bar?.spacing]);
+  }, [data, signedData, mirrorData, chartConfig, width, height, mode, bar?.height, bar?.spacing]);
 
   // 动画效果
   useEffect(() => {
@@ -609,7 +772,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       }
     };
     requestAnimationFrame(animate);
-  }, [animationDuration, data, signedData]);
+  }, [animationDuration, data, signedData, mirrorData]);
 
   // 绘制图表
   const drawChart = useCallback(() => {
@@ -623,7 +786,12 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
     ctx.clearRect(0, 0, width, height);
 
     // 获取标签
-    const labels = mode === 'signed' && signedData ? signedData.labels : data?.labels || [];
+    const labels = mode === 'signed' && signedData
+      ? signedData.labels
+      : mode === 'mirror' && mirrorData
+        ? mirrorData.labels
+        : data?.labels || [];
+    const isMirrorMode = mode === 'mirror';
 
     // 绘制网格
     drawGrid(
@@ -638,11 +806,14 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       yAxis?.display !== false ? yAxis?.title?.text : undefined,
       xAxis?.grid,
       yAxis?.grid,
-      yAxis?.tickInterval
+      yAxis?.tickInterval,
+      isMirrorMode
     );
 
-    // 绘制坐标轴
-    drawAxes(ctx, chartConfig, width, height, xAxis?.grid?.color || DEFAULT_CONFIG.axisColor);
+    // 绘制坐标轴（mirror 模式下不绘制中心轴线）
+    if (!isMirrorMode) {
+      drawAxes(ctx, chartConfig, width, height, xAxis?.grid?.color || DEFAULT_CONFIG.axisColor);
+    }
 
     // 绘制条形
     bars.forEach((barItem) => {
@@ -651,7 +822,8 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         barItem,
         animationProgress,
         bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
-        chartConfig.centerX
+        chartConfig.centerX,
+        isMirrorMode
       );
     });
 
@@ -685,6 +857,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   }, [
     data,
     signedData,
+    mirrorData,
     width,
     height,
     padding,
@@ -757,9 +930,13 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
     if (!hoveredBar) return null;
 
     const items: BidirectionalBarTooltipItem[] = [{
-      label: hoveredBar.direction === 'left' 
-        ? (mode === 'signed' && signedData ? signedData.datasets[0].label : data?.leftData.label || '左侧')
-        : (mode === 'signed' && signedData ? signedData.datasets[0].label : data?.rightData.label || '右侧'),
+      label: hoveredBar.direction === 'left'
+        ? (mode === 'signed' && signedData ? signedData.datasets[0].label
+          : mode === 'mirror' && mirrorData ? mirrorData.leftData.label
+          : data?.leftData.label || '左侧')
+        : (mode === 'signed' && signedData ? signedData.datasets[0].label
+          : mode === 'mirror' && mirrorData ? mirrorData.rightData.label
+          : data?.rightData.label || '右侧'),
       value: hoveredBar.value,
       color: hoveredBar.color,
       direction: hoveredBar.direction,
@@ -771,7 +948,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       title: hoveredBar.label,
       items,
     };
-  }, [hoveredBar, data, signedData, mode]);
+  }, [hoveredBar, data, signedData, mirrorData, mode]);
 
   // 获取图例数据
   const legendItems = useMemo(() => {
@@ -780,6 +957,17 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         label: dataset.label,
         color: dataset.backgroundColor || (index === 0 ? DEFAULT_COLORS.right : DEFAULT_COLORS.left),
       }));
+    } else if (mode === 'mirror' && mirrorData) {
+      return [
+        {
+          label: mirrorData.leftData.label,
+          color: mirrorData.leftData.backgroundColor || DEFAULT_COLORS.left,
+        },
+        {
+          label: mirrorData.rightData.label,
+          color: mirrorData.rightData.backgroundColor || DEFAULT_COLORS.right,
+        },
+      ];
     } else if (data) {
       return [
         {
@@ -793,7 +981,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       ];
     }
     return [];
-  }, [data, signedData, mode]);
+  }, [data, signedData, mirrorData, mode]);
 
   return (
     <div

@@ -11,6 +11,7 @@ export type {
   BidirectionalBarProps,
   BidirectionalBarChartData,
   BidirectionalBarSignedData,
+  BidirectionalBarMirrorData,
   BidirectionalBarChartConfig,
   BidirectionalBarDataset,
   BidirectionalBarConfig,

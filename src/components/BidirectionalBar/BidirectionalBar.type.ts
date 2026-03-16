@@ -36,6 +36,19 @@ export interface BidirectionalBarChartData {
 }
 
 /**
+ * 对称条形图数据结构（镜像模式）
+ * 标签在中心，左右两侧分别显示不同的数值
+ */
+export interface BidirectionalBarMirrorData {
+  /** Y轴标签（分类标签）- 显示在中心 */
+  labels: string[];
+  /** 左侧数据集（显示在标签左侧） */
+  leftData: BidirectionalBarDataset;
+  /** 右侧数据集（显示在标签右侧） */
+  rightData: BidirectionalBarDataset;
+}
+
+/**
  * 对称条形图数据结构（正负值模式）
  */
 export interface BidirectionalBarSignedData {
@@ -223,6 +236,8 @@ export interface BidirectionalBarProps {
   data?: BidirectionalBarChartData;
   /** 图表数据（正负值模式） */
   signedData?: BidirectionalBarSignedData;
+  /** 图表数据（镜像模式） */
+  mirrorData?: BidirectionalBarMirrorData;
   /** 图表宽度 */
   width?: number;
   /** 图表高度 */
@@ -241,8 +256,8 @@ export interface BidirectionalBarProps {
   bar?: BidirectionalBarConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
-  /** 数据模式：'split' 为左右分离模式，'signed' 为正负值模式 */
-  mode?: 'split' | 'signed';
+  /** 数据模式：'split' 为左右分离模式，'signed' 为正负值模式，'mirror' 为镜像模式 */
+  mode?: 'split' | 'signed' | 'mirror';
   /** 自定义类名 */
   className?: string;
   /** 自定义样式 */

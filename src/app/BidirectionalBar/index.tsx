@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BidirectionalBar } from '@/components/BidirectionalBar';
-import { BidirectionalBarChartData, BidirectionalBarSignedData } from '@/components/BidirectionalBar/BidirectionalBar.type';
+import { BidirectionalBarChartData, BidirectionalBarSignedData, BidirectionalBarMirrorData } from '@/components/BidirectionalBar/BidirectionalBar.type';
 import { Flex, Table, Anchor } from '@zjpcy/simple-design';
 import type { Column as TableColumn } from '@zjpcy/simple-design';
 import { Prism } from 'react-syntax-highlighter';
@@ -107,6 +107,21 @@ export default function BidirectionalBarChartPage() {
             label: '优势得分',
             data: [85, 92, 78, 88, 95, 82],
             backgroundColor: '#8b5cf6',
+        },
+    };
+
+    // 镜像模式数据 - 国家数据对比
+    const mirrorData: BidirectionalBarMirrorData = {
+        labels: ['美国', '中国', '加拿大', '巴西', '阿根廷', '巴基斯坦', '南非', '巴拉圭', '乌拉圭'],
+        leftData: {
+            label: '某指标 A',
+            data: [182, 100, 50, 35, 50, 50, 35, 30, 20],
+            backgroundColor: '#5b8ff9',
+        },
+        rightData: {
+            label: '某指标 B',
+            data: [70, 8, 24, 19, 19, 15, 10, 9, 14],
+            backgroundColor: '#5ad8a6',
         },
     };
 
@@ -288,6 +303,46 @@ export default function ProsConsChart() {
     );
 }`;
 
+    // 镜像模式代码
+    const mirrorCode = `import { BidirectionalBar } from '@/components/BidirectionalBar';
+import type { BidirectionalBarMirrorData } from '@/components/BidirectionalBar/BidirectionalBar.type';
+
+const data: BidirectionalBarMirrorData = {
+    labels: ['美国', '中国', '加拿大', '巴西', '阿根廷', '巴基斯坦', '南非', '巴拉圭', '乌拉圭'],
+    leftData: {
+        label: '某指标 A',
+        data: [182, 100, 50, 35, 50, 50, 35, 30, 20],
+        backgroundColor: '#5b8ff9',
+    },
+    rightData: {
+        label: '某指标 B',
+        data: [70, 8, 24, 19, 19, 15, 10, 9, 14],
+        backgroundColor: '#5ad8a6',
+    },
+};
+
+export default function MirrorBidirectionalBarChart() {
+    return (
+        <BidirectionalBar
+            mirrorData={data}
+            mode="mirror"
+            width={600}
+            height={400}
+            yAxis={{
+                display: false,
+            }}
+            xAxis={{
+                display: true,
+                title: { text: '数值' },
+            }}
+            legend={{
+                display: true,
+                position: 'top',
+            }}
+        />
+    );
+}`;
+
     // 点击事件代码
     const clickCode = `import { BidirectionalBar } from '@/components/BidirectionalBar';
 
@@ -328,7 +383,8 @@ const handleDataClick = (direction, dataIndex, value) => {
     const apiData = [
         { param: 'data', description: '图表数据（左右分离模式）', type: 'BidirectionalBarChartData', default: '-' },
         { param: 'signedData', description: '图表数据（正负值模式）', type: 'BidirectionalBarSignedData', default: '-' },
-        { param: 'mode', description: '数据模式：split 为左右分离，signed 为正负值', type: "'split' | 'signed'", default: "'split'" },
+        { param: 'mirrorData', description: '图表数据（镜像模式）', type: 'BidirectionalBarMirrorData', default: '-' },
+        { param: 'mode', description: '数据模式：split 为左右分离，signed 为正负值，mirror 为镜像', type: "'split' | 'signed' | 'mirror'", default: "'split'" },
         { param: 'width', description: '图表宽度', type: 'number', default: '600' },
         { param: 'height', description: '图表高度', type: 'number', default: '400' },
         { param: 'padding', description: '图表内边距', type: 'number', default: '60' },
@@ -542,6 +598,41 @@ const handleDataClick = (direction, dataIndex, value) => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 镜像模式 */}
+                    <div className={styles.exampleSection} id="bidirectional-mirror">
+                        <h3 className={styles.subsectionTitle}>镜像模式</h3>
+                        <p className={styles.sectionText}>
+                            使用 mirrorData 属性传入数据，标签显示在图表中心，左右两侧分别显示不同的指标。
+                            适合展示国家对比、双指标分析等场景。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <BidirectionalBar
+                                mirrorData={mirrorData}
+                                mode="mirror"
+                                width={600}
+                                height={400}
+                                yAxis={{
+                                    display: false,
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '数值' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={mirrorCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {mirrorCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 点击事件 */}
                     <div className={styles.exampleSection} id="bidirectional-click">
                         <h3 className={styles.subsectionTitle}>点击事件</h3>
@@ -587,8 +678,8 @@ const handleDataClick = (direction, dataIndex, value) => {
                                 <div className={styles.featureDesc}>以中心轴为对称轴，左右两侧条形形成直观对比，强化数据对立关系。</div>
                             </div>
                             <div className={styles.featureCard}>
-                                <div className={styles.featureTitle}>📊 双模式支持</div>
-                                <div className={styles.featureDesc}>支持左右分离模式和正负值模式，适应不同的数据展示场景。</div>
+                                <div className={styles.featureTitle}>📊 三模式支持</div>
+                                <div className={styles.featureDesc}>支持左右分离、正负值和镜像模式，适应不同的数据展示场景。</div>
                             </div>
                             <div className={styles.featureCard}>
                                 <div className={styles.featureTitle}>🏷️ 数据标签</div>
@@ -661,6 +752,7 @@ const handleDataClick = (direction, dataIndex, value) => {
                                 <Anchor.Link href="#bidirectional-signed" title="正负值模式" />
                                 <Anchor.Link href="#bidirectional-income-expense" title="收入支出对比" />
                                 <Anchor.Link href="#bidirectional-pros-cons" title="优劣势分析" />
+                                <Anchor.Link href="#bidirectional-mirror" title="镜像模式" />
                                 <Anchor.Link href="#bidirectional-click" title="点击事件" />
                                 <Anchor.Link href="#bidirectional-features" title="组件特性" />
                                 <Anchor.Link href="#bidirectional-api" title="API 参考" />
