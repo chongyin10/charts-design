@@ -12,6 +12,7 @@ import type {
   BidirectionalBarChartData,
   BidirectionalBarSignedData,
   BidirectionalBarMirrorData,
+  BidirectionalBarVerticalData,
   BidirectionalBarChartConfig,
   ComputedBidirectionalBar,
   BidirectionalBarDataset,
@@ -152,6 +153,45 @@ const calculateMirrorChartConfig = (
     leftValueRange,
     rightValueRange,
     centerX,
+  };
+};
+
+/**
+ * 计算图表配置（垂直模式）
+ * 标签在中间，上下两侧分别显示不同的数值
+ */
+const calculateVerticalChartConfig = (
+  data: BidirectionalBarVerticalData,
+  width: number,
+  height: number,
+  padding: number,
+  xAxisMin?: number,
+  xAxisMax?: number
+): BidirectionalBarChartConfig => {
+  const topValues = data.topData.data;
+  const bottomValues = data.bottomData.data;
+
+  // 计算上下两侧的最大值
+  const topMaxValue = xAxisMax ?? Math.max(...topValues, 0);
+  const bottomMaxValue = xAxisMax ?? Math.max(...bottomValues, 0);
+
+  const leftValueRange = topMaxValue || 1;
+  const rightValueRange = bottomMaxValue || 1;
+
+  // 中心轴位置：图表中心
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  return {
+    padding,
+    chartWidth: width - padding * 2,
+    chartHeight: height - padding * 2,
+    leftMaxValue: topMaxValue,
+    rightMaxValue: bottomMaxValue,
+    leftValueRange,
+    rightValueRange,
+    centerX,
+    centerY,
   };
 };
 
@@ -333,6 +373,75 @@ const computeMirrorBars = (
 };
 
 /**
+ * 计算条形数据（垂直模式）
+ * 标签在中间，上下两侧分别显示不同的数值
+ */
+const computeVerticalBars = (
+  data: BidirectionalBarVerticalData,
+  config: BidirectionalBarChartConfig,
+  width: number,
+  height: number,
+  barHeight: number
+): ComputedBidirectionalBar[] => {
+  const { padding, chartWidth, centerX, centerY = height / 2, leftValueRange, rightValueRange } = config;
+  const categoryCount = Math.max(1, data.labels.length);
+  const categoryWidth = chartWidth / categoryCount;
+  const effectiveBarWidth = categoryWidth * barHeight;
+
+  const bars: ComputedBidirectionalBar[] = [];
+
+  // 中间标签区域高度（上下条形之间的间隙）
+  const labelGap = 60;
+  const halfLabelGap = labelGap / 2;
+
+  // 上方条形 - 从中心向上延伸，留出中间间隙
+  const topColor = data.topData.backgroundColor || DEFAULT_COLORS.left;
+  data.topData.data.forEach((value, index) => {
+    const normalizedValue = Math.abs(value) / leftValueRange;
+    const availableHeight = centerY - padding - halfLabelGap;
+    const barHeightValue = (normalizedValue * availableHeight) || 0;
+    const barX = padding + index * categoryWidth + (categoryWidth - effectiveBarWidth) / 2;
+    const barY = centerY - halfLabelGap - barHeightValue;
+
+    bars.push({
+      x: barX,
+      y: barY,
+      width: effectiveBarWidth,
+      height: barHeightValue,
+      value,
+      label: data.labels[index] || '',
+      direction: 'left', // 使用 left 表示上方
+      dataIndex: index,
+      color: topColor,
+    });
+  });
+
+  // 下方条形 - 从中心向下延伸，留出中间间隙
+  const bottomColor = data.bottomData.backgroundColor || DEFAULT_COLORS.right;
+  data.bottomData.data.forEach((value, index) => {
+    const normalizedValue = Math.abs(value) / rightValueRange;
+    const availableHeight = height - padding - centerY - halfLabelGap;
+    const barHeightValue = (normalizedValue * availableHeight) || 0;
+    const barX = padding + index * categoryWidth + (categoryWidth - effectiveBarWidth) / 2;
+    const barY = centerY + halfLabelGap;
+
+    bars.push({
+      x: barX,
+      y: barY,
+      width: effectiveBarWidth,
+      height: barHeightValue,
+      value,
+      label: data.labels[index] || '',
+      direction: 'right', // 使用 right 表示下方
+      dataIndex: index,
+      color: bottomColor,
+    });
+  });
+
+  return bars;
+};
+
+/**
  * 绘制圆角矩形
  */
 const drawRoundedRect = (
@@ -380,9 +489,10 @@ const drawGrid = (
   xAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
   yAxisGrid?: { display?: boolean; color?: string; lineWidth?: number; opacity?: number; vertical?: boolean; horizontal?: boolean },
   yAxisTickInterval?: number,
-  isMirrorMode?: boolean
+  isMirrorMode?: boolean,
+  isVerticalMode?: boolean
 ): void => {
-  const { padding, chartHeight, centerX, leftMaxValue, rightMaxValue } = config;
+  const { padding, chartHeight, chartWidth, centerX, centerY = height / 2, leftMaxValue, rightMaxValue } = config;
 
   const showGrid = xAxisGrid?.display !== false || yAxisGrid?.display !== false;
   const defaultGridColor = '#e5e7eb';
@@ -392,6 +502,120 @@ const drawGrid = (
   ctx.fillStyle = textColor;
   ctx.font = `${fontSize}px sans-serif`;
 
+  // 垂直模式下，绘制逻辑与水平模式不同
+  if (isVerticalMode) {
+    // 垂直模式下，labels 在 X 轴（水平方向排列）
+    const categoryCount = Math.max(1, labels.length);
+    const categoryWidth = chartWidth / categoryCount;
+    const tickInterval = Math.max(1, yAxisTickInterval || 1);
+
+    // 中间标签区域高度
+    const labelGap = 60;
+    const halfLabelGap = labelGap / 2;
+
+    // 绘制 X 轴标签（分类标签）- 显示在中心
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    labels.forEach((label, index) => {
+      if (index % tickInterval !== 0) return;
+      const x = padding + index * categoryWidth + categoryWidth / 2;
+      ctx.fillText(label, x, centerY);
+    });
+
+    // 绘制 Y 轴标签（数值标签）- 上下对称，都在左侧显示
+    const yGridCount = 5;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    // 计算对称刻度的最大基准值（取上下最大值的较大者）
+    const maxValue = Math.max(leftMaxValue, rightMaxValue);
+    // 计算美观的刻度间隔（向上取整到合适的整数）
+    const rawStep = maxValue / yGridCount;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const normalizedStep = rawStep / magnitude;
+    let step: number;
+    if (normalizedStep <= 1) step = magnitude;
+    else if (normalizedStep <= 2) step = 2 * magnitude;
+    else if (normalizedStep <= 5) step = 5 * magnitude;
+    else step = 10 * magnitude;
+
+    // 上方标签（从中心轴向外：0 -> step -> 2*step ...）
+    for (let i = 0; i <= yGridCount; i++) {
+      const ratio = i / yGridCount;
+      // 从中心上方留出 labelGap 空间开始绘制，0 刻度在 labels 上边缘
+      const y = centerY - halfLabelGap - ratio * (centerY - halfLabelGap - padding);
+      const value = i * step;
+      ctx.fillText(value.toString(), padding - 8, y);
+    }
+
+    // 下方标签（从中心轴向外：0 -> step -> 2*step ...）
+    // 保持 textAlign = 'right'，与上方标签一致，都在左侧显示
+    for (let i = 0; i <= yGridCount; i++) {
+      const ratio = i / yGridCount;
+      // 从中心下方留出 labelGap 空间开始绘制，0 刻度在 labels 下边缘
+      const y = centerY + halfLabelGap + ratio * (height - padding - centerY - halfLabelGap);
+      const value = i * step;
+      ctx.fillText(value.toString(), padding - 8, y);
+    }
+
+    // 绘制垂直网格线
+    const showVerticalGrid = xAxisGrid?.vertical !== false && showGrid;
+    if (showVerticalGrid) {
+      ctx.save();
+      ctx.strokeStyle = xAxisGrid?.color || defaultGridColor;
+      ctx.lineWidth = xAxisGrid?.lineWidth || defaultLineWidth;
+      ctx.globalAlpha = xAxisGrid?.opacity ?? defaultOpacity;
+
+      labels.forEach((_, index) => {
+        const x = padding + index * categoryWidth;
+        ctx.beginPath();
+        // 垂直模式下，垂直网格线分成两段，中间留出 labels 区域
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, centerY - halfLabelGap);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, centerY + halfLabelGap);
+        ctx.lineTo(x, height - padding);
+        ctx.stroke();
+      });
+      ctx.restore();
+    }
+
+    // 绘制水平网格线
+    const showHorizontalGrid = yAxisGrid?.horizontal !== false && showGrid;
+    if (showHorizontalGrid) {
+      ctx.save();
+      ctx.strokeStyle = yAxisGrid?.color || defaultGridColor;
+      ctx.lineWidth = yAxisGrid?.lineWidth || defaultLineWidth;
+      ctx.globalAlpha = yAxisGrid?.opacity ?? defaultOpacity;
+
+      // 上方水平网格线
+      for (let i = 0; i <= yGridCount; i++) {
+        const ratio = i / yGridCount;
+        const y = centerY - halfLabelGap - ratio * (centerY - halfLabelGap - padding);
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+      }
+
+      // 下方水平网格线
+      for (let i = 0; i <= yGridCount; i++) {
+        const ratio = i / yGridCount;
+        const y = centerY + halfLabelGap + ratio * (height - padding - centerY - halfLabelGap);
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    return;
+  }
+
+  // 水平模式（原有逻辑）
   // 绘制 Y 轴标签（分类标签）
   const categoryHeight = chartHeight / Math.max(1, labels.length);
   const tickInterval = Math.max(1, yAxisTickInterval || 1);
@@ -700,6 +924,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   data,
   signedData,
   mirrorData,
+  verticalData,
   width = 600,
   height = 400,
   padding = DEFAULT_CONFIG.padding,
@@ -732,11 +957,13 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       return calculateSignedChartConfig(signedData, width, height, padding, xAxis?.min, xAxis?.max);
     } else if (mode === 'mirror' && mirrorData) {
       return calculateMirrorChartConfig(mirrorData, width, height, padding, xAxis?.min, xAxis?.max);
+    } else if (mode === 'vertical' && verticalData) {
+      return calculateVerticalChartConfig(verticalData, width, height, padding, xAxis?.min, xAxis?.max);
     } else if (data) {
       return calculateSplitChartConfig(data, width, height, padding, xAxis?.min, xAxis?.max);
     }
     return null;
-  }, [data, signedData, mirrorData, width, height, padding, mode, xAxis?.min, xAxis?.max]);
+  }, [data, signedData, mirrorData, verticalData, width, height, padding, mode, xAxis?.min, xAxis?.max]);
 
   // 计算条形数据
   const bars = useMemo(() => {
@@ -760,6 +987,14 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         height,
         bar?.height ?? DEFAULT_CONFIG.barHeight
       );
+    } else if (mode === 'vertical' && verticalData) {
+      return computeVerticalBars(
+        verticalData,
+        chartConfig,
+        width,
+        height,
+        bar?.height ?? DEFAULT_CONFIG.barHeight
+      );
     } else if (data) {
       return computeSplitBars(
         data,
@@ -770,7 +1005,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       );
     }
     return [];
-  }, [data, signedData, mirrorData, chartConfig, width, height, mode, bar?.height, bar?.spacing]);
+  }, [data, signedData, mirrorData, verticalData, chartConfig, width, height, mode, bar?.height, bar?.spacing]);
 
   // 动画效果
   useEffect(() => {
@@ -804,8 +1039,11 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       ? signedData.labels
       : mode === 'mirror' && mirrorData
         ? mirrorData.labels
-        : data?.labels || [];
+        : mode === 'vertical' && verticalData
+          ? verticalData.labels
+          : data?.labels || [];
     const isMirrorMode = mode === 'mirror';
+    const isVerticalMode = mode === 'vertical';
 
     // 绘制网格
     drawGrid(
@@ -821,11 +1059,12 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       xAxis?.grid,
       yAxis?.grid,
       yAxis?.tickInterval,
-      isMirrorMode
+      isMirrorMode,
+      isVerticalMode
     );
 
-    // 绘制坐标轴（mirror 模式下不绘制中心轴线）
-    if (!isMirrorMode) {
+    // 绘制坐标轴（mirror 和 vertical 模式下不绘制中心轴线）
+    if (!isMirrorMode && !isVerticalMode) {
       drawAxes(ctx, chartConfig, width, height, xAxis?.grid?.color || DEFAULT_CONFIG.axisColor);
     }
 
@@ -837,7 +1076,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         animationProgress,
         bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius,
         chartConfig.centerX,
-        isMirrorMode
+        isMirrorMode || isVerticalMode
       );
     });
 
@@ -861,17 +1100,11 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       );
     }
 
-    // 绘制水平线（verticalLine 模式下）
+    // 绘制水平线/垂直线（verticalLine 模式下）
     if (verticalLine?.enabled && hoveredDataIndex !== null && animationProgress >= 1) {
-      const { padding: p, chartHeight, chartWidth, centerX } = chartConfig;
+      const { padding: p, chartHeight, chartWidth, centerX, centerY = height / 2 } = chartConfig;
       const labelsLength = labels.length;
       const categoryCount = Math.max(1, labelsLength);
-      const categoryHeight = chartHeight / categoryCount;
-      const lineY = p + hoveredDataIndex * categoryHeight + categoryHeight / 2;
-
-      // 镜像模式下中间的 labels 区域宽度
-      const labelGap = isMirrorMode ? 80 : 0;
-      const halfLabelGap = labelGap / 2;
 
       ctx.save();
       ctx.strokeStyle = verticalLine.color || '#999';
@@ -880,25 +1113,54 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         ctx.setLineDash(verticalLine.dash);
       }
 
-      // 绘制水平线（在双向条形图中，水平线横跨左右两侧）
-      if (isMirrorMode) {
-        // 镜像模式下，线条在 labels 区域断开
-        // 左侧水平线
+      if (isVerticalMode) {
+        // 垂直模式下，绘制垂直线（在分类之间）
+        const categoryWidth = chartWidth / categoryCount;
+        const lineX = p + hoveredDataIndex * categoryWidth + categoryWidth / 2;
+
+        // 垂直模式下中间的 labels 区域高度
+        const labelGap = 60;
+        const halfLabelGap = labelGap / 2;
+
+        // 上方垂直线
         ctx.beginPath();
-        ctx.moveTo(p, lineY);
-        ctx.lineTo(centerX - halfLabelGap, lineY);
+        ctx.moveTo(lineX, p);
+        ctx.lineTo(lineX, centerY - halfLabelGap);
         ctx.stroke();
-        // 右侧水平线
+        // 下方垂直线
         ctx.beginPath();
-        ctx.moveTo(centerX + halfLabelGap, lineY);
-        ctx.lineTo(width - p, lineY);
+        ctx.moveTo(lineX, centerY + halfLabelGap);
+        ctx.lineTo(lineX, height - p);
         ctx.stroke();
       } else {
-        // 普通模式，水平线贯穿整个图表
-        ctx.beginPath();
-        ctx.moveTo(p, lineY);
-        ctx.lineTo(width - p, lineY);
-        ctx.stroke();
+        // 水平模式下，绘制水平线
+        const categoryHeight = chartHeight / categoryCount;
+        const lineY = p + hoveredDataIndex * categoryHeight + categoryHeight / 2;
+
+        // 镜像模式下中间的 labels 区域宽度
+        const labelGap = isMirrorMode ? 80 : 0;
+        const halfLabelGap = labelGap / 2;
+
+        // 绘制水平线（在双向条形图中，水平线横跨左右两侧）
+        if (isMirrorMode) {
+          // 镜像模式下，线条在 labels 区域断开
+          // 左侧水平线
+          ctx.beginPath();
+          ctx.moveTo(p, lineY);
+          ctx.lineTo(centerX - halfLabelGap, lineY);
+          ctx.stroke();
+          // 右侧水平线
+          ctx.beginPath();
+          ctx.moveTo(centerX + halfLabelGap, lineY);
+          ctx.lineTo(width - p, lineY);
+          ctx.stroke();
+        } else {
+          // 普通模式，水平线贯穿整个图表
+          ctx.beginPath();
+          ctx.moveTo(p, lineY);
+          ctx.lineTo(width - p, lineY);
+          ctx.stroke();
+        }
       }
       ctx.restore();
 
@@ -960,39 +1222,70 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // verticalLine 模式：根据 Y 轴位置查找最近的数据索引
+      const isVerticalMode = mode === 'vertical';
+
+      // verticalLine 模式：根据位置查找最近的数据索引
       if (verticalLine?.enabled && chartConfig) {
-        const { padding: p, chartHeight } = chartConfig;
+        const { padding: p, chartHeight, chartWidth } = chartConfig;
         const labels = mode === 'signed' && signedData
           ? signedData.labels
           : mode === 'mirror' && mirrorData
             ? mirrorData.labels
-            : data?.labels || [];
+            : mode === 'vertical' && verticalData
+              ? verticalData.labels
+              : data?.labels || [];
         const labelsLength = labels.length;
         const categoryCount = Math.max(1, labelsLength);
-        const categoryHeight = chartHeight / categoryCount;
 
-        // 计算最近的分类索引
-        const relativeY = y - p;
-        let dataIndex = Math.floor(relativeY / categoryHeight);
-        dataIndex = Math.max(0, Math.min(dataIndex, categoryCount - 1));
-
-        hoveredDataIndexRef.current = dataIndex;
-        setHoveredDataIndex(dataIndex);
-
-        // 在 verticalLine 模式下，查找该分类下的所有条形
-        const barsInCategory = barsRef.current.filter(b => b.dataIndex === dataIndex);
-        // 选择鼠标位置最近的条形
+        let dataIndex: number;
+        let barsInCategory: ComputedBidirectionalBar[];
         let closestBar: ComputedBidirectionalBar | null = null;
-        let minDistance = Infinity;
-        barsInCategory.forEach((barItem) => {
-          const barCenterY = barItem.y + barItem.height / 2;
-          const distance = Math.abs(y - barCenterY);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestBar = barItem;
-          }
-        });
+
+        if (isVerticalMode) {
+          // 垂直模式：根据 X 轴位置查找最近的数据索引
+          const categoryWidth = chartWidth / categoryCount;
+          const relativeX = x - p;
+          dataIndex = Math.floor(relativeX / categoryWidth);
+          dataIndex = Math.max(0, Math.min(dataIndex, categoryCount - 1));
+
+          hoveredDataIndexRef.current = dataIndex;
+          setHoveredDataIndex(dataIndex);
+
+          // 在 verticalLine 模式下，查找该分类下的所有条形
+          barsInCategory = barsRef.current.filter(b => b.dataIndex === dataIndex);
+          // 选择鼠标位置最近的条形（根据 X 距离）
+          let minDistance = Infinity;
+          barsInCategory.forEach((barItem) => {
+            const barCenterX = barItem.x + barItem.width / 2;
+            const distance = Math.abs(x - barCenterX);
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestBar = barItem;
+            }
+          });
+        } else {
+          // 水平模式：根据 Y 轴位置查找最近的数据索引
+          const categoryHeight = chartHeight / categoryCount;
+          const relativeY = y - p;
+          dataIndex = Math.floor(relativeY / categoryHeight);
+          dataIndex = Math.max(0, Math.min(dataIndex, categoryCount - 1));
+
+          hoveredDataIndexRef.current = dataIndex;
+          setHoveredDataIndex(dataIndex);
+
+          // 在 verticalLine 模式下，查找该分类下的所有条形
+          barsInCategory = barsRef.current.filter(b => b.dataIndex === dataIndex);
+          // 选择鼠标位置最近的条形（根据 Y 距离）
+          let minDistance = Infinity;
+          barsInCategory.forEach((barItem) => {
+            const barCenterY = barItem.y + barItem.height / 2;
+            const distance = Math.abs(y - barCenterY);
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestBar = barItem;
+            }
+          });
+        }
         setHoveredBar(closestBar);
         setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
         canvas.style.cursor = 'pointer';
@@ -1021,7 +1314,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       // 更改鼠标样式
       canvas.style.cursor = closestBar ? 'pointer' : 'default';
     },
-    [animationProgress, chartConfig, mode, signedData, mirrorData, data, verticalLine?.enabled]
+    [animationProgress, chartConfig, mode, signedData, mirrorData, verticalData, data, verticalLine?.enabled]
   );
 
   // 处理鼠标离开
@@ -1048,7 +1341,9 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
         ? signedData.labels
         : mode === 'mirror' && mirrorData
           ? mirrorData.labels
-          : data?.labels || [];
+          : mode === 'vertical' && verticalData
+            ? verticalData.labels
+            : data?.labels || [];
       const label = labels[hoveredDataIndex] || '';
 
       const items: BidirectionalBarTooltipItem[] = [];
@@ -1082,6 +1377,25 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
             value: rightValue,
             color: mirrorData.rightData.backgroundColor || DEFAULT_COLORS.right,
             direction: 'right',
+          });
+        }
+      } else if (mode === 'vertical' && verticalData) {
+        const topValue = verticalData.topData.data[hoveredDataIndex];
+        const bottomValue = verticalData.bottomData.data[hoveredDataIndex];
+        if (topValue !== undefined) {
+          items.push({
+            label: verticalData.topData.label,
+            value: topValue,
+            color: verticalData.topData.backgroundColor || DEFAULT_COLORS.left,
+            direction: 'left', // 使用 left 表示上方
+          });
+        }
+        if (bottomValue !== undefined) {
+          items.push({
+            label: verticalData.bottomData.label,
+            value: bottomValue,
+            color: verticalData.bottomData.backgroundColor || DEFAULT_COLORS.right,
+            direction: 'right', // 使用 right 表示下方
           });
         }
       } else if (data) {
@@ -1120,9 +1434,11 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       label: hoveredBar.direction === 'left'
         ? (mode === 'signed' && signedData ? signedData.datasets[0].label
           : mode === 'mirror' && mirrorData ? mirrorData.leftData.label
+          : mode === 'vertical' && verticalData ? verticalData.topData.label
           : data?.leftData.label || '左侧')
         : (mode === 'signed' && signedData ? signedData.datasets[0].label
           : mode === 'mirror' && mirrorData ? mirrorData.rightData.label
+          : mode === 'vertical' && verticalData ? verticalData.bottomData.label
           : data?.rightData.label || '右侧'),
       value: hoveredBar.value,
       color: hoveredBar.color,
@@ -1135,7 +1451,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       title: hoveredBar.label,
       items,
     };
-  }, [hoveredBar, hoveredDataIndex, data, signedData, mirrorData, mode, verticalLine?.enabled]);
+  }, [hoveredBar, hoveredDataIndex, data, signedData, mirrorData, verticalData, mode, verticalLine?.enabled]);
 
   // 获取图例数据
   const legendItems = useMemo(() => {
@@ -1155,6 +1471,17 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
           color: mirrorData.rightData.backgroundColor || DEFAULT_COLORS.right,
         },
       ];
+    } else if (mode === 'vertical' && verticalData) {
+      return [
+        {
+          label: verticalData.topData.label,
+          color: verticalData.topData.backgroundColor || DEFAULT_COLORS.left,
+        },
+        {
+          label: verticalData.bottomData.label,
+          color: verticalData.bottomData.backgroundColor || DEFAULT_COLORS.right,
+        },
+      ];
     } else if (data) {
       return [
         {
@@ -1168,7 +1495,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       ];
     }
     return [];
-  }, [data, signedData, mirrorData, mode]);
+  }, [data, signedData, mirrorData, verticalData, mode]);
 
   return (
     <div

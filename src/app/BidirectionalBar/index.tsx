@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { BidirectionalBar } from '@/components/BidirectionalBar';
-import { BidirectionalBarChartData, BidirectionalBarSignedData, BidirectionalBarMirrorData } from '@/components/BidirectionalBar/BidirectionalBar.type';
+import { BidirectionalBarChartData, BidirectionalBarSignedData, BidirectionalBarMirrorData, BidirectionalBarVerticalData } from '@/components/BidirectionalBar/BidirectionalBar.type';
 import { Flex, Table, Anchor } from '@zjpcy/simple-design';
 import type { Column as TableColumn } from '@zjpcy/simple-design';
 import { Prism } from 'react-syntax-highlighter';
@@ -121,6 +121,21 @@ export default function BidirectionalBarChartPage() {
         rightData: {
             label: '某指标 B',
             data: [70, 8, 24, 19, 19, 15, 10, 9, 14],
+            backgroundColor: '#5ad8a6',
+        },
+    };
+
+    // 垂直模式数据 - 上下排列的国家数据对比
+    const verticalData: BidirectionalBarVerticalData = {
+        labels: ['乌拉圭', '巴拉圭', '南非', '巴基斯坦', '阿根廷', '巴西', '加拿大', '中国', '美国'],
+        topData: {
+            label: '指标 A',
+            data: [10, 15, 20, 35, 45, 25, 55, 100, 165],
+            backgroundColor: '#5b8ff9',
+        },
+        bottomData: {
+            label: '指标 B',
+            data: [5, 8, 12, 20, 15, 18, 25, 10, 70],
             backgroundColor: '#5ad8a6',
         },
     };
@@ -418,6 +433,46 @@ export default function VerticalLineBidirectionalBarChart() {
     );
 }`;
 
+    // 垂直模式代码
+    const verticalCode = `import { BidirectionalBar } from '@/components/BidirectionalBar';
+import type { BidirectionalBarVerticalData } from '@/components/BidirectionalBar/BidirectionalBar.type';
+
+const data: BidirectionalBarVerticalData = {
+    labels: ['乌拉圭', '巴拉圭', '南非', '巴基斯坦', '阿根廷', '巴西', '加拿大', '中国', '美国'],
+    topData: {
+        label: '指标 A',
+        data: [10, 15, 20, 35, 45, 25, 55, 100, 165],
+        backgroundColor: '#5b8ff9',
+    },
+    bottomData: {
+        label: '指标 B',
+        data: [5, 8, 12, 20, 15, 18, 25, 10, 70],
+        backgroundColor: '#5ad8a6',
+    },
+};
+
+export default function VerticalBidirectionalBarChart() {
+    return (
+        <BidirectionalBar
+            verticalData={data}
+            mode="vertical"
+            width={800}
+            height={500}
+            yAxis={{
+                display: true,
+                title: { text: '数值' },
+            }}
+            xAxis={{
+                display: false,
+            }}
+            legend={{
+                display: true,
+                position: 'top',
+            }}
+        />
+    );
+}`;
+
     // API 表格列定义
     const apiColumns: TableColumn[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -431,7 +486,8 @@ export default function VerticalLineBidirectionalBarChart() {
         { param: 'data', description: '图表数据（左右分离模式）', type: 'BidirectionalBarChartData', default: '-' },
         { param: 'signedData', description: '图表数据（正负值模式）', type: 'BidirectionalBarSignedData', default: '-' },
         { param: 'mirrorData', description: '图表数据（镜像模式）', type: 'BidirectionalBarMirrorData', default: '-' },
-        { param: 'mode', description: '数据模式：split 为左右分离，signed 为正负值，mirror 为镜像', type: "'split' | 'signed' | 'mirror'", default: "'split'" },
+        { param: 'verticalData', description: '图表数据（垂直模式）', type: 'BidirectionalBarVerticalData', default: '-' },
+        { param: 'mode', description: '数据模式：split 为左右分离，signed 为正负值，mirror 为镜像，vertical 为垂直', type: "'split' | 'signed' | 'mirror' | 'vertical'", default: "'split'" },
         { param: 'width', description: '图表宽度', type: 'number', default: '600' },
         { param: 'height', description: '图表高度', type: 'number', default: '400' },
         { param: 'padding', description: '图表内边距', type: 'number', default: '60' },
@@ -689,6 +745,41 @@ export default function VerticalLineBidirectionalBarChart() {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 垂直模式 */}
+                    <div className={styles.exampleSection} id="bidirectional-vertical">
+                        <h3 className={styles.subsectionTitle}>垂直模式</h3>
+                        <p className={styles.sectionText}>
+                            使用 verticalData 属性传入数据，标签显示在图表中心，上下两侧分别显示不同的指标。
+                            与镜像模式类似，但以垂直方向排列，适合展示纵向对比场景。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <BidirectionalBar
+                                verticalData={verticalData}
+                                mode="vertical"
+                                width={800}
+                                height={500}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '数值' },
+                                }}
+                                xAxis={{
+                                    display: false,
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={verticalCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {verticalCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 点击事件 */}
                     <div className={styles.exampleSection} id="bidirectional-click">
                         <h3 className={styles.subsectionTitle}>点击事件</h3>
@@ -776,8 +867,8 @@ export default function VerticalLineBidirectionalBarChart() {
                                 <div className={styles.featureDesc}>以中心轴为对称轴，左右两侧条形形成直观对比，强化数据对立关系。</div>
                             </div>
                             <div className={styles.featureCard}>
-                                <div className={styles.featureTitle}>📊 三模式支持</div>
-                                <div className={styles.featureDesc}>支持左右分离、正负值和镜像模式，适应不同的数据展示场景。</div>
+                                <div className={styles.featureTitle}>📊 四模式支持</div>
+                                <div className={styles.featureDesc}>支持左右分离、正负值、镜像和垂直模式，适应不同的数据展示场景。</div>
                             </div>
                             <div className={styles.featureCard}>
                                 <div className={styles.featureTitle}>🏷️ 数据标签</div>
@@ -863,6 +954,7 @@ export default function VerticalLineBidirectionalBarChart() {
                                 <Anchor.Link href="#bidirectional-income-expense" title="收入支出对比" />
                                 <Anchor.Link href="#bidirectional-pros-cons" title="优劣势分析" />
                                 <Anchor.Link href="#bidirectional-mirror" title="镜像模式" />
+                                <Anchor.Link href="#bidirectional-vertical" title="垂直模式" />
                                 <Anchor.Link href="#bidirectional-click" title="点击事件" />
                                 <Anchor.Link href="#bidirectional-verticalline" title="垂直线模式" />
                                 <Anchor.Link href="#bidirectional-features" title="组件特性" />

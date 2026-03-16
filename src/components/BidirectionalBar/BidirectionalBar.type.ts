@@ -49,6 +49,20 @@ export interface BidirectionalBarMirrorData {
 }
 
 /**
+ * 对称条形图数据结构（垂直模式）
+ * X轴标签在中心，上下两侧分别显示不同的数值
+ * 与镜像模式类似，但是上下排列
+ */
+export interface BidirectionalBarVerticalData {
+  /** X轴标签（分类标签）- 显示在中心 */
+  labels: string[];
+  /** 上方数据集（正数值，向上延伸） */
+  topData: BidirectionalBarDataset;
+  /** 下方数据集（负数值，向下延伸） */
+  bottomData: BidirectionalBarDataset;
+}
+
+/**
  * 对称条形图数据结构（正负值模式）
  */
 export interface BidirectionalBarSignedData {
@@ -231,16 +245,18 @@ export interface BidirectionalBarChartConfig {
   chartWidth: number;
   /** 图表高度 */
   chartHeight: number;
-  /** 左侧最大值 */
+  /** 左侧/上方最大值 */
   leftMaxValue: number;
-  /** 右侧最大值 */
+  /** 右侧/下方最大值 */
   rightMaxValue: number;
-  /** 左侧数值范围 */
+  /** 左侧/上方数值范围 */
   leftValueRange: number;
-  /** 右侧数值范围 */
+  /** 右侧/下方数值范围 */
   rightValueRange: number;
-  /** 中心轴 X 坐标 */
+  /** 中心轴 X 坐标（水平模式） */
   centerX: number;
+  /** 中心轴 Y 坐标（垂直模式） */
+  centerY?: number;
 }
 
 /**
@@ -253,6 +269,8 @@ export interface BidirectionalBarProps {
   signedData?: BidirectionalBarSignedData;
   /** 图表数据（镜像模式） */
   mirrorData?: BidirectionalBarMirrorData;
+  /** 图表数据（垂直模式） */
+  verticalData?: BidirectionalBarVerticalData;
   /** 图表宽度 */
   width?: number;
   /** 图表高度 */
@@ -273,8 +291,8 @@ export interface BidirectionalBarProps {
   verticalLine?: BidirectionalBarVerticalLineConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
-  /** 数据模式：'split' 为左右分离模式，'signed' 为正负值模式，'mirror' 为镜像模式 */
-  mode?: 'split' | 'signed' | 'mirror';
+  /** 数据模式：'split' 为左右分离模式，'signed' 为正负值模式，'mirror' 为镜像模式，'vertical' 为垂直模式 */
+  mode?: 'split' | 'signed' | 'mirror' | 'vertical';
   /** 自定义类名 */
   className?: string;
   /** 自定义样式 */
