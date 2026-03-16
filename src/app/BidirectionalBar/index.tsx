@@ -371,6 +371,53 @@ const handleDataClick = (direction, dataIndex, value) => {
     onDataClick={handleDataClick}
 />`;
 
+    // 垂直线模式代码
+    const verticalLineCode = `import { BidirectionalBar } from '@/components/BidirectionalBar';
+import type { BidirectionalBarChartData } from '@/components/BidirectionalBar/BidirectionalBar.type';
+
+const data: BidirectionalBarChartData = {
+    labels: ['0-4岁', '5-9岁', '10-14岁', '15-19岁', '20-24岁', '25-29岁', '30-34岁', '35-39岁'],
+    leftData: {
+        label: '男性',
+        data: [420, 380, 350, 320, 380, 420, 450, 410],
+        backgroundColor: '#3b82f6',
+    },
+    rightData: {
+        label: '女性',
+        data: [400, 360, 330, 310, 370, 410, 440, 400],
+        backgroundColor: '#ec4899',
+    },
+};
+
+export default function VerticalLineBidirectionalBarChart() {
+    return (
+        <BidirectionalBar
+            data={data}
+            mode="split"
+            width={600}
+            height={400}
+            verticalLine={{
+                enabled: true,
+                color: '#999',
+                lineWidth: 1,
+                dash: [5, 5],
+            }}
+            yAxis={{
+                display: true,
+                title: { text: '年龄段' }
+            }}
+            xAxis={{
+                display: true,
+                title: { text: '人口数量（万）' }
+            }}
+            legend={{
+                display: true,
+                position: 'top',
+            }}
+        />
+    );
+}`;
+
     // API 表格列定义
     const apiColumns: TableColumn[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
@@ -394,6 +441,7 @@ const handleDataClick = (direction, dataIndex, value) => {
         { param: 'legend', description: '图例配置', type: 'BidirectionalBarLegendConfig', default: '-' },
         { param: 'tooltip', description: '提示框配置', type: 'BidirectionalBarTooltipConfig', default: '-' },
         { param: 'bar', description: '条形样式配置', type: 'BidirectionalBarConfig', default: '-' },
+        { param: 'verticalLine', description: '垂直线配置（鼠标移入时显示水平参考线）', type: 'BidirectionalBarVerticalLineConfig', default: '-' },
         { param: 'className', description: '自定义类名', type: 'string', default: '-' },
         { param: 'style', description: '自定义样式', type: 'React.CSSProperties', default: '-' },
         { param: 'onDataClick', description: '条形点击事件', type: '(direction, dataIndex, value) => void', default: '-' },
@@ -432,6 +480,14 @@ const handleDataClick = (direction, dataIndex, value) => {
         { param: 'fontSize', description: '标签字体大小', type: 'number', default: '12' },
         { param: 'offset', description: '标签与条形的间距', type: 'number', default: '6' },
         { param: 'formatter', description: '自定义格式化函数', type: '(value: number) => string', default: '-' },
+    ];
+
+    // 垂直线配置数据
+    const verticalLineDataAPI = [
+        { param: 'enabled', description: '是否启用垂直线模式', type: 'boolean', default: 'false' },
+        { param: 'color', description: '线条颜色', type: 'string', default: "'#999'" },
+        { param: 'lineWidth', description: '线条宽度', type: 'number', default: '1' },
+        { param: 'dash', description: '虚线样式，如 [5, 5] 表示 5px 实线 5px 空白', type: 'number[]', default: '-' },
     ];
 
     return (
@@ -669,6 +725,48 @@ const handleDataClick = (direction, dataIndex, value) => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 垂直线模式 */}
+                    <div className={styles.exampleSection} id="bidirectional-verticalline">
+                        <h3 className={styles.subsectionTitle}>垂直线模式</h3>
+                        <p className={styles.sectionText}>
+                            启用 verticalLine 后，鼠标移入时会显示一条水平参考线，横跨该分类的所有条形。
+                            同时 tooltip 会显示该分类下所有条形的数据，方便进行横向对比分析。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <BidirectionalBar
+                                data={splitData}
+                                mode="split"
+                                width={600}
+                                height={400}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '年龄段' },
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '人口数量（万）' },
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={verticalLineCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {verticalLineCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 组件特性 */}
                     <div className={styles.exampleSection} id="bidirectional-features">
                         <h3 className={styles.subsectionTitle}>组件特性</h3>
@@ -735,6 +833,18 @@ const handleDataClick = (direction, dataIndex, value) => {
                             <Table columns={datasetColumns} dataSource={dataLabelDataAPI} />
                         </div>
                     </div>
+
+                    {/* 垂直线配置 */}
+                    <div className={styles.exampleSection} id="bidirectional-verticalline-api">
+                        <h3 className={styles.subsectionTitle}>VerticalLine 垂直线配置</h3>
+                        <p className={styles.sectionText}>
+                            垂直线配置项说明。启用后，鼠标移入时会显示一条水平参考线，横跨该分类的所有条形，
+                            同时 tooltip 会显示该分类下所有条形的数据。
+                        </p>
+                        <div className={styles.apiTable}>
+                            <Table columns={datasetColumns} dataSource={verticalLineDataAPI} />
+                        </div>
+                    </div>
                 </div>
 
                 {/* 右侧锚点导航 */}
@@ -754,11 +864,13 @@ const handleDataClick = (direction, dataIndex, value) => {
                                 <Anchor.Link href="#bidirectional-pros-cons" title="优劣势分析" />
                                 <Anchor.Link href="#bidirectional-mirror" title="镜像模式" />
                                 <Anchor.Link href="#bidirectional-click" title="点击事件" />
+                                <Anchor.Link href="#bidirectional-verticalline" title="垂直线模式" />
                                 <Anchor.Link href="#bidirectional-features" title="组件特性" />
                                 <Anchor.Link href="#bidirectional-api" title="API 参考" />
                                 <Anchor.Link href="#bidirectional-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#bidirectional-bar-api" title="Bar 样式配置" />
                                 <Anchor.Link href="#bidirectional-datalabel-api" title="数据标签配置" />
+                                <Anchor.Link href="#bidirectional-verticalline-api" title="垂直线配置" />
                             </Anchor>
                         )}
                     </div>

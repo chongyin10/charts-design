@@ -169,6 +169,21 @@ export interface BidirectionalBarConfig {
 }
 
 /**
+ * 垂直线配置（在双向条形图中显示为水平线，用于对比不同分类）
+ * 启用后，鼠标移入时会显示该分类位置的所有数据点
+ */
+export interface BidirectionalBarVerticalLineConfig {
+  /** 是否启用垂直线模式（默认 false） */
+  enabled?: boolean;
+  /** 线条颜色 */
+  color?: string;
+  /** 线条宽度 */
+  lineWidth?: number;
+  /** 线条样式（实线/虚线） */
+  dash?: number[];
+}
+
+/**
  * Tooltip 数据项
  */
 export interface BidirectionalBarTooltipItem {
@@ -254,6 +269,8 @@ export interface BidirectionalBarProps {
   tooltip?: BidirectionalBarTooltipConfig;
   /** 条形配置 */
   bar?: BidirectionalBarConfig;
+  /** 垂直线配置（在双向条形图中显示为水平线，用于对比不同分类） */
+  verticalLine?: BidirectionalBarVerticalLineConfig;
   /** 动画时长（毫秒） */
   animationDuration?: number;
   /** 数据模式：'split' 为左右分离模式，'signed' 为正负值模式，'mirror' 为镜像模式 */

@@ -17,6 +17,7 @@ import type {
   BidirectionalBarDataset,
   BidirectionalBarConfig,
   BidirectionalBarTooltipItem,
+  BidirectionalBarVerticalLineConfig,
 } from './BidirectionalBar.type';
 
 /**
@@ -707,6 +708,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   legend,
   tooltip,
   bar,
+  verticalLine,
   animationDuration = DEFAULT_CONFIG.animationDuration,
   mode = 'split',
   className,
@@ -718,9 +720,11 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredBar, setHoveredBar] = useState<ComputedBidirectionalBar | null>(null);
+  const [hoveredDataIndex, setHoveredDataIndex] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [animationProgress, setAnimationProgress] = useState(0);
   const barsRef = useRef<ComputedBidirectionalBar[]>([]);
+  const hoveredDataIndexRef = useRef<number | null>(null);
 
   // 计算图表配置
   const chartConfig = useMemo(() => {
@@ -857,6 +861,62 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       );
     }
 
+    // 绘制水平线（verticalLine 模式下）
+    if (verticalLine?.enabled && hoveredDataIndex !== null && animationProgress >= 1) {
+      const { padding: p, chartHeight, chartWidth, centerX } = chartConfig;
+      const labelsLength = labels.length;
+      const categoryCount = Math.max(1, labelsLength);
+      const categoryHeight = chartHeight / categoryCount;
+      const lineY = p + hoveredDataIndex * categoryHeight + categoryHeight / 2;
+
+      // 镜像模式下中间的 labels 区域宽度
+      const labelGap = isMirrorMode ? 80 : 0;
+      const halfLabelGap = labelGap / 2;
+
+      ctx.save();
+      ctx.strokeStyle = verticalLine.color || '#999';
+      ctx.lineWidth = verticalLine.lineWidth || 1;
+      if (verticalLine.dash && verticalLine.dash.length > 0) {
+        ctx.setLineDash(verticalLine.dash);
+      }
+
+      // 绘制水平线（在双向条形图中，水平线横跨左右两侧）
+      if (isMirrorMode) {
+        // 镜像模式下，线条在 labels 区域断开
+        // 左侧水平线
+        ctx.beginPath();
+        ctx.moveTo(p, lineY);
+        ctx.lineTo(centerX - halfLabelGap, lineY);
+        ctx.stroke();
+        // 右侧水平线
+        ctx.beginPath();
+        ctx.moveTo(centerX + halfLabelGap, lineY);
+        ctx.lineTo(width - p, lineY);
+        ctx.stroke();
+      } else {
+        // 普通模式，水平线贯穿整个图表
+        ctx.beginPath();
+        ctx.moveTo(p, lineY);
+        ctx.lineTo(width - p, lineY);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 绘制 verticalLine 模式下该分类的所有条形高亮效果
+      const barsInCategory = bars.filter(b => b.dataIndex === hoveredDataIndex);
+      barsInCategory.forEach((barItem) => {
+        ctx.save();
+        ctx.fillStyle = barItem.color;
+        ctx.globalAlpha = 0.9;
+        drawRoundedRect(ctx, barItem.x, barItem.y, barItem.width, barItem.height, bar?.borderRadius ?? DEFAULT_CONFIG.borderRadius);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
     // 保存计算的数据用于交互
     barsRef.current = bars;
 
@@ -877,8 +937,10 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
     yAxis,
     legend,
     bar,
+    verticalLine,
     animationProgress,
     hoveredBar,
+    hoveredDataIndex,
     isLoading,
     onChartReady,
     mode,
@@ -898,7 +960,46 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // 查找鼠标下的条形
+      // verticalLine 模式：根据 Y 轴位置查找最近的数据索引
+      if (verticalLine?.enabled && chartConfig) {
+        const { padding: p, chartHeight } = chartConfig;
+        const labels = mode === 'signed' && signedData
+          ? signedData.labels
+          : mode === 'mirror' && mirrorData
+            ? mirrorData.labels
+            : data?.labels || [];
+        const labelsLength = labels.length;
+        const categoryCount = Math.max(1, labelsLength);
+        const categoryHeight = chartHeight / categoryCount;
+
+        // 计算最近的分类索引
+        const relativeY = y - p;
+        let dataIndex = Math.floor(relativeY / categoryHeight);
+        dataIndex = Math.max(0, Math.min(dataIndex, categoryCount - 1));
+
+        hoveredDataIndexRef.current = dataIndex;
+        setHoveredDataIndex(dataIndex);
+
+        // 在 verticalLine 模式下，查找该分类下的所有条形
+        const barsInCategory = barsRef.current.filter(b => b.dataIndex === dataIndex);
+        // 选择鼠标位置最近的条形
+        let closestBar: ComputedBidirectionalBar | null = null;
+        let minDistance = Infinity;
+        barsInCategory.forEach((barItem) => {
+          const barCenterY = barItem.y + barItem.height / 2;
+          const distance = Math.abs(y - barCenterY);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestBar = barItem;
+          }
+        });
+        setHoveredBar(closestBar);
+        setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+        canvas.style.cursor = 'pointer';
+        return;
+      }
+
+      // 普通模式：查找鼠标下的条形
       let closestBar: ComputedBidirectionalBar | null = null;
 
       barsRef.current.forEach((barItem) => {
@@ -913,17 +1014,21 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       });
 
       setHoveredBar(closestBar);
+      hoveredDataIndexRef.current = null;
+      setHoveredDataIndex(null);
       setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
 
       // 更改鼠标样式
       canvas.style.cursor = closestBar ? 'pointer' : 'default';
     },
-    [animationProgress]
+    [animationProgress, chartConfig, mode, signedData, mirrorData, data, verticalLine?.enabled]
   );
 
   // 处理鼠标离开
   const handleMouseLeave = useCallback(() => {
     setHoveredBar(null);
+    hoveredDataIndexRef.current = null;
+    setHoveredDataIndex(null);
     if (canvasRef.current) {
       canvasRef.current.style.cursor = 'default';
     }
@@ -937,6 +1042,78 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
 
   // 生成提示框内容
   const tooltipContent = useMemo(() => {
+    // verticalLine 模式：显示该分类的所有数据
+    if (verticalLine?.enabled && hoveredDataIndex !== null) {
+      const labels = mode === 'signed' && signedData
+        ? signedData.labels
+        : mode === 'mirror' && mirrorData
+          ? mirrorData.labels
+          : data?.labels || [];
+      const label = labels[hoveredDataIndex] || '';
+
+      const items: BidirectionalBarTooltipItem[] = [];
+
+      if (mode === 'signed' && signedData) {
+        signedData.datasets.forEach((dataset, index) => {
+          const value = dataset.data[hoveredDataIndex];
+          if (value !== undefined) {
+            items.push({
+              label: dataset.label,
+              value,
+              color: dataset.backgroundColor || DEFAULT_COLORS.right,
+              direction: value >= 0 ? 'right' : 'left',
+            });
+          }
+        });
+      } else if (mode === 'mirror' && mirrorData) {
+        const leftValue = mirrorData.leftData.data[hoveredDataIndex];
+        const rightValue = mirrorData.rightData.data[hoveredDataIndex];
+        if (leftValue !== undefined) {
+          items.push({
+            label: mirrorData.leftData.label,
+            value: leftValue,
+            color: mirrorData.leftData.backgroundColor || DEFAULT_COLORS.left,
+            direction: 'left',
+          });
+        }
+        if (rightValue !== undefined) {
+          items.push({
+            label: mirrorData.rightData.label,
+            value: rightValue,
+            color: mirrorData.rightData.backgroundColor || DEFAULT_COLORS.right,
+            direction: 'right',
+          });
+        }
+      } else if (data) {
+        const leftValue = data.leftData.data[hoveredDataIndex];
+        const rightValue = data.rightData.data[hoveredDataIndex];
+        if (leftValue !== undefined) {
+          items.push({
+            label: data.leftData.label,
+            value: leftValue,
+            color: data.leftData.backgroundColor || DEFAULT_COLORS.left,
+            direction: 'left',
+          });
+        }
+        if (rightValue !== undefined) {
+          items.push({
+            label: data.rightData.label,
+            value: rightValue,
+            color: data.rightData.backgroundColor || DEFAULT_COLORS.right,
+            direction: 'right',
+          });
+        }
+      }
+
+      return {
+        dataIndex: hoveredDataIndex,
+        label,
+        title: label,
+        items,
+      };
+    }
+
+    // 普通模式：显示单个条形的数据
     if (!hoveredBar) return null;
 
     const items: BidirectionalBarTooltipItem[] = [{
@@ -958,7 +1135,7 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       title: hoveredBar.label,
       items,
     };
-  }, [hoveredBar, data, signedData, mirrorData, mode]);
+  }, [hoveredBar, hoveredDataIndex, data, signedData, mirrorData, mode, verticalLine?.enabled]);
 
   // 获取图例数据
   const legendItems = useMemo(() => {
@@ -1038,12 +1215,15 @@ export const BidirectionalBar: React.FC<BidirectionalBarProps> = ({
       />
 
       {/* 提示框 */}
-      {tooltip?.enabled !== false && tooltipContent && hoveredBar && (
+      {tooltip?.enabled !== false && tooltipContent && (
+        (verticalLine?.enabled ? hoveredDataIndex !== null : hoveredBar !== null)
+      ) && (
         <div
           className={classNames(styles.zcpcyChatsTooltip, styles.zcpcyChatsTooltipVisible)}
           style={{
-            left: tooltipPos.x + 10,
-            top: tooltipPos.y - 40,
+            left: tooltipPos.x + (verticalLine?.enabled ? 15 : 10),
+            top: tooltipPos.y - (verticalLine?.enabled ? 0 : 40),
+            transform: verticalLine?.enabled ? 'translate(0, -50%)' : 'translate(0, 0)',
             backgroundColor: tooltip?.backgroundColor || DEFAULT_CONFIG.tooltipBackground,
           }}
         >

@@ -21,5 +21,6 @@ export type {
   BidirectionalBarLegendConfig,
   BidirectionalBarTooltipConfig,
   BidirectionalBarTooltipItem,
+  BidirectionalBarVerticalLineConfig,
   ComputedBidirectionalBar,
 } from './BidirectionalBar.type';
