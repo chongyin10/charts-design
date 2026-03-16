@@ -502,7 +502,7 @@ const drawPointer = (
 
   const { centerX, centerY, radius } = geometry;
   // 指针长度为圆半径的 85%
-  const pointerLength = radius * 0.85;
+  const pointerLength = radius * 1;
 
   const tipX = centerX + Math.cos(angle) * pointerLength;
   const tipY = centerY + Math.sin(angle) * pointerLength;
@@ -583,6 +583,120 @@ const drawText = (
   ctx.textBaseline = 'middle';
   // 使用配置的 offsetY 定位文本
   ctx.fillText(text, centerX, centerY + textConfig.offsetY);
+  ctx.restore();
+};
+
+/**
+ * 绘制信息面板（包含 value、name、unit 的 div 区域）
+ */
+const drawInfoPanel = (
+  ctx: CanvasRenderingContext2D,
+  geometry: GaugeGeometry,
+  data: GaugeData,
+  valueText: ComputedText,
+  titleText: ComputedText,
+  axis: ComputedAxis
+): void => {
+  const { centerX, centerY, radius } = geometry;
+  const { name, unit, value } = data;
+
+  // 计算内容尺寸
+  ctx.save();
+
+  // value 字体大小
+  const valueBaseFontSize = valueText.fontSize || 28;
+  const valueFontSize = Math.min(valueBaseFontSize, Math.max(14, radius * 0.35));
+
+  // title（name）字体大小
+  const titleBaseFontSize = titleText.fontSize || 14;
+  const titleFontSize = Math.min(titleBaseFontSize, Math.max(10, radius * 0.18));
+
+  // unit 字体大小
+  const unitFontSize = valueFontSize * 0.5;
+
+  // 计算文本尺寸 - 使用最大值来固定面板宽度，避免抖动
+  ctx.font = `${valueText.fontWeight} ${valueFontSize}px sans-serif`;
+  const maxValue = axis?.max ?? 100;
+  const maxValueText = String(Math.round(maxValue));
+  const maxValueTextWidth = ctx.measureText(maxValueText).width;
+  // 计算当前 value 的实际宽度
+  const currentValueText = String(data.value);
+  const valueTextWidth = ctx.measureText(currentValueText).width;
+
+  ctx.font = `${valueText.fontWeight} ${unitFontSize}px sans-serif`;
+  const unitTextWidth = unit ? ctx.measureText(unit).width : 0;
+
+  ctx.font = `${titleText.fontWeight} ${titleFontSize}px sans-serif`;
+  const nameTextWidth = name ? ctx.measureText(name).width : 0;
+
+  // 计算面板尺寸
+  const paddingX = radius * 0.15;
+  const paddingY = radius * 0.1;
+  const gapBetweenLines = radius * 0.08;
+
+  const contentWidth = Math.max(maxValueTextWidth + unitTextWidth + (unit ? 8 : 0), nameTextWidth);
+  const panelWidth = contentWidth + paddingX * 2;
+  const panelHeight = valueFontSize + titleFontSize + gapBetweenLines + paddingY * 2;
+
+  // 面板位置（中心点上方）
+  const panelX = centerX - panelWidth / 2;
+  const panelY = centerY - radius * 0.45 - panelHeight / 2;
+
+  const cornerRadius = 8;
+
+  // 绘制阴影（淡阴影效果）
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.06)';
+  ctx.shadowBlur = 6;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 2;
+
+  // 绘制面板背景（圆角矩形）- 更淡的背景
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, cornerRadius);
+  ctx.fill();
+  ctx.restore();
+
+  // 绘制面板边框（更淡的边框）
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.06)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(panelX, panelY, panelWidth, panelHeight, cornerRadius);
+  ctx.stroke();
+
+  // 绘制 value 和 unit
+  // 计算 value + unit 组合的总宽度，使它们在面板中水平居中
+  const valueUnitGap = unit ? 4 : 0;
+  const valueUnitTotalWidth = valueTextWidth + unitTextWidth + valueUnitGap;
+  const valueY = panelY + paddingY + valueFontSize * 0.7;
+  const valueX = centerX - valueUnitTotalWidth / 2 + valueTextWidth;
+
+  ctx.fillStyle = valueText.color;
+  ctx.font = `${valueText.fontWeight} ${valueFontSize}px sans-serif`;
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(String(data.value), valueX, valueY);
+
+  // 绘制 unit（如果有）
+  if (unit) {
+    ctx.fillStyle = '#9ca3af';
+    ctx.font = `${valueText.fontWeight} ${unitFontSize}px sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(unit, valueX + valueUnitGap, valueY);
+  }
+
+  // 绘制 name（如果有）
+  if (name) {
+    const nameY = valueY + gapBetweenLines + titleFontSize * 0.8;
+    ctx.fillStyle = titleText.color;
+    ctx.font = `${titleText.fontWeight} ${titleFontSize}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(name, centerX, nameY);
+  }
+
   ctx.restore();
 };
 
@@ -826,11 +940,8 @@ export const Gauge: React.FC<GaugeProps> = ({
     // 绘制指针
     drawPointer(ctx, geometry, pointer, currentAngle);
 
-    // 绘制数值文本（取整显示）
-    drawText(ctx, geometry, valueText, { ...data, value: Math.round(currentValue) }, axis);
-
-    // 绘制标题文本
-    drawText(ctx, geometry, titleText, data, axis);
+    // 绘制信息面板（包含 value、name、unit）
+    drawInfoPanel(ctx, geometry, { ...data, value: Math.round(currentValue) }, valueText, titleText, axis);
 
     // 绘制中心点（半径为指针长度的 3/4）- 最后绘制确保在最上层
     drawPivot(ctx, geometry, pivot, pointer);
