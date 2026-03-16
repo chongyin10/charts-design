@@ -759,6 +759,37 @@ const data = {
                         </div>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="funnel-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔽 转化漏斗</div>
+                                <div className={styles.featureDesc}>清晰展示业务流程中各环节的转化情况，发现流失节点。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📊 转化率显示</div>
+                                <div className={styles.featureDesc}>自动计算并显示相邻环节间的转化率，评估流程效率。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 标签位置</div>
+                                <div className={styles.featureDesc}>支持内部、左侧、右侧多种标签位置，适配不同布局需求。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 自定义颜色</div>
+                                <div className={styles.featureDesc}>每个漏斗环节可独立配置颜色，支持渐变色效果。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📏 间隙控制</div>
+                                <div className={styles.featureDesc}>支持调整漏斗层级之间的间隙大小，优化视觉层次。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>👆 点击交互</div>
+                                <div className={styles.featureDesc}>支持漏斗层级点击事件，可获取点击环节的数据信息。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="funnel-api">
                         <h2 className={styles.subsectionTitle}>API 参考</h2>
@@ -832,6 +863,7 @@ const data = {
                                 <Anchor.Link href="#funnel-click" title="点击事件" />
                                 <Anchor.Link href="#funnel-tooltip" title="自定义提示框" />
                                 <Anchor.Link href="#funnel-marketing" title="营销漏斗示例" />
+                                <Anchor.Link href="#funnel-features" title="组件特性" />
                                 <Anchor.Link href="#funnel-api" title="API 参考" />
                                 <Anchor.Link href="#funnel-data-item" title="数据项类型" />
                                 <Anchor.Link href="#funnel-label-api" title="Label 配置" />

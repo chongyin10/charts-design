@@ -702,6 +702,37 @@ export default function RightAxisBarChart() {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="bar-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📏 横向布局</div>
+                                <div className={styles.featureDesc}>横向条形图设计，适合展示类别较多的数据或长标签文本。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📊 分组对比</div>
+                                <div className={styles.featureDesc}>支持多系列分组显示，方便对比不同维度的数据表现。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🥞 堆叠显示</div>
+                                <div className={styles.featureDesc}>堆叠模式展示构成关系，直观呈现各部分在整体中的占比。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 数据标签</div>
+                                <div className={styles.featureDesc}>支持在条形末端显示数据标签，可自定义格式和样式。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔘 圆角样式</div>
+                                <div className={styles.featureDesc}>支持配置条形圆角，打造更加柔和现代的视觉风格。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>👆 点击交互</div>
+                                <div className={styles.featureDesc}>支持条形点击事件，可获取数据集索引、数据索引和数值。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="bar-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -792,6 +823,7 @@ export default function RightAxisBarChart() {
                                 <Anchor.Link href="#bar-rounded" title="圆角条形图" />
                                 <Anchor.Link href="#bar-click" title="点击事件" />
                                 <Anchor.Link href="#bar-right-axis" title="右侧坐标轴" />
+                                <Anchor.Link href="#bar-features" title="组件特性" />
                                 <Anchor.Link href="#bar-api" title="API 参考" />
                                 <Anchor.Link href="#bar-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#bar-axis-api" title="Axis 配置" />

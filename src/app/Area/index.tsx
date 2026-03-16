@@ -1341,6 +1341,37 @@ const areaPropsData = [
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="area-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 面积填充</div>
+                                <div className={styles.featureDesc}>通过填充色强调数据量级和累积效果，视觉表现力更强。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🌊 平滑曲线</div>
+                                <div className={styles.featureDesc}>支持平滑曲线模式，让面积图更加柔和自然。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🥞 堆叠面积</div>
+                                <div className={styles.featureDesc}>多系列堆叠展示，清晰呈现各部分随时间的累积变化。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📈 正负值支持</div>
+                                <div className={styles.featureDesc}>支持正负值数据展示，适用于盈亏分析等场景。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎯 数据点控制</div>
+                                <div className={styles.featureDesc}>可隐藏或显示数据点，自定义点的大小和样式。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🖱️ 交互丰富</div>
+                                <div className={styles.featureDesc}>支持点击事件、竖线模式、自定义提示框等交互功能。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="area-api">
                         <h3 className={styles.subsectionTitle}>Area Props</h3>
@@ -1418,6 +1449,7 @@ const areaPropsData = [
                                 <Anchor.Link href="#area-tooltip" title="自定义 Tooltip" />
                                 <Anchor.Link href="#area-unemployment" title="失业数据可视化" />
                                 <Anchor.Link href="#area-vertical-line" title="竖线功能" />
+                                <Anchor.Link href="#area-features" title="组件特性" />
                                 <Anchor.Link href="#area-api" title="API 参考" />
                                 <Anchor.Link href="#area-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#area-axis-api" title="Axis 配置" />

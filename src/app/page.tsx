@@ -13,6 +13,7 @@ import ScatterExample from './Scatter';
 import FunnelExample from './Funnel';
 import HeatmapExample from './Heatmap';
 import LiquidExample from './Liquid';
+import DualAxesExample from './DualAxes';
 
 const { Header, Sider, Content } = Layout;
 
@@ -22,7 +23,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -80,6 +81,11 @@ export default function Home() {
             label: 'Liquid',
             description: '水波图'
         },
+        {
+            key: 'dualaxes',
+            label: 'DualAxes',
+            description: '双轴图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -103,6 +109,8 @@ export default function Home() {
                 return <HeatmapExample />;
             case 'liquid':
                 return <LiquidExample />;
+            case 'dualaxes':
+                return <DualAxesExample />;
             default:
                 return <LineExample />;
         }

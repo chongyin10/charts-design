@@ -665,6 +665,37 @@ const MultiRingExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="pie-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🥧 占比展示</div>
+                                <div className={styles.featureDesc}>直观展示各部分占总体的比例关系，适合构成分析场景。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🍩 环形图模式</div>
+                                <div className={styles.featureDesc}>支持环形图模式，可自定义内圆半径，打造时尚视觉效果。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 标签位置</div>
+                                <div className={styles.featureDesc}>支持内部、外部、左侧、右侧等多种标签位置配置。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 自定义颜色</div>
+                                <div className={styles.featureDesc}>每个数据项可独立配置颜色，灵活适配品牌配色需求。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔄 起始角度</div>
+                                <div className={styles.featureDesc}>支持自定义起始角度和顺时针/逆时针绘制方向。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>👆 点击交互</div>
+                                <div className={styles.featureDesc}>支持扇区点击事件，可获取点击的数据项索引和数值。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="pie-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -748,6 +779,7 @@ const MultiRingExample = () => {
                                 <Anchor.Link href="#pie-tooltip-custom" title="Tooltip 自定义" />
                                 <Anchor.Link href="#pie-legend" title="图例配置" />
                                 <Anchor.Link href="#pie-multi-ring" title="多层嵌套环形图" />
+                                <Anchor.Link href="#pie-features" title="组件特性" />
                                 <Anchor.Link href="#pie-api" title="API 参考" />
                                 <Anchor.Link href="#pie-item" title="数据项配置" />
                                 <Anchor.Link href="#pie-label-api" title="Label 配置" />

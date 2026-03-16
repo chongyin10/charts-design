@@ -1222,6 +1222,37 @@ const CustomTooltipExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="column-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📊 分组对比</div>
+                                <div className={styles.featureDesc}>支持多数据系列并列显示，便于横向对比不同类别的数据。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🥞 堆叠模式</div>
+                                <div className={styles.featureDesc}>启用堆叠模式展示累积数据，清晰呈现各部分对整体的贡献。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📐 直方图支持</div>
+                                <div className={styles.featureDesc}>通过配置可实现紧密排列的直方图效果，展示数据频率分布。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔘 圆角样式</div>
+                                <div className={styles.featureDesc}>支持配置柱体圆角半径，打造更加现代化的视觉效果。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 自定义颜色</div>
+                                <div className={styles.featureDesc}>每个数据系列可独立配置颜色，支持边框和填充色自定义。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>👆 交互点击</div>
+                                <div className={styles.featureDesc}>支持柱体点击事件，可获取点击的数据索引和数值。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="column-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -1307,6 +1338,7 @@ const CustomTooltipExample = () => {
                                 <Anchor.Link href="#column-grid" title="网格线配置" />
                                 <Anchor.Link href="#column-positive-negative" title="正负值柱状图" />
                                 <Anchor.Link href="#column-full" title="完整配置" />
+                                <Anchor.Link href="#column-features" title="组件特性" />
                                 <Anchor.Link href="#column-api" title="API 参考" />
                                 <Anchor.Link href="#column-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#column-axis-api" title="Axis 配置" />

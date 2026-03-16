@@ -91,6 +91,34 @@
     margin-top: 16px;
 }
 
+/* 组件特性 */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+}
+
+.featureCard {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.featureTitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+
+.featureDesc {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
 .anchorNav {
     width: 140px;
     flex-shrink: 0;

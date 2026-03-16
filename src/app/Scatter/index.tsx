@@ -944,6 +944,37 @@ const labeledData = {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="scatter-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📍 数据分布</div>
+                                <div className={styles.featureDesc}>展示两个变量之间的关系，发现数据分布规律和异常点。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎯 多形状支持</div>
+                                <div className={styles.featureDesc}>支持圆形、矩形、三角形等多种数据点形状，便于分类识别。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📈 回归线</div>
+                                <div className={styles.featureDesc}>支持线性回归线，直观展示变量间的相关性趋势。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 象限分析</div>
+                                <div className={styles.featureDesc}>支持象限划分，便于进行四象限分析如波士顿矩阵。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🖱️ 区域选择</div>
+                                <div className={styles.featureDesc}>支持框选数据点，获取选中点集合进行进一步分析。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 数据标签</div>
+                                <div className={styles.featureDesc}>支持在数据点上显示标签，便于识别具体数据点信息。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="scatter-api">
                         <h2 className={styles.subsectionTitle}>API 参考</h2>
@@ -1039,6 +1070,7 @@ const labeledData = {
                                 <Anchor.Link href="#scatter-labels" title="带标签的数据点" />
                                 <Anchor.Link href="#scatter-selection" title="区域选择" />
                                 <Anchor.Link href="#scatter-json" title="JSON 数据" />
+                                <Anchor.Link href="#scatter-features" title="组件特性" />
                                 <Anchor.Link href="#scatter-api" title="API 参考" />
                                 <Anchor.Link href="#scatter-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#scatter-types" title="类型定义" />

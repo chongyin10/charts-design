@@ -763,6 +763,37 @@ const DensityHeatmapExample = () => {
                         </div>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="heatmap-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔥 密度可视化</div>
+                                <div className={styles.featureDesc}>通过颜色深浅展示数据密度或强度，直观呈现热点分布。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 发散色阶</div>
+                                <div className={styles.featureDesc}>支持双色发散色阶，适合展示正负值或温差等对比数据。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📊 相关性矩阵</div>
+                                <div className={styles.featureDesc}>完美展示变量间的相关性矩阵，颜色编码相关系数大小。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🧬 层次聚类</div>
+                                <div className={styles.featureDesc}>支持层次聚类热力图，展示基因表达等生物信息数据。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 单元格标签</div>
+                                <div className={styles.featureDesc}>支持在单元格内显示数值标签，可自定义格式和样式。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>👆 点击交互</div>
+                                <div className={styles.featureDesc}>支持单元格点击事件，可获取点击位置的行列索引和数值。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="heatmap-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -826,6 +857,7 @@ const DensityHeatmapExample = () => {
                                 <Anchor.Link href="#heatmap-behavior" title="用户行为分析" />
                                 <Anchor.Link href="#heatmap-density" title="密度热力图" />
                                 <Anchor.Link href="#heatmap-clustering" title="层次聚类热力图" />
+                                <Anchor.Link href="#heatmap-features" title="组件特性" />
                                 <Anchor.Link href="#heatmap-api" title="API 参考" />
                                 <Anchor.Link href="#heatmap-colorscale-api" title="ColorScale 配置" />
                                 <Anchor.Link href="#heatmap-axis-api" title="Axis 配置" />

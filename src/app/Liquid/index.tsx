@@ -485,6 +485,37 @@ const InteractiveLiquidExample = () => {
                         </SafeSyntaxHighlighter>
                     </div>
 
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="liquid-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>💧 水波动效</div>
+                                <div className={styles.featureDesc}>逼真的水波流动动画效果，让进度展示更加生动有趣。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 渐变配色</div>
+                                <div className={styles.featureDesc}>支持多层颜色渐变，可配置波浪的前中后景颜色。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>⚙️ 波浪参数</div>
+                                <div className={styles.featureDesc}>可调整波浪振幅、周期、速度和透明度，精细控制外观。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📐 尺寸灵活</div>
+                                <div className={styles.featureDesc}>支持自定义宽高，可创建不同尺寸的水波图适配各种场景。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🏷️ 文本配置</div>
+                                <div className={styles.featureDesc}>支持自定义中心文本内容和样式，可显示百分比或标签。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🖼️ 边框样式</div>
+                                <div className={styles.featureDesc}>支持配置圆形边框的宽度、颜色和透明度。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="liquid-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -555,6 +586,7 @@ const InteractiveLiquidExample = () => {
                                 <Anchor.Link href="#liquid-multiple" title="不同进度对比" />
                                 <Anchor.Link href="#liquid-large" title="大尺寸示例" />
                                 <Anchor.Link href="#liquid-interactive" title="交互式示例" />
+                                <Anchor.Link href="#liquid-features" title="组件特性" />
                                 <Anchor.Link href="#liquid-api" title="API 参考" />
                                 <Anchor.Link href="#liquid-data" title="LiquidData 配置" />
                                 <Anchor.Link href="#liquid-config" title="ChartConfig 配置" />

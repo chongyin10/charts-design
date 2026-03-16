@@ -14,6 +14,7 @@ import styles from './page.module.css';
 
 // 导入 JSON 数据
 import trendDataJson from './Json/trend-data.json';
+import lineSeriesJson from './Json/line-series.json';
 
 // 自定义复制按钮组件
 interface CopyButtonProps {
@@ -255,6 +256,70 @@ export default function LineChartPage() {
     };
 
     const trendData = processTrendData();
+
+    // 处理 line-series.json 数据 - 多区域失业率对比
+    const processLineSeriesData = (): LineChartData => {
+        interface LineSeriesItem {
+            division: string;
+            date: string;
+            unemployment: number;
+        }
+
+        const data = lineSeriesJson as LineSeriesItem[];
+
+        // 选择主要城市进行对比
+        const selectedDivisions = [
+            'New York-White Plains-Wayne, NY-NJ Met Div',
+            'Los Angeles-Long Beach-Glendale, CA Met Div',
+            'Chicago-Joliet-Naperville, IL Met Div',
+            'San Francisco-San Mateo-Redwood City, CA Met Div',
+        ];
+
+        // 获取唯一的日期列表（按月）
+        const dates = [...new Set(data.map(item => item.date))].sort();
+
+        // 颜色映射
+        const colorMap: Record<string, string> = {
+            'New York-White Plains-Wayne, NY-NJ Met Div': '#3b82f6',
+            'Los Angeles-Long Beach-Glendale, CA Met Div': '#ef4444',
+            'Chicago-Joliet-Naperville, IL Met Div': '#10b981',
+            'San Francisco-San Mateo-Redwood City, CA Met Div': '#f59e0b',
+        };
+
+        // 简化的城市名称
+        const labelMap: Record<string, string> = {
+            'New York-White Plains-Wayne, NY-NJ Met Div': 'New York',
+            'Los Angeles-Long Beach-Glendale, CA Met Div': 'Los Angeles',
+            'Chicago-Joliet-Naperville, IL Met Div': 'Chicago',
+            'San Francisco-San Mateo-Redwood City, CA Met Div': 'San Francisco',
+        };
+
+        // 构建 datasets
+        const datasets = selectedDivisions.map(division => {
+            const divisionData = data
+                .filter(item => item.division === division)
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                .map(item => item.unemployment);
+
+            return {
+                label: labelMap[division] || division,
+                data: divisionData,
+                track: {
+                    color: colorMap[division] || '#3b82f6',
+                    width: 2,
+                },
+                point: false as const,
+                fill: false,
+            };
+        });
+
+        return {
+            labels: dates,
+            datasets,
+        };
+    };
+
+    const lineSeriesData = processLineSeriesData();
 
     // 竖线功能示例数据
     const verticalLineData: LineChartData = {
@@ -831,6 +896,90 @@ const VerticalLineExample = () => {
                 labelFontSize: 12,
             }}
             smooth={true}
+        />
+    );
+};`;
+
+    // 失业率数据示例代码
+    const lineSeriesCode = `import { Line } from '@zjpcy/charts-design';
+import lineSeriesJson from './Json/line-series.json';
+
+const UnemploymentRateExample = () => {
+    // 处理 line-series.json 数据 - 多区域失业率对比
+    const processLineSeriesData = () => {
+        // 选择主要城市进行对比
+        const selectedDivisions = [
+            'New York-White Plains-Wayne, NY-NJ Met Div',
+            'Los Angeles-Long Beach-Glendale, CA Met Div',
+            'Chicago-Joliet-Naperville, IL Met Div',
+            'San Francisco-San Mateo-Redwood City, CA Met Div',
+        ];
+
+        // 获取唯一的日期列表
+        const dates = [...new Set(lineSeriesJson.map(item => item.date))].sort();
+
+        // 颜色映射
+        const colorMap = {
+            'New York-White Plains-Wayne, NY-NJ Met Div': '#3b82f6',
+            'Los Angeles-Long Beach-Glendale, CA Met Div': '#ef4444',
+            'Chicago-Joliet-Naperville, IL Met Div': '#10b981',
+            'San Francisco-San Mateo-Redwood City, CA Met Div': '#f59e0b',
+        };
+
+        // 简化的城市名称
+        const labelMap = {
+            'New York-White Plains-Wayne, NY-NJ Met Div': 'New York',
+            'Los Angeles-Long Beach-Glendale, CA Met Div': 'Los Angeles',
+            'Chicago-Joliet-Naperville, IL Met Div': 'Chicago',
+            'San Francisco-San Mateo-Redwood City, CA Met Div': 'San Francisco',
+        };
+
+        // 构建 datasets
+        const datasets = selectedDivisions.map(division => {
+            const divisionData = lineSeriesJson
+                .filter(item => item.division === division)
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.Date).getTime())
+                .map(item => item.unemployment);
+
+            return {
+                label: labelMap[division] || division,
+                data: divisionData,
+                color: colorMap[division] || '#3b82f6',
+                width: 2,
+                point: false,
+                fill: false,
+            };
+        });
+
+        return { labels: dates, datasets };
+    };
+
+    const lineSeriesData = processLineSeriesData();
+
+    return (
+        <Line
+            data={lineSeriesData}
+            width={700}
+            height={400}
+            smooth={true}
+            verticalLine={{ enabled: true }}
+            xAxis={{
+                display: true,
+                title: { text: '年份' },
+                grid: { display: true, opacity: 0.3 },
+                tickInterval: 12,
+            }}
+            yAxis={{
+                display: true,
+                title: { text: '失业率 (%)' },
+                grid: { display: true, opacity: 0.3 },
+            }}
+            legend={{
+                display: true,
+                position: 'top',
+                labelColor: '#374151',
+                labelFontSize: 12,
+            }}
         />
     );
 };`;
@@ -1739,6 +1888,87 @@ const CustomTooltipExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 失业率数据示例 */}
+                    <div className={styles.exampleSection} id="line-unemployment">
+                        <h3 className={styles.subsectionTitle}>失业率数据示例</h3>
+                        <p className={styles.sectionText}>使用 line-series.json 数据展示美国主要城市失业率趋势对比。数据包含44个大都会区域从2000年到2013年的月度失业率数据。</p>
+                        <div className={styles.exampleDemo}>
+                            <Line
+                                data={lineSeriesData}
+                                width={700}
+                                height={400}
+                                smooth={false}
+                                verticalLine={{
+                                    enabled: true,
+                                    color: '#999',
+                                    lineWidth: 1,
+                                    dash: [5, 5],
+                                }}
+                                xAxis={{
+                                    display: true,
+                                    title: { text: '年份' },
+                                    grid: {
+                                        display: true,
+                                        opacity: 0.3,
+                                    },
+                                    tickInterval: 12,
+                                }}
+                                yAxis={{
+                                    display: true,
+                                    title: { text: '失业率 (%)' },
+                                    grid: {
+                                        display: true,
+                                        opacity: 0.3,
+                                    }
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                    labelColor: '#374151',
+                                    labelFontSize: 12,
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={lineSeriesCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {lineSeriesCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 组件特性 */}
+                    <div className={styles.exampleSection} id="line-features">
+                        <h3 className={styles.subsectionTitle}>组件特性</h3>
+                        <div className={styles.features}>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>📈 趋势分析</div>
+                                <div className={styles.featureDesc}>完美展示数据随时间变化的趋势，支持多系列对比分析。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🌊 平滑曲线</div>
+                                <div className={styles.featureDesc}>支持平滑曲线模式，让数据趋势展示更加柔和自然。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎨 面积填充</div>
+                                <div className={styles.featureDesc}>支持面积图模式，通过填充色强调数据量级和累积效果。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>⚠️ 预警线</div>
+                                <div className={styles.featureDesc}>支持配置预警线，超过阈值时自动变色提示异常情况。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🎯 数据点样式</div>
+                                <div className={styles.featureDesc}>支持圆形、矩形、三角形等多种数据点样式，可自定义大小和颜色。</div>
+                            </div>
+                            <div className={styles.featureCard}>
+                                <div className={styles.featureTitle}>🔗 轨道连接</div>
+                                <div className={styles.featureDesc}>独特的轨道连接线设计，让多系列数据对比更加清晰直观。</div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="line-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -1860,6 +2090,8 @@ const CustomTooltipExample = () => {
                                 <Anchor.Link href="#line-track-connection" title="轨道连接" />
                                 <Anchor.Link href="#line-grouped" title="分组数据" />
                                 <Anchor.Link href="#line-json-data" title="JSON 数据加载" />
+                                <Anchor.Link href="#line-unemployment" title="失业率数据" />
+                                <Anchor.Link href="#line-features" title="组件特性" />
                                 <Anchor.Link href="#line-api" title="API 参考" />
                                 <Anchor.Link href="#line-dataset" title="Dataset 配置" />
                                 <Anchor.Link href="#line-legend-api" title="Legend 配置" />
