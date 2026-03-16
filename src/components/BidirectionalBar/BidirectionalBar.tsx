@@ -434,10 +434,17 @@ const drawGrid = (
   else if (normalizedStep <= 5) step = 5 * magnitude;
   else step = 10 * magnitude;
 
+  // 镜像模式下中间的 labels 区域宽度
+  const labelGap = isMirrorMode ? 80 : 0;
+  const halfLabelGap = labelGap / 2;
+
   // 左侧标签（从中心轴向外：0 -> step -> 2*step ...）
   for (let i = 0; i <= xGridCount; i++) {
     const ratio = i / xGridCount;
-    const x = centerX - ratio * (centerX - padding);
+    // 镜像模式下，从中心左侧留出 labelGap 空间开始绘制，0 刻度在 labels 左边缘
+    const x = isMirrorMode
+      ? centerX - halfLabelGap - ratio * (centerX - halfLabelGap - padding)
+      : centerX - ratio * (centerX - padding);
     const value = i * step;
     ctx.fillText(value.toString(), x, height - padding + 8);
   }
@@ -445,7 +452,10 @@ const drawGrid = (
   // 右侧标签（从中心轴向外：0 -> step -> 2*step ...）
   for (let i = 0; i <= xGridCount; i++) {
     const ratio = i / xGridCount;
-    const x = centerX + ratio * (width - padding - centerX);
+    // 镜像模式下，从中心右侧留出 labelGap 空间开始绘制，0 刻度在 labels 右边缘
+    const x = isMirrorMode
+      ? centerX + halfLabelGap + ratio * (width - padding - centerX - halfLabelGap)
+      : centerX + ratio * (width - padding - centerX);
     const value = i * step;
     ctx.fillText(value.toString(), x, height - padding + 8);
   }
