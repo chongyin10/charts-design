@@ -337,8 +337,8 @@ const getHoveredBox = (
  */
 const BoxPlot: React.FC<BoxPlotProps> = ({
   data,
-  width = 600,
-  height = 400,
+  width: propWidth = 600,
+  height: propHeight = 400,
   padding = DEFAULT_CONFIG.padding,
   boxWidth = DEFAULT_CONFIG.boxWidth,
   animationDuration = DEFAULT_CONFIG.animationDuration,
@@ -359,6 +359,67 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
     x: number;
     y: number;
   } | null>(null);
+  
+  // 响应式尺寸状态
+  const [containerSize, setContainerSize] = useState({ width: propWidth, height: propHeight });
+  
+  // 使用 ResizeObserver 监听容器大小变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateSize = () => {
+      if (!isMounted || !container) return;
+      const rect = container.getBoundingClientRect();
+      // 宽度自适应容器，高度保持固定
+      const newWidth = Math.max(rect.width, 300); // 最小宽度 300
+      setContainerSize({ width: newWidth, height: propHeight });
+    };
+
+    // 防抖处理的尺寸更新
+    const debouncedUpdateSize = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          updateSize();
+        }
+      }, 100); // 100ms 防抖延迟
+    };
+
+    // 初始计算（不使用防抖）
+    updateSize();
+
+    // 创建 ResizeObserver
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedUpdateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      debouncedUpdateSize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [propWidth, propHeight]);
+
+  // 使用容器尺寸或传入的尺寸
+  const width = containerSize.width || propWidth;
+  const height = containerSize.height || propHeight;
 
   // 计算图表配置
   const config = useMemo(
@@ -425,7 +486,8 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
   const handleMouseMove = useCallback(
     (event: React.MouseEvent<HTMLCanvasElement>) => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      const container = containerRef.current;
+      if (!canvas || !container) return;
 
       const rect = canvas.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
@@ -447,10 +509,11 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
           color: getDatasetColor(box.datasetIndex, dataset),
         };
 
+        const containerRect = container.getBoundingClientRect();
         setTooltipData({
           item,
-          x: event.clientX - (containerRef.current?.getBoundingClientRect().left || 0) + 10,
-          y: event.clientY - (containerRef.current?.getBoundingClientRect().top || 0) - 10,
+          x: event.clientX - containerRect.left + 10,
+          y: event.clientY - containerRect.top - 10,
         });
       } else {
         setTooltipData(null);

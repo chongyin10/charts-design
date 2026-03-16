@@ -4,14 +4,18 @@
 
 .zcpcyChatsBoxPlotChartContainer {
   position: relative;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .zcpcyChatsBoxPlotChartCanvas {
   display: block;
   cursor: crosshair;
+  max-width: 100%;
+  height: auto;
 }
 
 /* 提示框样式 */
