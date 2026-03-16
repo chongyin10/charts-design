@@ -19,4 +19,7 @@ export type {
   HeatmapLabelConfig,
   DensityPoint,
   DensityConfig,
+  ClusteringConfig,
+  ClusterNode,
+  HierarchicalClusteringResult,
 } from './Heatmap.type';

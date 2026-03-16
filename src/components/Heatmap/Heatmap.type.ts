@@ -27,6 +27,76 @@ export interface DensityPoint {
 }
 
 /**
+ * 层次聚类树节点
+ */
+export interface ClusterNode {
+  /** 节点ID */
+  id: number;
+  /** 原始索引（叶子节点） */
+  index?: number;
+  /** 标签（叶子节点） */
+  label?: string;
+  /** 左子节点 */
+  left?: ClusterNode;
+  /** 右子节点 */
+  right?: ClusterNode;
+  /** 合并高度/距离 */
+  height: number;
+  /** 节点包含的原始索引列表 */
+  indices: number[];
+  /** 节点深度 */
+  depth?: number;
+  /** 节点位置（0-1 之间） */
+  position?: number;
+}
+
+/**
+ * 层次聚类结果
+ */
+export interface HierarchicalClusteringResult {
+  /** 行的聚类树 */
+  rowTree: ClusterNode;
+  /** 列的聚类树 */
+  colTree: ClusterNode;
+  /** 行排序后的索引 */
+  rowOrder: number[];
+  /** 列排序后的索引 */
+  colOrder: number[];
+}
+
+/**
+ * 聚类配置
+ */
+export interface ClusteringConfig {
+  /** 是否对行进行聚类 */
+  clusterRows?: boolean;
+  /** 是否对列进行聚类 */
+  clusterCols?: boolean;
+  /** 距离度量方法: euclidean(欧氏距离) | correlation(相关系数距离) | manhattan(曼哈顿距离) */
+  distanceMetric?: 'euclidean' | 'correlation' | 'manhattan';
+  /** 连接方法: single(最短距离) | complete(最长距离) | average(平均距离) | ward(Ward法) */
+  linkageMethod?: 'single' | 'complete' | 'average' | 'ward';
+  /** 树状图宽度（像素） */
+  dendrogramWidth?: number;
+  /** 树状图高度（像素） */
+  dendrogramHeight?: number;
+  /** 树状图线条颜色 */
+  dendrogramColor?: string;
+  /** 树状图线条宽度 */
+  dendrogramLineWidth?: number;
+  /** 是否显示行标签在树状图左侧 */
+  showRowLabels?: boolean;
+  /** 行标签字体大小 */
+  rowLabelFontSize?: number;
+  /** 行标签颜色 */
+  rowLabelColor?: string;
+  /** 聚类阈值（用于剪枝高亮） */
+  clusterThreshold?: number;
+  /** 行标签位置：left(左) | right(右，默认) */
+  rowLabelPosition?: 'left' | 'right';
+}
+
+/**
  * 数据集配置
  */
 export interface HeatmapDataset {
@@ -228,6 +298,12 @@ export interface HeatmapProps {
   densityMode?: boolean;
   /** 密度热力图配置 */
   densityConfig?: DensityConfig;
+  /** 是否启用聚类热力图模式 */
+  clusteringMode?: boolean;
+  /** 聚类配置 */
+  clusteringConfig?: ClusteringConfig;
+  /** 预计算的聚类结果（可选，用于外部控制） */
+  precomputedClustering?: HierarchicalClusteringResult;
   /** 自定义类名 */
   className?: string;
   /** 自定义样式 */
@@ -236,6 +312,8 @@ export interface HeatmapProps {
   onCellClick?: (xIndex: number, yIndex: number, value: number) => void;
   /** 点击密度区域回调 */
   onDensityClick?: (x: number, y: number, density: number) => void;
+  /** 聚类完成回调 */
+  onClusteringComplete?: (result: HierarchicalClusteringResult) => void;
 }
 
 /**
@@ -250,6 +328,14 @@ export interface HeatmapChartConfig {
   minValue: number;
   maxValue: number;
   valueRange: number;
+  /** 左侧布局偏移量（用于聚类模式的树状图） */
+  leftOffset?: number;
+  /** 顶部布局偏移量（用于聚类模式的树状图） */
+  topOffset?: number;
+  /** 有效左侧内边距（聚类模式下为0，非聚类模式下为padding） */
+  effectivePaddingLeft?: number;
+  /** 有效顶部内边距（聚类模式下为0，非聚类模式下为padding） */
+  effectivePaddingTop?: number;
 }
 
 /**

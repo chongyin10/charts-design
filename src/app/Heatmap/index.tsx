@@ -146,6 +146,43 @@ export default function HeatmapChartPage() {
         yRange: [0, 500],
     };
 
+    // 聚类热力图数据 - 基因表达矩阵
+    const clusteringData: HeatmapChartData = {
+        xLabels: ['t1', 't2', 't3', 't4', 't5', 's1', 's2', 's3', 's4', 's5'],
+        yLabels: [
+            'ENSG00000109758', 'ENSG00000161944', 'ENSG00000057593', 'ENSG00000160593',
+            'ENSG00000204420', 'ENSG00000134538', 'ENSG0000018236', 'ENSG00000159307',
+            'ENSG00000101443', 'ENSG00000162881', 'ENSG00000160870', 'ENSG00000134258',
+            'ENSG00000163736', 'ENSG00000257017', 'ENSG00000111181', 'ENSG00000100665',
+            'ENSG00000172497', 'ENSG00000115718'
+        ],
+        datasets: [
+            {
+                label: 'Gene Expression',
+                data: [
+                    [1.2, 1.1, 1.5, 1.3, 0.8, -0.9, -1.1, -1.3, -0.8, -0.6],
+                    [0.9, 0.8, 1.2, 1.0, 0.5, -0.7, -0.9, -1.0, -0.6, -0.4],
+                    [1.0, 0.9, 1.3, 1.1, 0.6, -0.8, -1.0, -1.2, -0.7, -0.5],
+                    [0.8, 0.7, 1.1, 0.9, 0.4, -0.6, -0.8, -0.9, -0.5, -0.3],
+                    [1.1, 1.0, 1.4, 1.2, 0.7, -0.8, -1.0, -1.2, -0.7, -0.5],
+                    [-0.5, -0.3, -0.4, -0.6, -0.2, 1.2, 1.4, 1.1, 0.9, 1.0],
+                    [-0.4, -0.2, -0.3, -0.5, -0.1, 1.1, 1.3, 1.0, 0.8, 0.9],
+                    [-0.6, -0.4, -0.5, -0.7, -0.3, 1.3, 1.5, 1.2, 1.0, 1.1],
+                    [0.3, 0.2, 0.4, 0.3, 0.1, -0.3, -0.4, -0.2, -0.1, -0.2],
+                    [-0.3, -0.1, -0.2, -0.4, 0.0, 0.8, 1.0, 0.7, 0.5, 0.6],
+                    [-0.2, 0.0, -0.1, -0.3, 0.1, 0.9, 1.1, 0.8, 0.6, 0.7],
+                    [-0.1, 0.1, 0.0, -0.2, 0.2, 0.6, 0.8, 0.5, 0.3, 0.4],
+                    [0.2, 0.3, 0.5, 0.4, 0.2, -0.2, -0.3, -0.1, 0.0, -0.1],
+                    [0.1, 0.2, 0.4, 0.3, 0.1, -0.1, -0.2, 0.0, 0.1, 0.0],
+                    [0.4, 0.5, 0.7, 0.6, 0.4, 0.0, -0.1, 0.1, 0.2, 0.1],
+                    [0.0, 0.1, 0.3, 0.2, 0.0, -0.4, -0.5, -0.3, -0.2, -0.3],
+                    [0.3, 0.4, 0.6, 0.5, 0.3, -0.1, -0.2, 0.0, 0.1, 0.0],
+                    [0.2, 0.3, 0.5, 0.4, 0.2, -0.3, -0.4, -0.2, -0.1, -0.2],
+                ],
+            },
+        ],
+    };
+
     // 处理单元格点击
     const handleCellClick = (xIndex: number, yIndex: number, value: number) => {
         console.log('点击单元格:', { xIndex, yIndex, value });
@@ -189,6 +226,56 @@ const BasicHeatmapExample = () => {
             colorScale={{
                 minColor: '#f0f9ff',
                 maxColor: '#0369a1',
+            }}
+        />
+    );
+};`;
+
+    // 聚类热力图代码
+    const clusteringCode = `import { Heatmap } from '@zjpcy/charts-design';
+
+const ClusteringHeatmapExample = () => {
+    const data = {
+        xLabels: ['s4', 's3', 's2', 's5', 's1', 't2', 't1', 't5', 't3', 't4'],
+        yLabels: ['ENSG00000109758', 'ENSG00000161944', ...],
+        datasets: [{
+            label: 'Gene Expression',
+            data: [
+                [1.2, 1.1, 1.5, 1.3, 0.8, -0.9, -1.1, -1.3, -0.8, -0.6],
+                [0.9, 0.8, 1.2, 1.0, 0.5, -0.7, -0.9, -1.0, -0.6, -0.4],
+                // ... 更多基因表达数据
+            ],
+        }],
+    };
+
+    return (
+        <Heatmap
+            data={data}
+            width={750}
+            height={480}
+            clusteringMode={true}       // 启用聚类模式
+            clusteringConfig={{
+                clusterRows: true,        // 对行（基因）聚类
+                clusterCols: true,        // 对列（样本）聚类
+                distanceMetric: 'euclidean',   // 欧氏距离
+                linkageMethod: 'average',      // 平均连接法
+                dendrogramWidth: 80,      // 行树状图宽度
+                dendrogramHeight: 50,     // 列树状图高度
+                showRowLabels: true,      // 显示行标签
+                rowLabelFontSize: 10,
+                rowLabelPosition: 'right', // 行标签在右侧（与原图一致）
+            }}
+            yAxis={{ display: false }}   // 隐藏Y轴（使用行标签）
+            colorScale={{
+                minColor: '#2166ac',      // 蓝色（低表达）
+                midColor: '#f7f7f7',      // 白色（中等）
+                maxColor: '#b2182b',      // 红色（高表达）
+                diverging: true,
+            }}
+            legend={{
+                display: true,
+                position: 'right',        // 图例在右侧
+                showValues: true
             }}
         />
     );
@@ -394,6 +481,10 @@ const DensityHeatmapExample = () => {
         { param: 'densityMode', description: '是否启用密度热力图模式', type: 'boolean', default: 'false' },
         { param: 'densityConfig', description: '密度热力图配置', type: 'DensityConfig', default: '-' },
         { param: 'onDensityClick', description: '密度区域点击回调', type: '(x, y, density) => void', default: '-' },
+        { param: 'clusteringMode', description: '是否启用层次聚类热力图模式', type: 'boolean', default: 'false' },
+        { param: 'clusteringConfig', description: '聚类配置', type: 'ClusteringConfig', default: '-' },
+        { param: 'precomputedClustering', description: '预计算的聚类结果', type: 'HierarchicalClusteringResult', default: '-' },
+        { param: 'onClusteringComplete', description: '聚类完成回调', type: '(result) => void', default: '-' },
     ];
 
     // ColorScale 配置数据
@@ -620,6 +711,58 @@ const DensityHeatmapExample = () => {
                         </div>
                     </div>
 
+                    {/* 层次聚类热力图 */}
+                    <div className={styles.exampleSection} id="heatmap-clustering">
+                        <h3 className={styles.subsectionTitle}>层次聚类热力图</h3>
+                        <p className={styles.sectionText}>
+                            展示基因表达数据的层次聚类结果。顶部和左侧的树状图（Dendrogram）展示了行和列的聚类层次结构，
+                            使用欧氏距离和平均连接法进行层次聚类。颜色表示基因表达水平，红色表示高表达，蓝色表示低表达。
+                        </p>
+                        <div className={styles.exampleDemo}>
+                            <Heatmap
+                                data={clusteringData}
+                                width={750}
+                                height={480}
+                                clusteringMode={true}
+                                clusteringConfig={{
+                                    clusterRows: true,
+                                    clusterCols: true,
+                                    distanceMetric: 'euclidean',
+                                    linkageMethod: 'average',
+                                    dendrogramWidth: 80,
+                                    dendrogramHeight: 50,
+                                    dendrogramColor: '#374151',
+                                    showRowLabels: true,
+                                    rowLabelFontSize: 10,
+                                    rowLabelPosition: 'right',  // 行标签在右侧（与原图一致）
+                                }}
+                                xAxis={{
+                                    title: { text: '' },
+                                    tickRotation: 0,
+                                }}
+                                yAxis={{ display: false }}  // 隐藏Y轴标签（使用行标签）
+                                colorScale={{
+                                    minColor: '#2166ac',  // 蓝色（低表达）
+                                    midColor: '#f7f7f7',  // 白色（中等）
+                                    maxColor: '#b2182b',  // 红色（高表达）
+                                    diverging: true,
+                                }}
+                                cellLabels={{ display: false }}
+                                legend={{ display: true, position: 'right', showValues: true }}
+                                onCellClick={handleCellClick}
+                            />
+                        </div>
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span>示例代码</span>
+                                <CopyButton text={clusteringCode} />
+                            </div>
+                            <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                                {clusteringCode}
+                            </SyntaxHighlighter>
+                        </div>
+                    </div>
+
                     {/* API 参考 */}
                     <div className={styles.exampleSection} id="heatmap-api">
                         <h3 className={styles.subsectionTitle}>API 参考</h3>
@@ -682,6 +825,7 @@ const DensityHeatmapExample = () => {
                                 <Anchor.Link href="#heatmap-diverging" title="发散型颜色比例尺" />
                                 <Anchor.Link href="#heatmap-behavior" title="用户行为分析" />
                                 <Anchor.Link href="#heatmap-density" title="密度热力图" />
+                                <Anchor.Link href="#heatmap-clustering" title="层次聚类热力图" />
                                 <Anchor.Link href="#heatmap-api" title="API 参考" />
                                 <Anchor.Link href="#heatmap-colorscale-api" title="ColorScale 配置" />
                                 <Anchor.Link href="#heatmap-axis-api" title="Axis 配置" />
