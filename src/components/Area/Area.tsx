@@ -605,8 +605,8 @@ const drawPoints = (
  */
 export const Area: React.FC<AreaProps> = ({
     data,
-    width = 600,
-    height = 400,
+    width: propWidth = 600,
+    height: propHeight = 400,
     padding = DEFAULT_CONFIG.padding,
     xAxis,
     yAxis,
@@ -634,6 +634,67 @@ export const Area: React.FC<AreaProps> = ({
 
     // 存储计算的点用于交互
     const pointsRef = useRef<ComputedPoint[][]>([]);
+
+    // 响应式尺寸状态
+    const [containerSize, setContainerSize] = useState({ width: propWidth, height: propHeight });
+
+    // 使用 ResizeObserver 监听容器大小变化
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        let isMounted = true;
+        let debounceTimer: NodeJS.Timeout | null = null;
+
+        const updateSize = () => {
+            if (!isMounted || !container) return;
+            const rect = container.getBoundingClientRect();
+            // 宽度自适应容器，高度保持固定
+            const newWidth = Math.max(rect.width, 300); // 最小宽度 300
+            setContainerSize({ width: newWidth, height: propHeight });
+        };
+
+        // 防抖处理的尺寸更新
+        const debouncedUpdateSize = () => {
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            debounceTimer = setTimeout(() => {
+                if (isMounted) {
+                    updateSize();
+                }
+            }, 100); // 100ms 防抖延迟
+        };
+
+        // 初始计算（不使用防抖）
+        updateSize();
+
+        // 创建 ResizeObserver
+        const resizeObserver = new ResizeObserver(() => {
+            debouncedUpdateSize();
+        });
+
+        resizeObserver.observe(container);
+
+        // 监听窗口大小变化
+        const handleResize = () => {
+            debouncedUpdateSize();
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            isMounted = false;
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [propWidth, propHeight]);
+
+    // 使用容器尺寸或传入的尺寸
+    const width = containerSize.width || propWidth;
+    const height = containerSize.height || propHeight;
 
     const visibleData: AreaChartData = useMemo(() => ({
         labels: data.labels,

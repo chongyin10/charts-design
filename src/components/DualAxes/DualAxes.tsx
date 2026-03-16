@@ -643,8 +643,8 @@ const drawPoints = (
  */
 export const DualAxes: React.FC<DualAxesProps> = ({
   data,
-  width = 700,
-  height = 400,
+  width: propWidth = 700,
+  height: propHeight = 400,
   padding = DEFAULT_CONFIG.padding,
   xAxis,
   leftYAxis,
@@ -673,6 +673,74 @@ export const DualAxes: React.FC<DualAxesProps> = ({
   const leftPointsRef = useRef<ComputedPoint[][]>([]);
   const rightPointsRef = useRef<ComputedPoint[][]>([]);
   const hoveredPointRef = useRef<ComputedPoint | null>(null);
+
+  // 响应式尺寸状态
+  const [containerSize, setContainerSize] = useState({ width: propWidth, height: propHeight });
+
+  // 使用 ResizeObserver 监听容器大小变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateSize = (newWidth: number) => {
+      if (!isMounted) return;
+      // 宽度自适应容器，高度保持固定
+      const width = Math.max(newWidth, 300); // 最小宽度 300
+      setContainerSize({ width, height: propHeight });
+    };
+
+    // 防抖处理的尺寸更新
+    const debouncedUpdateSize = (width: number) => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          updateSize(width);
+        }
+      }, 100); // 100ms 防抖延迟
+    };
+
+    // 初始计算（不使用防抖）
+    const rect = container.getBoundingClientRect();
+    updateSize(rect.width);
+
+    // 创建 ResizeObserver
+    const resizeObserver = new ResizeObserver((entries) => {
+      // 使用 entries 获取最新尺寸，避免闭包问题
+      for (const entry of entries) {
+        const { width } = entry.contentRect;
+        debouncedUpdateSize(width);
+      }
+    });
+
+    resizeObserver.observe(container);
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        debouncedUpdateSize(rect.width);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [propWidth, propHeight]);
+
+  // 使用容器尺寸或传入的尺寸
+  const width = containerSize.width || propWidth;
+  const height = containerSize.height || propHeight;
 
   // 计算图表配置
   const chartConfig = useMemo(

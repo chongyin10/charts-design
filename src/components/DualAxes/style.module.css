@@ -4,14 +4,19 @@
 
 .zcpcyChatsDualAxesChartContainer {
   position: relative;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .zcpcyChatsDualAxesChartCanvas {
   display: block;
   cursor: crosshair;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
 }
 
 /* 提示框样式 */

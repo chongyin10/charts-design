@@ -128,21 +128,86 @@ const Liquid: React.FC<LiquidProps> = ({
   onClick,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
   const phaseRef = useRef<number>(0);
   const currentValueRef = useRef<number>(0);
   const targetValueRef = useRef<number>(data.value);
 
+  // 响应式尺寸状态（从 config 或默认值获取）
+  const [containerSize, setContainerSize] = useState({
+    width: config.width ?? DEFAULT_CONFIG.width,
+    height: config.height ?? DEFAULT_CONFIG.height
+  });
+
+  // 使用 ResizeObserver 监听容器大小变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateSize = () => {
+      if (!isMounted || !container) return;
+      const rect = container.getBoundingClientRect();
+      // 宽度自适应容器，高度保持固定
+      const newWidth = Math.max(rect.width, 100); // 最小宽度 100
+      // 高度使用传入的高度或默认值
+      const newHeight = config.height ?? DEFAULT_CONFIG.height;
+      setContainerSize({ width: newWidth, height: newHeight });
+    };
+
+    // 防抖处理的尺寸更新
+    const debouncedUpdateSize = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          updateSize();
+        }
+      }, 100); // 100ms 防抖延迟
+    };
+
+    // 初始计算（不使用防抖）
+    updateSize();
+
+    // 创建 ResizeObserver
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedUpdateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      debouncedUpdateSize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [config.width, config.height]);
+
   // 合并配置
   const mergedConfig = useMemo<Required<LiquidChartConfig>>(
     () => ({
       ...DEFAULT_CONFIG,
+      width: containerSize.width,
+      height: containerSize.height,
       ...config,
       wave: { ...DEFAULT_CONFIG.wave, ...config.wave },
       border: { ...DEFAULT_CONFIG.border, ...config.border },
       text: { ...DEFAULT_CONFIG.text, ...config.text },
     }),
-    [config]
+    [config, containerSize.width, containerSize.height]
   );
 
   const waveConfig = useMemo(() => computeWaveConfig(mergedConfig.wave), [mergedConfig.wave]);
@@ -392,6 +457,7 @@ const Liquid: React.FC<LiquidProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className={classNames(styles.zcpcyChatsLiquidChartContainer, className)}
       style={style}
       onClick={handleClick}
