@@ -289,6 +289,8 @@ export interface ComputedSeries {
     smooth: boolean;
     showLine: boolean;
     points: ComputedPoint[];
+    /** 是否可见 */
+    visible?: boolean;
 }
 
 /**

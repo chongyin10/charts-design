@@ -741,7 +741,7 @@ const drawScanEffect = (
     const highlightColor = scanConfig.highlightColor || '#10b981';
 
     computedSeries.forEach(series => {
-        if (!series.showPoints) return;
+        if (!series.showPoints || series.visible === false) return;
 
         series.points.forEach(point => {
             // 计算该点相对于中心的角度
@@ -865,13 +865,15 @@ const renderLegend = (
             {computedSeries.map((series, index) => (
                 <div
                     key={series.name}
-                    className={styles.zcpcyChatsRadarLegendItem}
+                    className={`${styles.zcpcyChatsRadarLegendItem} ${series.visible === false ? styles.zcpcyChatsRadarLegendItemDisabled : ''}`}
                     onClick={() => onItemClick?.(index)}
                     style={{ fontSize: labelFontSize || 12, color: labelColor || '#374151' }}
                 >
                     <span
                         className={styles.zcpcyChatsRadarLegendMarker}
-                        style={{ backgroundColor: series.color }}
+                        style={{
+                            backgroundColor: series.visible === false ? '#d1d5db' : series.color
+                        }}
                     />
                     <span className={styles.zcpcyChatsRadarLegendLabel}>{series.name}</span>
                 </div>
@@ -907,6 +909,11 @@ const Radar: React.FC<RadarProps> = ({
     const animationRef = useRef<number>();
     const scanAnimationRef = useRef<number>();
     const isResizingRef = useRef(false);
+    
+    // 记录各系列的可见状态
+    const [visibleSeries, setVisibleSeries] = useState<Set<number>>(() =>
+        new Set(data.series.map((_, index) => index))
+    );
 
     const mergedConfig = useMemo(() => mergeConfig(config), [config]);
 
@@ -934,10 +941,24 @@ const Radar: React.FC<RadarProps> = ({
     // 计算系列数据
     const computedSeries = useMemo(() => {
         if (!geometry || indicators.length === 0) return [];
-        return data.series.map((series, index) =>
-            calculateSeriesPoints(series, indicators, geometry, index, mergedConfig.point)
-        );
-    }, [data.series, indicators, geometry, mergedConfig.point]);
+        return data.series.map((series, index) => ({
+            ...calculateSeriesPoints(series, indicators, geometry, index, mergedConfig.point),
+            visible: visibleSeries.has(index),
+        }));
+    }, [data.series, indicators, geometry, mergedConfig.point, visibleSeries]);
+
+    // 处理图例点击事件
+    const handleLegendClick = useCallback((seriesIndex: number) => {
+        setVisibleSeries(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(seriesIndex)) {
+                newSet.delete(seriesIndex);
+            } else {
+                newSet.add(seriesIndex);
+            }
+            return newSet;
+        });
+    }, []);
 
     // 监听 canvas wrapper 尺寸变化 - 使用防抖处理
     useEffect(() => {
@@ -1061,9 +1082,11 @@ const Radar: React.FC<RadarProps> = ({
         // 绘制刻度标签
         drawTicks(ctx, geometry, indicators, mergedConfig.tick, mergedConfig.grid);
 
-        // 绘制系列
+        // 绘制系列（只绘制可见的系列）
         computedSeries.forEach((series) => {
-            drawSeries(ctx, series, animationProgress);
+            if (series.visible !== false) {
+                drawSeries(ctx, series, animationProgress);
+            }
         });
 
         // 绘制维度标签
@@ -1100,6 +1123,9 @@ const Radar: React.FC<RadarProps> = ({
             let closestPointY = 0;
 
             computedSeries.forEach((series, seriesIndex) => {
+                // 跳过不可见的系列
+                if (series.visible === false) return;
+                
                 series.points.forEach((point, pointIndex) => {
                     const dx = x - point.x;
                     const dy = y - point.y;
@@ -1153,6 +1179,9 @@ const Radar: React.FC<RadarProps> = ({
         if (!hoverData) return null;
 
         const series = computedSeries[hoverData.seriesIndex];
+        // 如果系列已隐藏，不显示提示框
+        if (!series || series.visible === false) return null;
+        
         const point = series.points[hoverData.pointIndex];
         const indicator = indicators[point.indicatorIndex];
 
@@ -1236,7 +1265,7 @@ const Radar: React.FC<RadarProps> = ({
                     />
                 )}
             </div>
-            {renderLegend(computedSeries, mergedConfig.legend)}
+            {renderLegend(computedSeries, mergedConfig.legend, handleLegendClick)}
         </div>
     );
 };

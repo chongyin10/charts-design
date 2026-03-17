@@ -1041,6 +1041,15 @@ const CircleGridRadarExample = () => {
         { param: 'labelFontSize', description: '图例字体大小', type: 'number', default: '12' },
     ];
 
+    // Tick 刻度配置数据
+    const tickDataAPI = [
+        { param: 'display', description: '是否显示刻度标签', type: 'boolean', default: 'true' },
+        { param: 'color', description: '刻度文字颜色', type: 'string', default: "'#6b7280'" },
+        { param: 'fontSize', description: '刻度字体大小', type: 'number', default: '11' },
+        { param: 'offset', description: '刻度距离轴线的偏移量', type: 'number', default: '6' },
+        { param: 'formatter', description: '刻度格式化函数', type: '(value: number) => string', default: '-' },
+    ];
+
     // Tooltip 配置数据
     const tooltipDataAPI = [
         { param: 'enabled', description: '是否显示提示框', type: 'boolean', default: 'true' },
@@ -1077,6 +1086,18 @@ const CircleGridRadarExample = () => {
         { param: 'startAngle', description: '起始角度（度）', type: 'number', default: '-90' },
     ];
 
+    // Scan 扫描效果配置数据
+    const scanDataAPI = [
+        { param: 'enabled', description: '是否启用扫描效果', type: 'boolean', default: 'false' },
+        { param: 'lineColor', description: '扫描线颜色', type: 'string', default: "'rgba(16, 185, 129, 0.8)'" },
+        { param: 'lineWidth', description: '扫描线宽度', type: 'number', default: '2' },
+        { param: 'fillColor', description: '扫描区域填充颜色', type: 'string', default: "'rgba(16, 185, 129, 0.15)'" },
+        { param: 'speed', description: '扫描速度（度数/秒）', type: 'number', default: '60' },
+        { param: 'sweepAngle', description: '扫描扇形角度范围', type: 'number', default: '30' },
+        { param: 'highlightColor', description: '被扫描到的高亮点颜色', type: 'string', default: "'#10b981'" },
+        { param: 'highlightSize', description: '被扫描到的高亮点大小', type: 'number', default: '10' },
+    ];
+
     return (
         <div className={styles.examplePage}>
             <Flex direction="row" gap="large" align="flex-start">
@@ -1107,7 +1128,7 @@ const CircleGridRadarExample = () => {
                     {/* 多系列对比 */}
                     <div className={styles.exampleSection} id="radar-multi">
                         <h3 className={styles.subsectionTitle}>多系列对比</h3>
-                        <p className={styles.sectionText}>同时展示多个对象的综合表现，便于对比分析。</p>
+                        <p className={styles.sectionText}>同时展示多个对象的综合表现，便于对比分析。点击图例可切换显示/隐藏对应系列。</p>
                         <div className={styles.exampleDemo}>
                             <Radar data={multiSeriesData} width={400} height={400} config={customConfig} />
                         </div>
@@ -1335,6 +1356,24 @@ const CircleGridRadarExample = () => {
                         </div>
                     </div>
 
+                    {/* 刻度配置 */}
+                    <div className={styles.exampleSection} id="radar-tick">
+                        <h3 className={styles.subsectionTitle}>Tick 配置</h3>
+                        <p className={styles.sectionText}>刻度标签配置项说明，用于显示网格线上的数值标签。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={tickDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* 扫描效果配置 */}
+                    <div className={styles.exampleSection} id="radar-scan">
+                        <h3 className={styles.subsectionTitle}>Scan 扫描效果配置</h3>
+                        <p className={styles.sectionText}>雷达扫描效果配置项说明，用于实现雷达监测、信号扫描等场景。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={scanDataAPI} />
+                        </div>
+                    </div>
+
                     {/* 其他配置 */}
                     <div className={styles.exampleSection} id="radar-other">
                         <h3 className={styles.subsectionTitle}>其他配置</h3>
@@ -1374,6 +1413,8 @@ const CircleGridRadarExample = () => {
                                     <Anchor.Link href="#radar-grid" title="Grid 配置" />
                                     <Anchor.Link href="#radar-axis" title="Axis 配置" />
                                     <Anchor.Link href="#radar-point" title="Point 配置" />
+                                    <Anchor.Link href="#radar-tick" title="Tick 配置" />
+                                    <Anchor.Link href="#radar-scan" title="Scan 配置" />
                                     <Anchor.Link href="#radar-other" title="其他配置" />
                             </Anchor>
                         )}

@@ -143,6 +143,15 @@
   opacity: 0.7;
 }
 
+/* 禁用的图例项（系列被隐藏时） */
+.zcpcyChatsRadarLegendItemDisabled {
+  opacity: 0.5;
+}
+
+.zcpcyChatsRadarLegendItemDisabled .zcpcyChatsRadarLegendLabel {
+  text-decoration: line-through;
+}
+
 /* 图例标记 */
 .zcpcyChatsRadarLegendMarker {
   width: 12px;
