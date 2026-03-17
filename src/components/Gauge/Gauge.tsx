@@ -99,6 +99,10 @@ const DEFAULT_CONFIG: Required<GaugeChartConfig> = {
     borderColor: 'rgba(0, 0, 0, 0.06)',
     borderWidth: 1,
     borderRadius: 8,
+    width: undefined,
+    height: undefined,
+    offsetX: undefined,
+    offsetY: undefined,
     waveEnabled: false,
     wave: {
       amplitude: 4,
@@ -244,6 +248,10 @@ const computePanelConfig = (config?: GaugeChartConfig['panel']): ComputedPanel =
     borderColor: panel.borderColor!,
     borderWidth: panel.borderWidth!,
     borderRadius: panel.borderRadius!,
+    width: panel.width,
+    height: panel.height,
+    offsetX: panel.offsetX,
+    offsetY: panel.offsetY,
     waveEnabled: panel.waveEnabled!,
     wave: {
       amplitude: wave.amplitude!,
@@ -763,16 +771,31 @@ const drawInfoPanel = (
 
   // 计算面板尺寸
   const paddingX = radius * 0.15;
-  const paddingY = radius * 0.1;
-  const gapBetweenLines = radius * 0.08;
+  const paddingY = 5; // 固定上下 padding 为 5px
+  const gapBetweenLines = name ? 4 : 0; // name 和 value 之间的间隙
 
   const contentWidth = Math.max(maxValueTextWidth + unitTextWidth + (unit ? 8 : 0), nameTextWidth);
-  const panelWidth = contentWidth + paddingX * 2;
-  const panelHeight = valueFontSize + titleFontSize + gapBetweenLines + paddingY * 2;
+  
+  // 使用自定义宽度或自动计算
+  const autoPanelWidth = contentWidth + paddingX * 2;
+  
+  // 计算最小高度：value高度 + (name ? name高度 + 间隙 : 0) + 上下padding
+  const minPanelHeight = valueFontSize + (name ? titleFontSize + gapBetweenLines : 0) + paddingY * 2;
+  
+  const panelWidth = panelConfig.width ?? autoPanelWidth;
+  // 如果设置了自定义高度，确保不小于最小高度
+  const panelHeight = panelConfig.height ? Math.max(panelConfig.height, minPanelHeight) : minPanelHeight;
 
   // 面板位置（中心点上方）
-  const panelX = centerX - panelWidth / 2;
-  const panelY = centerY - radius * 0.45 - panelHeight / 2;
+  // 使用自定义偏移或默认位置
+  const defaultPanelX = centerX - panelWidth / 2;
+  const defaultPanelY = centerY - radius * 0.45 - panelHeight / 2;
+  
+  const panelX = panelConfig.offsetX !== undefined ? centerX - panelWidth / 2 + panelConfig.offsetX : defaultPanelX;
+  const panelY = panelConfig.offsetY !== undefined ? centerY - radius * 0.45 - panelHeight / 2 + panelConfig.offsetY : defaultPanelY;
+
+  // 面板中心点（用于文本居中定位）
+  const panelCenterX = panelX + panelWidth / 2;
 
   // 绘制面板背景（支持水波动画）
   drawPanelBackground(ctx, panelX, panelY, panelWidth, panelHeight, panelConfig, wavePhase);
@@ -781,8 +804,20 @@ const drawInfoPanel = (
   // 计算 value + unit 组合的总宽度，使它们在面板中水平居中
   const valueUnitGap = unit ? 4 : 0;
   const valueUnitTotalWidth = valueTextWidth + unitTextWidth + valueUnitGap;
-  const valueY = panelY + paddingY + valueFontSize * 0.7;
-  const valueX = centerX - valueUnitTotalWidth / 2 + valueTextWidth;
+  const valueX = panelCenterX - valueUnitTotalWidth / 2 + valueTextWidth;
+
+  // 计算内容总高度，用于垂直居中
+  // value 的 em 高度约为 fontSize * 0.7，name 的 em 高度约为 fontSize * 0.8
+  const valueLineHeight = valueFontSize * 0.7;
+  const nameLineHeight = name ? titleFontSize * 0.8 : 0;
+  const contentTotalHeight = valueLineHeight + (name ? gapBetweenLines + nameLineHeight : 0);
+  
+  // 计算起始 Y 位置，使内容在面板中垂直居中
+  // 面板中心 Y - 内容总高度的一半 + valueLineHeight（因为 fillText 基线在文字底部）
+  const panelCenterY = panelY + panelHeight / 2;
+  const contentStartY = panelCenterY - contentTotalHeight / 2 + valueLineHeight;
+  
+  const valueY = contentStartY;
 
   ctx.fillStyle = valueText.color;
   ctx.font = `${valueText.fontWeight} ${valueFontSize}px sans-serif`;
@@ -801,12 +836,12 @@ const drawInfoPanel = (
 
   // 绘制 name（如果有）
   if (name) {
-    const nameY = valueY + gapBetweenLines + titleFontSize * 0.8;
+    const nameY = valueY + gapBetweenLines + nameLineHeight;
     ctx.fillStyle = titleText.color;
     ctx.font = `${titleText.fontWeight} ${titleFontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
-    ctx.fillText(name, centerX, nameY);
+    ctx.fillText(name, panelCenterX, nameY);
   }
 
   ctx.restore();

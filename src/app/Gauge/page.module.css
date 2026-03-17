@@ -191,6 +191,21 @@
     padding-bottom: 100px;
 }
 
+/* API 子标题样式 */
+.apiSubTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-top: 24px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.apiSubTitle:first-of-type {
+    margin-top: 0;
+}
+
 /* 响应式适配 */
 @media (max-width: 1024px) {
     .anchorNav {

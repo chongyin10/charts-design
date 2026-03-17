@@ -151,6 +151,14 @@ export interface GaugePanelConfig {
   borderWidth?: number;
   /** 面板圆角 */
   borderRadius?: number;
+  /** 面板宽度（像素），不设置则自动计算 */
+  width?: number;
+  /** 面板高度（像素），不设置则自动计算 */
+  height?: number;
+  /** 面板X坐标偏移（相对于中心），不设置则居中 */
+  offsetX?: number;
+  /** 面板Y坐标偏移（相对于中心），不设置则自动计算 */
+  offsetY?: number;
   /** 是否显示波浪动画背景 */
   waveEnabled?: boolean;
   /** 波浪配置 */
@@ -301,6 +309,10 @@ export interface ComputedPanel {
   borderColor: string;
   borderWidth: number;
   borderRadius: number;
+  width?: number;
+  height?: number;
+  offsetX?: number;
+  offsetY?: number;
   waveEnabled: boolean;
   wave: ComputedPanelWave;
 }

@@ -61,13 +61,146 @@ export default function GaugeChartPage() {
 
     // API 表格数据
     const apiData = [
-        { param: 'data', description: '图表数据', type: 'GaugeData', default: '必填' },
-        { param: 'config', description: '图表配置', type: 'GaugeChartConfig', default: '{}' },
+        { param: 'data', description: '图表数据，包含 value、name、unit', type: 'GaugeData', default: '必填' },
+        { param: 'config', description: '图表配置，详见下方 GaugeChartConfig', type: 'GaugeChartConfig', default: '{}' },
         { param: 'className', description: '自定义类名', type: 'string', default: '-' },
         { param: 'style', description: '自定义样式', type: 'CSSProperties', default: '-' },
         { param: 'onChange', description: '数值变化回调', type: '(value: number) => void', default: '-' },
         { param: 'onClick', description: '点击回调', type: '(data: GaugeData) => void', default: '-' },
         { param: 'onReady', description: '渲染完成回调', type: '() => void', default: '-' },
+    ];
+
+    // GaugeChartConfig 配置表格
+    const configColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const configData = [
+        { param: 'width', description: '图表宽度（像素）', type: 'number', default: '300' },
+        { param: 'height', description: '图表高度（像素）', type: 'number', default: '200' },
+        { param: 'padding', description: '内边距', type: 'number', default: '20' },
+        { param: 'type', description: '仪表类型：semi 半圆 / full 整圆', type: "'semi' | 'full'", default: "'semi'" },
+        { param: 'radius', description: '半径（相对于容器最小边的比例 0-1）', type: 'number', default: '0.75' },
+        { param: 'animation', description: '是否开启动画', type: 'boolean', default: 'true' },
+        { param: 'animationDuration', description: '动画持续时间（毫秒）', type: 'number', default: '1000' },
+        { param: 'responsive', description: '是否开启响应式', type: 'boolean', default: 'true' },
+    ];
+
+    // 坐标轴配置表格
+    const axisColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const axisData = [
+        { param: 'min', description: '最小值', type: 'number', default: '0' },
+        { param: 'max', description: '最大值', type: 'number', default: '100' },
+        { param: 'tickInterval', description: '主刻度间隔', type: 'number', default: '20' },
+        { param: 'subTickCount', description: '次刻度数量', type: 'number', default: '4' },
+        { param: 'tickVisible', description: '是否显示刻度线', type: 'boolean', default: 'true' },
+        { param: 'lineColor', description: '刻度线颜色', type: 'string', default: "'#9ca3af'" },
+        { param: 'lineWidth', description: '刻度线宽度', type: 'number', default: '1' },
+        { param: 'labelColor', description: '刻度标签颜色', type: 'string', default: "'#6b7280'" },
+        { param: 'labelFontSize', description: '刻度标签字体大小', type: 'number', default: '12' },
+        { param: 'labelFormatter', description: '刻度标签格式化函数', type: '(value: number) => string', default: '(v) => v.toString()' },
+    ];
+
+    // 进度条配置表格
+    const progressColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const progressData = [
+        { param: 'width', description: '进度条宽度', type: 'number', default: '8' },
+        { param: 'color', description: '进度条颜色，支持单色或渐变色数组', type: 'string | string[]', default: "'#3b82f6'" },
+        { param: 'backgroundColor', description: '背景轨道颜色', type: 'string', default: "'#e5e7eb'" },
+        { param: 'rounded', description: '是否圆角', type: 'boolean', default: 'true' },
+        { param: 'shadow', description: '是否显示阴影', type: 'boolean', default: 'false' },
+    ];
+
+    // 指针配置表格
+    const pointerColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const pointerData = [
+        { param: 'length', description: '指针长度（相对于半径的比例 0-1）', type: 'number', default: '0.75' },
+        { param: 'width', description: '指针宽度', type: 'number', default: '2' },
+        { param: 'color', description: '指针颜色', type: 'string', default: "'#10b981'" },
+        { param: 'visible', description: '是否显示指针', type: 'boolean', default: 'true' },
+        { param: 'tailLength', description: '指针尾部长度', type: 'number', default: '0.1' },
+    ];
+
+    // 中心点配置表格
+    const pivotColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const pivotData = [
+        { param: 'radius', description: '中心点半径', type: 'number', default: '10' },
+        { param: 'color', description: '中心点颜色', type: 'string', default: "'#10b981'" },
+        { param: 'visible', description: '是否显示中心点', type: 'boolean', default: 'true' },
+    ];
+
+    // 面板配置表格
+    const panelColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const panelData = [
+        { param: 'visible', description: '是否显示面板背景', type: 'boolean', default: 'true' },
+        { param: 'width', description: '面板宽度（像素），不设置则自动计算', type: 'number', default: '-' },
+        { param: 'height', description: '面板高度（像素），不设置则自动计算', type: 'number', default: '-' },
+        { param: 'offsetX', description: '面板X坐标偏移（相对于中心）', type: 'number', default: '-' },
+        { param: 'offsetY', description: '面板Y坐标偏移（相对于默认位置）', type: 'number', default: '-' },
+        { param: 'backgroundColor', description: '面板背景颜色', type: 'string', default: "'rgba(255, 255, 255, 0.7)'" },
+        { param: 'borderColor', description: '面板边框颜色', type: 'string', default: "'rgba(0, 0, 0, 0.06)'" },
+        { param: 'borderWidth', description: '面板边框宽度', type: 'number', default: '1' },
+        { param: 'borderRadius', description: '面板圆角', type: 'number', default: '8' },
+        { param: 'waveEnabled', description: '是否显示波浪动画背景', type: 'boolean', default: 'false' },
+    ];
+
+    // 文本配置表格
+    const textColumns: TableColumn[] = [
+        { dataIndex: 'param', title: '参数', width: '150px' },
+        { dataIndex: 'description', title: '说明' },
+        { dataIndex: 'type', title: '类型' },
+        { dataIndex: 'default', title: '默认值' },
+    ];
+
+    const valueTextData = [
+        { param: 'format', description: '文本格式，支持 {value}、{percent}、{name}、{unit}', type: 'string', default: "'{value}'" },
+        { param: 'fontSize', description: '字体大小', type: 'number', default: '28' },
+        { param: 'color', description: '字体颜色', type: 'string', default: "'#374151'" },
+        { param: 'fontWeight', description: '字体粗细', type: 'string | number', default: '400' },
+        { param: 'visible', description: '是否显示', type: 'boolean', default: 'true' },
+        { param: 'offsetY', description: '垂直偏移', type: 'number', default: '-70' },
+    ];
+
+    const titleTextData = [
+        { param: 'format', description: '文本格式，支持 {value}、{percent}、{name}、{unit}', type: 'string', default: "'{name}'" },
+        { param: 'fontSize', description: '字体大小', type: 'number', default: '14' },
+        { param: 'color', description: '字体颜色', type: 'string', default: "'#6b7280'" },
+        { param: 'fontWeight', description: '字体粗细', type: 'string | number', default: '400' },
+        { param: 'visible', description: '是否显示', type: 'boolean', default: 'true' },
+        { param: 'offsetY', description: '垂直偏移', type: 'number', default: '-35' },
     ];
 
     return (
@@ -1001,14 +1134,256 @@ const PanelConfigExample = () => {
                     </SyntaxHighlighter>
                 </section>
 
+                {/* 面板尺寸与位置 */}
+                <section className={styles.exampleSection} id="panel-position">
+                    <h2 className={styles.subsectionTitle}>面板尺寸与位置</h2>
+                    <p className={styles.subsectionText}>自定义信息面板的宽度、高度以及位置偏移，精确控制面板显示。</p>
+                    <div className={styles.exampleDemo}>
+                        <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <Gauge
+                                data={{ value: 75, name: '固定尺寸', unit: '%' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#3b82f6', width: 10 },
+                                    panel: {
+                                        visible: true,
+                                        width: 140,
+                                        height: 90,
+                                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                        borderRadius: 12,
+                                    },
+                                }}
+                            />
+                            <Gauge
+                                data={{ value: 60, name: '位置偏移', unit: '%' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#10b981', width: 10 },
+                                    panel: {
+                                        visible: true,
+                                        width: 120,
+                                        offsetX: 30,
+                                        offsetY: 10,
+                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                        borderRadius: 10,
+                                    },
+                                }}
+                            />
+                            <Gauge
+                                data={{ value: 88, name: '左上偏移', unit: '%' }}
+                                config={{
+                                    type: 'semi',
+                                    progress: { color: '#f59e0b', width: 10 },
+                                    panel: {
+                                        visible: true,
+                                        width: 110,
+                                        height: 70,
+                                        offsetX: -40,
+                                        offsetY: -15,
+                                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                        borderRadius: 8,
+                                    },
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className={styles.codeHeader}>
+                        <span>示例代码</span>
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelPositionExample = () => {
+    return (
+        <div style={{ display: 'flex', gap: '40px' }}>
+            {/* 固定尺寸面板 */}
+            <Gauge
+                data={{ value: 75, name: '固定尺寸', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#3b82f6', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 140,     // 固定宽度 140px
+                        height: 90,     // 固定高度 90px
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: 12,
+                    },
+                }}
+            />
+
+            {/* 向右下偏移 */}
+            <Gauge
+                data={{ value: 60, name: '位置偏移', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#10b981', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 120,
+                        offsetX: 30,    // 向右偏移 30px
+                        offsetY: 10,    // 向下偏移 10px
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: 10,
+                    },
+                }}
+            />
+
+            {/* 向左上偏移 */}
+            <Gauge
+                data={{ value: 88, name: '左上偏移', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#f59e0b', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 110,
+                        height: 70,
+                        offsetX: -40,   // 向左偏移 40px
+                        offsetY: -15,   // 向上偏移 15px
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        borderRadius: 8,
+                    },
+                }}
+            />
+        </div>
+    );
+};`} />
+                    </div>
+                    <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                        {`import { Gauge } from '@zjpcy/charts-design';
+
+const PanelPositionExample = () => {
+    return (
+        <div style={{ display: 'flex', gap: '40px' }}>
+            {/* 固定尺寸面板 */}
+            <Gauge
+                data={{ value: 75, name: '固定尺寸', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#3b82f6', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 140,
+                        height: 90,
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: 12,
+                    },
+                }}
+            />
+
+            {/* 向右下偏移 */}
+            <Gauge
+                data={{ value: 60, name: '位置偏移', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#10b981', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 120,
+                        offsetX: 30,
+                        offsetY: 10,
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderRadius: 10,
+                    },
+                }}
+            />
+
+            {/* 向左上偏移 */}
+            <Gauge
+                data={{ value: 88, name: '左上偏移', unit: '%' }}
+                config={{
+                    type: 'semi',
+                    progress: { color: '#f59e0b', width: 10 },
+                    panel: {
+                        visible: true,
+                        width: 110,
+                        height: 70,
+                        offsetX: -40,
+                        offsetY: -15,
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        borderRadius: 8,
+                    },
+                }}
+            />
+        </div>
+    );
+};`}
+                    </SyntaxHighlighter>
+                </section>
+
                 {/* API 文档 */}
                 <section className={styles.exampleSection} id="api">
                     <h2 className={styles.subsectionTitle}>API</h2>
                     <p className={styles.subsectionText}>组件的属性说明。</p>
+                    
+                    <h3 className={styles.apiSubTitle}>Gauge Props</h3>
                     <div className={styles.apiTable}>
                         <Table
                             columns={apiColumns}
                             dataSource={apiData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>GaugeChartConfig</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={configColumns}
+                            dataSource={configData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>axis - 坐标轴配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={axisColumns}
+                            dataSource={axisData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>progress - 进度条配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={progressColumns}
+                            dataSource={progressData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>pointer - 指针配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={pointerColumns}
+                            dataSource={pointerData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>pivot - 中心点配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={pivotColumns}
+                            dataSource={pivotData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>panel - 面板配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={panelColumns}
+                            dataSource={panelData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>valueText - 数值文本配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={textColumns}
+                            dataSource={valueTextData}
+                        />
+                    </div>
+
+                    <h3 className={styles.apiSubTitle}>titleText - 标题文本配置</h3>
+                    <div className={styles.apiTable}>
+                        <Table
+                            columns={textColumns}
+                            dataSource={titleTextData}
                         />
                     </div>
                 </section>
@@ -1061,6 +1436,7 @@ const PanelConfigExample = () => {
                             <Anchor.Link href="#events" title="事件回调" />
                             <Anchor.Link href="#panel-wave" title="面板水波动画" />
                             <Anchor.Link href="#panel-wave-config" title="面板动画配置" />
+                            <Anchor.Link href="#panel-position" title="面板尺寸与位置" />
                             <Anchor.Link href="#api" title="API" />
                         </Anchor>
                     )}
