@@ -183,6 +183,28 @@ export interface RadarPointConfig {
 }
 
 /**
+ * 雷达扫描效果配置
+ */
+export interface RadarScanConfig {
+    /** 是否启用扫描效果 */
+    enabled?: boolean;
+    /** 扫描线颜色 */
+    lineColor?: string;
+    /** 扫描线宽度 */
+    lineWidth?: number;
+    /** 扫描区域填充颜色（渐变色） */
+    fillColor?: string;
+    /** 扫描速度（度数/秒，默认30） */
+    speed?: number;
+    /** 扫描扇形角度范围（默认30度） */
+    sweepAngle?: number;
+    /** 被扫描到的高亮点颜色 */
+    highlightColor?: string;
+    /** 被扫描到的高亮点大小 */
+    highlightSize?: number;
+}
+
+/**
  * 雷达图配置
  */
 export interface RadarChartConfig {
@@ -210,6 +232,8 @@ export interface RadarChartConfig {
     tooltip?: RadarTooltipConfig;
     /** 数据点配置（全局默认） */
     point?: RadarPointConfig;
+    /** 雷达扫描效果配置 */
+    scan?: RadarScanConfig;
 }
 
 /**

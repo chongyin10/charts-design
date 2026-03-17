@@ -232,7 +232,7 @@ export default function RadarPage() {
                 color: '#10b981',
                 showLine: false,  // 不显示连接线
                 showPoints: true, // 显示数据点
-                pointSize: 8,     // 较大的点
+                pointSize: 3,     // 较大的点
             },
             {
                 name: '目标点',
@@ -249,12 +249,12 @@ export default function RadarPage() {
                 color: '#ef4444',
                 showLine: false,
                 showPoints: true,
-                pointSize: 6,
+                pointSize: 4,
             },
         ],
     };
 
-    // 散点雷达图配置
+    // 散点雷达图配置（带扫描效果）
     const scatterRadarConfig = useMemo<RadarChartConfig>(() => ({
         padding: 40,
         radiusRatio: 0.8,
@@ -263,22 +263,115 @@ export default function RadarPage() {
         animationDuration: 1000,
         label: {
             display: true,
-            color: '#374151',
-            fontSize: 12,
-            fontWeight: '500',
+            color: '#065f46',
+            fontSize: 11,
+            fontWeight: '600',
             offset: 14,
         },
         axis: {
-            lineColor: '#d1d5db',
+            lineColor: '#065f46',
             lineWidth: 1,
             showLine: true,
         },
         grid: {
-            lineColor: '#e5e7eb',
+            lineColor: 'rgba(6, 95, 70, 0.3)',
             lineWidth: 1,
             showGrid: true,
             gridCount: 4,
-            fillColor: 'transparent',
+            fillColor: 'rgba(16, 185, 129, 0.03)',
+            outerShape: 'circle',
+        },
+        legend: {
+            display: true,
+            position: 'bottom',
+            labelColor: '#065f46',
+            labelFontSize: 12,
+            align: 'center',
+        },
+        tooltip: {
+            enabled: true,
+            backgroundColor: '#ffffff',
+            titleColor: '#111827',
+            bodyColor: '#374151',
+            fontSize: 12,
+        },
+        scan: {
+            enabled: true,
+            lineColor: 'rgba(0, 212, 255, 0.15)',
+            lineWidth: 1,
+            fillColor: 'rgba(0, 212, 255, 0.15)',
+            speed: 60,        // 60度/秒，更优雅的旋转速度
+            sweepAngle: 60,   // 60度扇形，更大的覆盖范围
+            highlightColor: '#00d4ff',
+            highlightSize: 10,
+        },
+    }), []);
+
+    // 雷达扫描效果数据
+    const scanRadarData: RadarChartData = {
+        series: [
+            {
+                name: '监测目标',
+                data: [
+                    { name: '0°', value: 45 },
+                    { name: '45°', value: 72 },
+                    { name: '90°', value: 38 },
+                    { name: '135°', value: 85 },
+                    { name: '180°', value: 55 },
+                    { name: '225°', value: 68 },
+                    { name: '270°', value: 42 },
+                    { name: '315°', value: 78 },
+                ],
+                color: '#10b981',
+                showLine: false,
+                showPoints: true,
+                pointSize: 6,
+            },
+            {
+                name: '威胁目标',
+                data: [
+                    { name: '0°', value: 75 },
+                    { name: '45°', value: 35 },
+                    { name: '90°', value: 88 },
+                    { name: '135°', value: 48 },
+                    { name: '180°', value: 62 },
+                    { name: '225°', value: 40 },
+                    { name: '270°', value: 82 },
+                    { name: '315°', value: 55 },
+                ],
+                color: '#ef4444',
+                showLine: false,
+                showPoints: true,
+                pointSize: 6,
+            },
+        ],
+    };
+
+    // 雷达扫描效果配置
+    const scanRadarConfig = useMemo<RadarChartConfig>(() => ({
+        padding: 40,
+        radiusRatio: 0.8,
+        startAngle: -90,
+        animation: true,
+        animationDuration: 1000,
+        label: {
+            display: true,
+            color: '#374151',
+            fontSize: 11,
+            fontWeight: '500',
+            offset: 12,
+        },
+        axis: {
+            lineColor: '#374151',
+            lineWidth: 1,
+            showLine: true,
+        },
+        grid: {
+            lineColor: '#065f46',
+            lineWidth: 1,
+            showGrid: true,
+            gridCount: 4,
+            fillColor: 'rgba(6, 95, 70, 0.05)',
             outerShape: 'circle',
         },
         legend: {
@@ -294,6 +387,16 @@ export default function RadarPage() {
             titleColor: '#111827',
             bodyColor: '#374151',
             fontSize: 12,
+        },
+        scan: {
+            enabled: true,
+            lineColor: 'rgba(16, 185, 129, 0.8)',
+            lineWidth: 2,
+            fillColor: 'rgba(16, 185, 129, 0.2)',
+            speed: 90,        // 90度/秒
+            sweepAngle: 45,   // 45度扇形
+            highlightColor: '#10b981',
+            highlightSize: 12,
         },
     }), []);
 
@@ -768,10 +871,25 @@ const ScatterRadarExample = () => {
                 grid: {
                     outerShape: 'circle',
                     gridCount: 4,
+                    lineColor: 'rgba(6, 95, 70, 0.3)',
+                    fillColor: 'rgba(16, 185, 129, 0.03)',
+                },
+                axis: {
+                    lineColor: '#065f46',
                 },
                 legend: {
                     display: true,
                     position: 'bottom',
+                },
+                scan: {
+                    enabled: true,                              // 启用雷达扫描效果
+                    lineColor: '#00d4ff',                       // 扫描线颜色（青色）
+                    lineWidth: 2,
+                    fillColor: 'rgba(0, 212, 255, 0.15)',      // 扫描区域填充
+                    speed: 60,                                  // 扫描速度（度/秒）
+                    sweepAngle: 60,                             // 扫描扇形角度
+                    highlightColor: '#00d4ff',                  // 高亮点颜色
+                    highlightSize: 10,                          // 高亮点大小
                 },
             }}
         />
@@ -1070,8 +1188,8 @@ const CircleGridRadarExample = () => {
 
                     {/* 散点雷达图 */}
                     <div className={styles.exampleSection} id="radar-scatter">
-                        <h3 className={styles.subsectionTitle}>散点雷达图</h3>
-                        <p className={styles.sectionText}>通过设置 showLine: false，只显示数据点而不连接线条，类似于雷达扫描点的视觉效果，适合展示离散数据分布。</p>
+                        <h3 className={styles.subsectionTitle}>散点雷达图（带扫描效果）</h3>
+                        <p className={styles.sectionText}>通过设置 showLine: false 只显示数据点，同时启用 scan 配置添加雷达扫描效果。扫描线会旋转并高亮经过的数据点，适合展示雷达监测、信号扫描等场景。</p>
                         <div className={styles.exampleDemo}>
                             <Radar data={scatterRadarData} width={400} height={400} config={scatterRadarConfig} />
                         </div>

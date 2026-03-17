@@ -21,4 +21,5 @@ export type {
     RadarTooltipConfig,
     RadarChartConfig,
     RadarPointConfig,
+    RadarScanConfig,
 } from './Radar.type';

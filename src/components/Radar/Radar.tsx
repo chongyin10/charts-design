@@ -23,6 +23,7 @@ import type {
     RadarGridConfig,
     RadarLegendConfig,
     RadarTooltipConfig,
+    RadarScanConfig,
     ComputedIndicator,
     ComputedPoint,
     ComputedSeries,
@@ -98,6 +99,16 @@ const DEFAULT_CONFIG: Required<RadarChartConfig> = {
         fillColor: '#ffffff',
         strokeWidth: 2,
     },
+    scan: {
+        enabled: false,
+        lineColor: 'rgba(16, 185, 129, 0.8)',
+        lineWidth: 2,
+        fillColor: 'rgba(16, 185, 129, 0.15)',
+        speed: 60,
+        sweepAngle: 30,
+        highlightColor: '#10b981',
+        highlightSize: 10,
+    },
 };
 
 /**
@@ -160,6 +171,7 @@ const mergeConfig = (config: RadarChartConfig | undefined): Required<RadarChartC
         legend: { ...DEFAULT_CONFIG.legend, ...config.legend },
         tooltip: { ...DEFAULT_CONFIG.tooltip, ...config.tooltip },
         point: { ...DEFAULT_CONFIG.point, ...config.point },
+        scan: { ...DEFAULT_CONFIG.scan, ...config.scan },
     };
 };
 
@@ -676,6 +688,153 @@ const drawSeries = (
 };
 
 /**
+ * 绘制雷达扫描效果
+ * 包括旋转的扫描线、扇形扫描区域和被扫描点的高亮效果
+ */
+const drawScanEffect = (
+    ctx: CanvasRenderingContext2D,
+    geometry: RadarGeometry,
+    indicators: ComputedIndicator[],
+    computedSeries: ComputedSeries[],
+    scanConfig: RadarScanConfig,
+    scanAngle: number
+) => {
+    if (!scanConfig.enabled) return;
+
+    const { centerX, centerY, radius } = geometry;
+    const sweepAngleRad = toRad(scanConfig.sweepAngle || 30);
+    const scanAngleRad = toRad(scanAngle);
+
+    ctx.save();
+
+    // 创建扇形渐变填充
+    const gradient = ctx.createConicGradient(
+        scanAngleRad - sweepAngleRad / 2,
+        centerX,
+        centerY
+    );
+    const fillColor = scanConfig.fillColor || 'rgba(16, 185, 129, 0.15)';
+    gradient.addColorStop(0, 'transparent');
+    gradient.addColorStop(0.5, fillColor);
+    gradient.addColorStop(1, 'transparent');
+
+    // 绘制扫描扇形区域
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(
+        centerX,
+        centerY,
+        radius,
+        scanAngleRad - sweepAngleRad / 2,
+        scanAngleRad + sweepAngleRad / 2
+    );
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // 计算扫描线终点（用于数据点高亮判断）
+    const scanEndX = centerX + Math.cos(scanAngleRad) * radius;
+    const scanEndY = centerY + Math.sin(scanAngleRad) * radius;
+
+    // 检测并高亮被扫描到的点
+    const highlightSize = scanConfig.highlightSize || 10;
+    const highlightColor = scanConfig.highlightColor || '#10b981';
+
+    computedSeries.forEach(series => {
+        if (!series.showPoints) return;
+
+        series.points.forEach(point => {
+            // 计算该点相对于中心的角度
+            const pointAngle = Math.atan2(point.y - centerY, point.x - centerX);
+            let normalizedPointAngle = pointAngle;
+            let normalizedScanStart = scanAngleRad - sweepAngleRad / 2;
+            let normalizedScanEnd = scanAngleRad + sweepAngleRad / 2;
+
+            // 归一化角度到 [0, 2*PI]
+            while (normalizedPointAngle < 0) normalizedPointAngle += Math.PI * 2;
+            while (normalizedScanStart < 0) normalizedScanStart += Math.PI * 2;
+            while (normalizedScanEnd < 0) normalizedScanEnd += Math.PI * 2;
+
+            // 检查点是否在扫描扇形范围内
+            let isInScan = false;
+            if (normalizedScanStart <= normalizedScanEnd) {
+                isInScan = normalizedPointAngle >= normalizedScanStart &&
+                          normalizedPointAngle <= normalizedScanEnd;
+            } else {
+                // 跨越 0 度的情况
+                isInScan = normalizedPointAngle >= normalizedScanStart ||
+                          normalizedPointAngle <= normalizedScanEnd;
+            }
+
+            if (isInScan) {
+                const time = Date.now();
+                const pulseSpeed = 150; // 脉冲速度（毫秒）
+                
+                // 计算脉冲进度 (0 -> 1)
+                const pulse1 = (time % pulseSpeed) / pulseSpeed;
+                const pulse2 = ((time + pulseSpeed / 2) % pulseSpeed) / pulseSpeed;
+                
+                // 第一层脉冲（外圈扩散）
+                const outerScale1 = 1 + pulse1 * 1.5; // 扩散到 2.5 倍
+                const outerAlpha1 = Math.floor((1 - pulse1) * 40).toString(16).padStart(2, '0');
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * outerScale1, 0, Math.PI * 2);
+                ctx.strokeStyle = highlightColor + outerAlpha1;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 第二层脉冲（错位扩散）
+                const outerScale2 = 1 + pulse2 * 1.5;
+                const outerAlpha2 = Math.floor((1 - pulse2) * 30).toString(16).padStart(2, '0');
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * outerScale2, 0, Math.PI * 2);
+                ctx.strokeStyle = highlightColor + outerAlpha2;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // 绘制发光外圈（固定）
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * 1.2, 0, Math.PI * 2);
+                ctx.fillStyle = highlightColor + '20'; // 12% 透明度填充
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * 1.2, 0, Math.PI * 2);
+                ctx.strokeStyle = highlightColor + '60'; // 37% 透明度边框
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 绘制内圈高亮（实心）
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * 0.6, 0, Math.PI * 2);
+                ctx.fillStyle = highlightColor;
+                ctx.fill();
+                
+                // 内圈发光效果
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * 0.6, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 绘制连接扫描中心的发光线条
+                const gradient = ctx.createLinearGradient(centerX, centerY, point.x, point.y);
+                gradient.addColorStop(0, highlightColor + '00'); // 透明
+                gradient.addColorStop(1, highlightColor + '80'); // 50% 透明度
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(point.x, point.y);
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        });
+    });
+
+    ctx.restore();
+};
+
+/**
  * 渲染 DOM 图例
  */
 const renderLegend = (
@@ -734,7 +893,9 @@ const Radar: React.FC<RadarProps> = ({
         y: number;
     } | null>(null);
     const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+    const [scanAngle, setScanAngle] = useState(-90); // 扫描角度，从-90度开始（12点钟方向）
     const animationRef = useRef<number>();
+    const scanAnimationRef = useRef<number>();
     const isResizingRef = useRef(false);
 
     const mergedConfig = useMemo(() => mergeConfig(config), [config]);
@@ -836,6 +997,40 @@ const Radar: React.FC<RadarProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mergedConfig.animation, mergedConfig.animationDuration]); // 移除 data 依赖
 
+    // 扫描动画效果
+    useEffect(() => {
+        if (!mergedConfig.scan.enabled) {
+            // 重置扫描角度
+            setScanAngle(-90);
+            return;
+        }
+
+        const speed = mergedConfig.scan.speed || 60; // 度数/秒
+        let lastTime = performance.now();
+
+        const animateScan = (timestamp: number) => {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            // 更新扫描角度
+            setScanAngle(prev => {
+                const newAngle = prev + (speed * deltaTime) / 1000;
+                // 保持在 -90 到 270 度范围内循环
+                return newAngle >= 270 ? -90 : newAngle;
+            });
+
+            scanAnimationRef.current = requestAnimationFrame(animateScan);
+        };
+
+        scanAnimationRef.current = requestAnimationFrame(animateScan);
+
+        return () => {
+            if (scanAnimationRef.current) {
+                cancelAnimationFrame(scanAnimationRef.current);
+            }
+        };
+    }, [mergedConfig.scan.enabled, mergedConfig.scan.speed]);
+
     // 绘制图表
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -863,6 +1058,9 @@ const Radar: React.FC<RadarProps> = ({
 
         // 绘制维度标签
         drawLabels(ctx, geometry, indicators, mergedConfig.label);
+
+        // 绘制扫描效果
+        drawScanEffect(ctx, geometry, indicators, computedSeries, mergedConfig.scan, scanAngle);
     }, [
         canvasWidth,
         canvasHeight,
@@ -871,6 +1069,7 @@ const Radar: React.FC<RadarProps> = ({
         computedSeries,
         animationProgress,
         mergedConfig,
+        scanAngle,
     ]);
 
     // 处理鼠标移动 - tooltip
