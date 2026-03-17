@@ -17,6 +17,7 @@ import DualAxesExample from './DualAxes';
 import BidirectionalBarExample from './BidirectionalBar';
 import BoxExample from './Box';
 import GaugeExample from './Gauge';
+import RadarExample from './Radar';
 
 const { Header, Sider, Content } = Layout;
 
@@ -26,7 +27,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -104,6 +105,11 @@ export default function Home() {
             label: 'Gauge',
             description: '仪表盘'
         },
+        {
+            key: 'radar',
+            label: 'Radar',
+            description: '雷达图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -135,6 +141,8 @@ export default function Home() {
                 return <BoxExample />;
             case 'gauge':
                 return <GaugeExample />;
+            case 'radar':
+                return <RadarExample />;
             default:
                 return <LineExample />;
         }

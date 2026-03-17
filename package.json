@@ -86,6 +86,12 @@
       "require": "./dist/pie/index.js"
     },
     "./pie/style.css": "./dist/pie/style.css",
+    "./radar": {
+      "types": "./dist/radar/index.d.ts",
+      "import": "./dist/radar/index.esm.js",
+      "require": "./dist/radar/index.js"
+    },
+    "./radar/style.css": "./dist/radar/style.css",
     "./scatter": {
       "types": "./dist/scatter/index.d.ts",
       "import": "./dist/scatter/index.esm.js",

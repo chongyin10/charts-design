@@ -9,6 +9,7 @@ export { Heatmap, default as HeatmapDefault } from './components/Heatmap';
 export { Liquid, default as LiquidDefault } from './components/Liquid';
 export { BoxPlot, default as BoxPlotDefault } from './components/Box';
 export { Gauge, default as GaugeDefault } from './components/Gauge';
+export { Radar, default as RadarDefault } from './components/Radar';
 
 // 导出类型定义
 export type {
@@ -109,6 +110,20 @@ export type {
   GaugeTextConfig,
   GaugeRangeConfig,
 } from './components/Gauge/Gauge.type';
+
+export type {
+  RadarProps,
+  RadarChartData,
+  RadarSeries,
+  RadarDataItem,
+  RadarIndicator,
+  RadarLabelConfig,
+  RadarAxisConfig,
+  RadarGridConfig,
+  RadarLegendConfig,
+  RadarTooltipConfig,
+  RadarChartConfig,
+} from './components/Radar/Radar.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';
