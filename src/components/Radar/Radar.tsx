@@ -293,6 +293,8 @@ const calculateSeriesPoints = (
     const showPoints = series.showPoints ?? globalPointConfig?.display ?? true;
     const pointSize = series.pointSize ?? globalPointConfig?.size ?? 5;
     const smooth = series.smooth ?? false;
+    // 默认显示连接线，除非明确设置为 false
+    const showLine = series.showLine ?? true;
 
     return {
         name: series.name,
@@ -302,6 +304,7 @@ const calculateSeriesPoints = (
         showPoints,
         pointSize,
         smooth,
+        showLine,
         points,
     };
 };
@@ -624,34 +627,37 @@ const drawSeries = (
 ) => {
     if (computedSeries.points.length === 0) return;
 
-    const { points, color, lineWidth, fillOpacity, smooth } = computedSeries;
+    const { points, color, lineWidth, fillOpacity, smooth, showLine } = computedSeries;
 
     ctx.save();
 
-    // 绘制填充区域
-    if (smooth) {
-        drawSmoothPath(ctx, points, true);
-    } else {
-        ctx.beginPath();
-        points.forEach((point, index) => {
-            if (index === 0) {
-                ctx.moveTo(point.x, point.y);
-            } else {
-                ctx.lineTo(point.x, point.y);
-            }
-        });
-        ctx.closePath();
+    // 只有当 showLine 为 true 时才绘制连接线和填充区域
+    if (showLine) {
+        // 绘制填充区域
+        if (smooth) {
+            drawSmoothPath(ctx, points, true);
+        } else {
+            ctx.beginPath();
+            points.forEach((point, index) => {
+                if (index === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.closePath();
+        }
+
+        // 填充
+        ctx.fillStyle = color + Math.round(fillOpacity * 255).toString(16).padStart(2, '0');
+        ctx.fill();
+
+        // 绘制线条
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
     }
-
-    // 填充
-    ctx.fillStyle = color + Math.round(fillOpacity * 255).toString(16).padStart(2, '0');
-    ctx.fill();
-
-    // 绘制线条
-    ctx.strokeStyle = color;
-    ctx.lineWidth = lineWidth;
-    ctx.lineJoin = 'round';
-    ctx.stroke();
 
     // 绘制点
     if (computedSeries.showPoints) {

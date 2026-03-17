@@ -214,6 +214,89 @@ export default function RadarPage() {
         },
     }), []);
 
+    // 散点雷达图数据（只显示点，不连接线条）
+    const scatterRadarData: RadarChartData = {
+        series: [
+            {
+                name: '雷达扫描点',
+                data: [
+                    { name: '方向1', value: 30 },
+                    { name: '方向2', value: 55 },
+                    { name: '方向3', value: 42 },
+                    { name: '方向4', value: 68 },
+                    { name: '方向5', value: 35 },
+                    { name: '方向6', value: 78 },
+                    { name: '方向7', value: 50 },
+                    { name: '方向8', value: 62 },
+                ],
+                color: '#10b981',
+                showLine: false,  // 不显示连接线
+                showPoints: true, // 显示数据点
+                pointSize: 8,     // 较大的点
+            },
+            {
+                name: '目标点',
+                data: [
+                    { name: '方向1', value: 65 },
+                    { name: '方向2', value: 40 },
+                    { name: '方向3', value: 72 },
+                    { name: '方向4', value: 45 },
+                    { name: '方向5', value: 58 },
+                    { name: '方向6', value: 38 },
+                    { name: '方向7', value: 70 },
+                    { name: '方向8', value: 48 },
+                ],
+                color: '#ef4444',
+                showLine: false,
+                showPoints: true,
+                pointSize: 6,
+            },
+        ],
+    };
+
+    // 散点雷达图配置
+    const scatterRadarConfig = useMemo<RadarChartConfig>(() => ({
+        padding: 40,
+        radiusRatio: 0.8,
+        startAngle: -90,
+        animation: true,
+        animationDuration: 1000,
+        label: {
+            display: true,
+            color: '#374151',
+            fontSize: 12,
+            fontWeight: '500',
+            offset: 14,
+        },
+        axis: {
+            lineColor: '#d1d5db',
+            lineWidth: 1,
+            showLine: true,
+        },
+        grid: {
+            lineColor: '#e5e7eb',
+            lineWidth: 1,
+            showGrid: true,
+            gridCount: 4,
+            fillColor: 'transparent',
+            outerShape: 'circle',
+        },
+        legend: {
+            display: true,
+            position: 'bottom',
+            labelColor: '#374151',
+            labelFontSize: 12,
+            align: 'center',
+        },
+        tooltip: {
+            enabled: true,
+            backgroundColor: '#ffffff',
+            titleColor: '#111827',
+            bodyColor: '#374151',
+            fontSize: 12,
+        },
+    }), []);
+
     // 平滑曲线数据
     const smoothData: RadarChartData = {
         series: [
@@ -633,6 +716,68 @@ const CustomTooltipExample = () => {
     );
 };`;
 
+    // 散点雷达图代码
+    const scatterRadarCode = `import { Radar } from '@zjpcy/charts-design';
+
+const ScatterRadarExample = () => {
+    const data = {
+        series: [
+            {
+                name: '雷达扫描点',
+                data: [
+                    { name: '方向1', value: 30 },
+                    { name: '方向2', value: 55 },
+                    { name: '方向3', value: 42 },
+                    { name: '方向4', value: 68 },
+                    { name: '方向5', value: 35 },
+                    { name: '方向6', value: 78 },
+                    { name: '方向7', value: 50 },
+                    { name: '方向8', value: 62 },
+                ],
+                color: '#10b981',
+                showLine: false,  // 不显示连接线，只显示点
+                showPoints: true, // 显示数据点
+                pointSize: 8,     // 点的大小
+            },
+            {
+                name: '目标点',
+                data: [
+                    { name: '方向1', value: 65 },
+                    { name: '方向2', value: 40 },
+                    { name: '方向3', value: 72 },
+                    { name: '方向4', value: 45 },
+                    { name: '方向5', value: 58 },
+                    { name: '方向6', value: 38 },
+                    { name: '方向7', value: 70 },
+                    { name: '方向8', value: 48 },
+                ],
+                color: '#ef4444',
+                showLine: false,
+                showPoints: true,
+                pointSize: 6,
+            },
+        ],
+    };
+
+    return (
+        <Radar
+            data={data}
+            width={400}
+            height={400}
+            config={{
+                grid: {
+                    outerShape: 'circle',
+                    gridCount: 4,
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                },
+            }}
+        />
+    );
+};`;
+
     // 平滑曲线代码
     const smoothCode = `import { Radar } from '@zjpcy/charts-design';
 
@@ -756,6 +901,10 @@ const CircleGridRadarExample = () => {
         { param: 'color', description: '线条颜色', type: 'string', default: '-' },
         { param: 'fillOpacity', description: '填充透明度 (0-1)', type: 'number', default: '0.3' },
         { param: 'lineWidth', description: '线条宽度', type: 'number', default: '2' },
+        { param: 'showLine', description: '是否显示连接线', type: 'boolean', default: 'true' },
+        { param: 'showPoints', description: '是否显示数据点', type: 'boolean', default: 'true' },
+        { param: 'pointSize', description: '数据点大小', type: 'number', default: '5' },
+        { param: 'smooth', description: '是否使用平滑曲线', type: 'boolean', default: 'false' },
     ];
 
     // Label 配置数据
@@ -916,6 +1065,22 @@ const CircleGridRadarExample = () => {
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
                             {customTooltipCode}
+                        </SyntaxHighlighter>
+                    </div>
+
+                    {/* 散点雷达图 */}
+                    <div className={styles.exampleSection} id="radar-scatter">
+                        <h3 className={styles.subsectionTitle}>散点雷达图</h3>
+                        <p className={styles.sectionText}>通过设置 showLine: false，只显示数据点而不连接线条，类似于雷达扫描点的视觉效果，适合展示离散数据分布。</p>
+                        <div className={styles.exampleDemo}>
+                            <Radar data={scatterRadarData} width={400} height={400} config={scatterRadarConfig} />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={scatterRadarCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {scatterRadarCode}
                         </SyntaxHighlighter>
                     </div>
 
@@ -1081,6 +1246,7 @@ const CircleGridRadarExample = () => {
                                 <Anchor.Link href="#radar-8dimension" title="8维度展示" />
                                 <Anchor.Link href="#radar-no-animation" title="无动画" />
                                 <Anchor.Link href="#radar-tooltip" title="自定义提示框" />
+                                <Anchor.Link href="#radar-scatter" title="散点雷达图" />
                                 <Anchor.Link href="#radar-smooth" title="平滑曲线" />
                                 <Anchor.Link href="#radar-circle-grid" title="圆形网格" />
                                 <Anchor.Link href="#radar-features" title="组件特性" />

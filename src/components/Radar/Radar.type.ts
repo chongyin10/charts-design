@@ -35,6 +35,8 @@ export interface RadarSeries {
     pointSize?: number;
     /** 是否使用平滑曲线（贝塞尔曲线） */
     smooth?: boolean;
+    /** 是否显示连接线，false 时只显示点（适合散点雷达图） */
+    showLine?: boolean;
 }
 
 /**
@@ -261,6 +263,7 @@ export interface ComputedSeries {
     showPoints: boolean;
     pointSize: number;
     smooth: boolean;
+    showLine: boolean;
     points: ComputedPoint[];
 }
 
