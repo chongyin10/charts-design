@@ -92,6 +92,12 @@
       "require": "./dist/radar/index.js"
     },
     "./radar/style.css": "./dist/radar/style.css",
+    "./sankey": {
+      "types": "./dist/sankey/index.d.ts",
+      "import": "./dist/sankey/index.esm.js",
+      "require": "./dist/sankey/index.js"
+    },
+    "./sankey/style.css": "./dist/sankey/style.css",
     "./scatter": {
       "types": "./dist/scatter/index.d.ts",
       "import": "./dist/scatter/index.esm.js",

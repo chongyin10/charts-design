@@ -1,0 +1,149 @@
+/**
+ * 桑基图组件样式
+ */
+
+.zcpcyChatsSankeyChartContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.zcpcyChatsSankeyChartSvg {
+  display: block;
+  cursor: default;
+}
+
+/* Canvas 样式 */
+.zcpcyChatsSankeyChartCanvas {
+  display: block;
+  cursor: default;
+}
+
+/* 链接样式 */
+.zcpcyChatsLinks {
+  pointer-events: all;
+}
+
+/* 节点样式 */
+.zcpcyChatsNodes {
+  pointer-events: all;
+}
+
+/* 提示框样式 */
+.zcpcyChatsTooltip {
+  position: fixed;
+  pointer-events: none;
+  background: #ffffff;
+  color: #374151;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 20px 25px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transform: translateY(-4px);
+}
+
+.zcpcyChatsTooltipVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.zcpcyChatsTooltipTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #111827;
+  letter-spacing: 0.3px;
+}
+
+.zcpcyChatsTooltipItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.zcpcyChatsTooltipItem:last-child {
+  margin-bottom: 0;
+}
+
+.zcpcyChatsTooltipColor {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 图例样式 */
+.zcpcyChatsLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 2px 12px;
+  justify-content: center;
+}
+
+.zcpcyChatsLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s ease;
+}
+
+.zcpcyChatsLegendItem:hover {
+  opacity: 0.7;
+}
+
+.zcpcyChatsLegendDisabled {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.zcpcyChatsLegendColor {
+  width: 20px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/* 动画效果 */
+@keyframes sankeyFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.zcpcyChatsSankeyChartContainer {
+  animation: sankeyFadeIn 0.3s ease-out;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .zcpcyChatsTooltip {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .zcpcyChatsTooltipTitle {
+    font-size: 12px;
+  }
+}

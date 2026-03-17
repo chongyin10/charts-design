@@ -10,6 +10,7 @@ export { Liquid, default as LiquidDefault } from './components/Liquid';
 export { BoxPlot, default as BoxPlotDefault } from './components/Box';
 export { Gauge, default as GaugeDefault } from './components/Gauge';
 export { Radar, default as RadarDefault } from './components/Radar';
+export { Sankey, default as SankeyDefault } from './components/Sankey';
 
 // 导出类型定义
 export type {
@@ -124,6 +125,22 @@ export type {
   RadarTooltipConfig,
   RadarChartConfig,
 } from './components/Radar/Radar.type';
+
+export type {
+  SankeyProps,
+  SankeyChartData,
+  SankeyNode,
+  SankeyLink,
+  SankeyNodeConfig,
+  SankeyLinkConfig,
+  SankeyLayoutConfig,
+  SankeyTooltipConfig,
+  SankeyLegendConfig,
+  SankeyAnimationConfig,
+  ComputedNode,
+  ComputedLink,
+  SankeyChartConfig,
+} from './components/Sankey/Sankey.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';

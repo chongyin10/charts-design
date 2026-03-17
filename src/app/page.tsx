@@ -18,6 +18,7 @@ import BidirectionalBarExample from './BidirectionalBar';
 import BoxExample from './Box';
 import GaugeExample from './Gauge';
 import RadarExample from './Radar';
+import SankeyExample from './Sankey';
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,7 +28,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -110,6 +111,11 @@ export default function Home() {
             label: 'Radar',
             description: '雷达图'
         },
+        {
+            key: 'sankey',
+            label: 'Sankey',
+            description: '桑基图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -143,6 +149,8 @@ export default function Home() {
                 return <GaugeExample />;
             case 'radar':
                 return <RadarExample />;
+            case 'sankey':
+                return <SankeyExample />;
             default:
                 return <LineExample />;
         }
