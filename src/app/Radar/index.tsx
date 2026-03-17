@@ -297,9 +297,7 @@ export default function RadarPage() {
         },
         scan: {
             enabled: true,
-            lineColor: 'rgba(0, 212, 255, 0.15)',
-            lineWidth: 1,
-            fillColor: 'rgba(0, 212, 255, 0.15)',
+            fillColor: '#40a9ff69',
             speed: 60,        // 60度/秒，更优雅的旋转速度
             sweepAngle: 60,   // 60度扇形，更大的覆盖范围
             highlightColor: '#00d4ff',

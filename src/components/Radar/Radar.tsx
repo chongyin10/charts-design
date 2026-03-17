@@ -768,28 +768,38 @@ const drawScanEffect = (
 
             if (isInScan) {
                 const time = Date.now();
-                const pulseSpeed = 150; // 脉冲速度（毫秒）
+                const pulseSpeed = 180; // 脉冲速度（毫秒）稍慢一点更优雅
                 
                 // 计算脉冲进度 (0 -> 1)
                 const pulse1 = (time % pulseSpeed) / pulseSpeed;
                 const pulse2 = ((time + pulseSpeed / 2) % pulseSpeed) / pulseSpeed;
                 
-                // 第一层脉冲（外圈扩散）
-                const outerScale1 = 1 + pulse1 * 1.5; // 扩散到 2.5 倍
-                const outerAlpha1 = Math.floor((1 - pulse1) * 40).toString(16).padStart(2, '0');
+                // 第一层脉冲（外圈扩散）- 扩大扩散范围到 4 倍
+                const outerScale1 = 1 + pulse1 * 3; // 扩散到 4 倍
+                const outerAlpha1 = Math.floor((1 - pulse1) * 50).toString(16).padStart(2, '0');
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, highlightSize * outerScale1, 0, Math.PI * 2);
                 ctx.strokeStyle = highlightColor + outerAlpha1;
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // 第二层脉冲（错位扩散）
-                const outerScale2 = 1 + pulse2 * 1.5;
-                const outerAlpha2 = Math.floor((1 - pulse2) * 30).toString(16).padStart(2, '0');
+                // 第二层脉冲（错位扩散）- 扩大扩散范围到 3.5 倍
+                const outerScale2 = 1 + pulse2 * 2.5;
+                const outerAlpha2 = Math.floor((1 - pulse2) * 40).toString(16).padStart(2, '0');
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, highlightSize * outerScale2, 0, Math.PI * 2);
                 ctx.strokeStyle = highlightColor + outerAlpha2;
                 ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // 第三层脉冲（最外层微弱扩散）- 扩大扩散范围到 5 倍
+                const pulse3 = ((time + pulseSpeed / 4) % pulseSpeed) / pulseSpeed;
+                const outerScale3 = 1 + pulse3 * 4;
+                const outerAlpha3 = Math.floor((1 - pulse3) * 25).toString(16).padStart(2, '0');
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, highlightSize * outerScale3, 0, Math.PI * 2);
+                ctx.strokeStyle = highlightColor + outerAlpha3;
+                ctx.lineWidth = 1;
                 ctx.stroke();
 
                 // 绘制发光外圈（固定）
