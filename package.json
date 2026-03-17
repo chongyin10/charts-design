@@ -132,7 +132,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@zjpcy/simple-design": "1.6.2",
+    "@zjpcy/simple-design": "1.7.0",
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
