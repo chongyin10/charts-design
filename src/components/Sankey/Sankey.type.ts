@@ -51,6 +51,8 @@ export interface SankeyNodeConfig {
   cornerRadius?: number;
   /** 节点之间的间距 */
   padding?: number;
+  /** 节点之间的间隙（像柱状图一样，默认0表示无间隙） */
+  gap?: number;
   /** 标签颜色 */
   labelColor?: string;
   /** 标签字体大小 */

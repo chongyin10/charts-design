@@ -12,13 +12,15 @@
   overflow: hidden;
 }
 
-.zcpcyChatsSankeyChartSvg {
+/* Canvas 样式 - 确保自适应 */
+.zcpcyChatsSankeyChartCanvas {
   display: block;
   cursor: default;
+  width: 100%;
+  height: auto;
 }
 
-/* Canvas 样式 */
-.zcpcyChatsSankeyChartCanvas {
+.zcpcyChatsSankeyChartSvg {
   display: block;
   cursor: default;
 }

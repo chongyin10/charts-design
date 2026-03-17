@@ -306,6 +306,21 @@ export default function Example() {
     );
 }`;
 
+    const gapCode = `import { Sankey } from '@/components/Sankey';
+
+// 使用 node.gap 设置节点之间的间隙
+<Sankey
+    data={alipayData}
+    width={800}
+    height={400}
+    node={{
+        showName: true,
+        showValue: false,
+        gap: 8, // 节点之间添加 8px 间隙
+    }}
+    link={{ gradient: true, opacity: 0.3 }}
+/>`;
+
     return (
         <div className={styles.examplePage}>
             <div>
@@ -360,6 +375,35 @@ export default function Example() {
                     </div>
                     <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
                         {alipayCode}
+                    </SyntaxHighlighter>
+                </div>
+
+                {/* 带间隙的桑基图 - 类似柱状图效果 */}
+                <div className={styles.exampleSection}>
+                    <h2 className={styles.subsectionTitle}>节点间隙效果</h2>
+                    <p className={styles.subsectionText}>
+                        通过设置 node.gap 属性，可以让节点之间像柱状图一样有间隙存在，
+                        不再紧密堆叠在一起，视觉效果更加清晰。
+                    </p>
+                    <div className={styles.exampleDemo}>
+                        <Sankey
+                            data={alipayData}
+                            width={800}
+                            height={400}
+                            node={{
+                                showName: true,
+                                showValue: false,
+                                gap: 8, // 节点之间添加 8px 间隙
+                            }}
+                            link={{ gradient: true, opacity: 0.3 }}
+                        />
+                    </div>
+                    <div className={styles.codeHeader}>
+                        <span>示例代码</span>
+                        <CopyButton text={gapCode} />
+                    </div>
+                    <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
+                        {gapCode}
                     </SyntaxHighlighter>
                 </div>
 

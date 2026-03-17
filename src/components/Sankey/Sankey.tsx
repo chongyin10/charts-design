@@ -126,7 +126,8 @@ const calculateChartConfig = (
 const computeLayout = (
   data: SankeyChartData,
   config: SankeyChartConfig,
-  align: 'left' | 'right' | 'center' | 'justify'
+  align: 'left' | 'right' | 'center' | 'justify',
+  nodeGap: number = 0
 ): { nodes: ComputedNode[]; links: ComputedLink[] } => {
   const { nodes, links } = data;
   const { width, height, padding, nodeWidth, nodePadding } = config;
@@ -206,17 +207,25 @@ const computeLayout = (
 
   columnNodes.forEach((colNodes, col) => {
     const colMaxVal = columnMaxValues.get(col) || totalValue;
-    const colTotalHeight = colNodes.reduce((sum, node) => {
+    
+    // 计算该列节点的总值（用于计算比例）
+    const colTotalValue = colNodes.reduce((sum, node) => {
       const nodeValue = Math.max(
         nodeInputValues.get(node.id) || 0,
         nodeOutputValues.get(node.id) || 0
       );
-      return sum + (nodeValue / totalValue) * availableHeight;
+      return sum + nodeValue;
     }, 0);
+    
+    // 计算总间隙（如果有多个节点，间隙数 = 节点数 - 1）
+    const totalGaps = nodeGap * Math.max(0, colNodes.length - 1);
+    // 减去间隙后，实际用于节点的高度
+    const availableHeightForNodes = availableHeight - totalGaps;
 
-    const colNodeSpacing = colNodes.length > 1
-      ? (availableHeight - colTotalHeight) / (colNodes.length - 1)
-      : 0;
+    // 当设置了 nodeGap 时，使用固定间隙；否则使用自动分布的间距
+    const colNodeSpacing = nodeGap > 0
+      ? nodeGap
+      : (colNodes.length > 1 ? (availableHeight - colTotalValue / totalValue * availableHeight) / (colNodes.length - 1) : 0);
 
     let currentY = padding;
 
@@ -225,7 +234,17 @@ const computeLayout = (
         nodeInputValues.get(node.id) || 0,
         nodeOutputValues.get(node.id) || 0
       );
-      const nodeHeight = (nodeValue / totalValue) * availableHeight;
+      
+      // 节点高度计算：
+      // 当有间隙时，在可用空间内按比例分配（保持各节点间的相对比例）
+      // 当无间隙时，按原始比例计算
+      let nodeHeight: number;
+      if (nodeGap > 0 && colTotalValue > 0) {
+        // 在减去间隙后的空间内按比例分配
+        nodeHeight = (nodeValue / colTotalValue) * availableHeightForNodes;
+      } else {
+        nodeHeight = (nodeValue / totalValue) * availableHeight;
+      }
 
       // 计算 X 坐标（根据对齐方式）
       let x: number;
@@ -281,14 +300,34 @@ const computeLayout = (
 
     if (!sourceNode || !targetNode) return;
 
-    const linkHeight = (link.value / totalValue) * availableHeight;
+    // 分别计算链接在源节点和目标节点处的高度
+    // 链接高度应该与节点高度的计算方式一致，确保链接完全填满节点
+    const sourceNodeValue = sourceNode.outputValue || sourceNode.inputValue;
+    const targetNodeValue = targetNode.inputValue || targetNode.outputValue;
+
+    // 源节点处的链接高度：基于源节点的输出值
+    let sourceLinkHeight: number;
+    if (sourceNodeValue > 0) {
+      sourceLinkHeight = (link.value / sourceNodeValue) * sourceNode.height;
+    } else {
+      sourceLinkHeight = 0;
+    }
+
+    // 目标节点处的链接高度：基于目标节点的输入值
+    let targetLinkHeight: number;
+    if (targetNodeValue > 0) {
+      targetLinkHeight = (link.value / targetNodeValue) * targetNode.height;
+    } else {
+      targetLinkHeight = 0;
+    }
+
     const sourceOffset = sourceLinkOffsets.get(link.source) || 0;
     const targetOffset = targetLinkOffsets.get(link.target) || 0;
 
     const sourceYTop = sourceNode.y + sourceOffset;
-    const sourceYBottom = sourceYTop + linkHeight;
+    const sourceYBottom = sourceYTop + sourceLinkHeight;
     const targetYTop = targetNode.y + targetOffset;
-    const targetYBottom = targetYTop + linkHeight;
+    const targetYBottom = targetYTop + targetLinkHeight;
 
     // 生成桑基图链接路径（填充区域）
     const sourceX = sourceNode.x + nodeWidth;
@@ -302,7 +341,7 @@ const computeLayout = (
       ...link,
       sourceNode,
       targetNode,
-      height: linkHeight,
+      height: sourceLinkHeight, // 保留 height 字段用于兼容性，使用源节点处的链接高度
       sourceY: sourceNode.y + sourceOffset,
       targetY: targetNode.y + targetOffset,
       path: '', // Canvas 不需要 SVG path 字符串
@@ -321,8 +360,9 @@ const computeLayout = (
     sourceNode.sourceLinks.push(computedLink);
     targetNode.targetLinks.push(computedLink);
 
-    sourceLinkOffsets.set(link.source, sourceOffset + linkHeight);
-    targetLinkOffsets.set(link.target, targetOffset + linkHeight);
+    // 累加偏移量时使用对应节点处的链接高度
+    sourceLinkOffsets.set(link.source, sourceOffset + sourceLinkHeight);
+    targetLinkOffsets.set(link.target, targetOffset + targetLinkHeight);
   });
 
   return { nodes: computedNodes, links: computedLinks };
@@ -452,8 +492,8 @@ const drawGradientLink = (
  */
 const Sankey: React.FC<SankeyProps> = ({
   data,
-  width = 800,
-  height = 600,
+  width: propWidth = 800,
+  height: propHeight = 600,
   padding = DEFAULT_CONFIG.padding,
   node: nodeConfig = {},
   link: linkConfig = {},
@@ -478,6 +518,67 @@ const Sankey: React.FC<SankeyProps> = ({
   }>({ visible: false, x: 0, y: 0, content: null });
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [hoveredLink, setHoveredLink] = useState<string | null>(null);
+
+  // 响应式尺寸状态
+  const [containerSize, setContainerSize] = useState({ width: propWidth, height: propHeight });
+
+  // 使用 ResizeObserver 监听容器大小变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateSize = () => {
+      if (!isMounted || !container) return;
+      const rect = container.getBoundingClientRect();
+      // 宽度自适应容器，高度保持固定
+      const newWidth = Math.max(rect.width, 300); // 最小宽度 300
+      setContainerSize({ width: newWidth, height: propHeight });
+    };
+
+    // 防抖处理的尺寸更新
+    const debouncedUpdateSize = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          updateSize();
+        }
+      }, 100); // 100ms 防抖延迟
+    };
+
+    // 初始计算（不使用防抖）
+    updateSize();
+
+    // 创建 ResizeObserver
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedUpdateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      debouncedUpdateSize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [propWidth, propHeight]);
+
+  // 使用容器尺寸或传入的尺寸
+  const width = containerSize.width || propWidth;
+  const height = containerSize.height || propHeight;
 
   // 合并配置
   const config = useMemo(
@@ -514,6 +615,7 @@ const Sankey: React.FC<SankeyProps> = ({
   // 提取 nodeConfig 和 linkConfig 的具体值，避免整个对象作为依赖
   const nodeWidth = nodeConfig.width || DEFAULT_CONFIG.nodeWidth;
   const nodeCornerRadius = nodeConfig.cornerRadius || DEFAULT_CONFIG.nodeCornerRadius;
+  const nodeGap = nodeConfig.gap || 0;
   const nodeLabelColor = nodeConfig.labelColor || '#374151';
   const nodeLabelFontSize = nodeConfig.labelFontSize || DEFAULT_CONFIG.fontSize;
   const nodeShowName = nodeConfig.showName !== false;
@@ -525,8 +627,8 @@ const Sankey: React.FC<SankeyProps> = ({
 
   // 计算布局
   const { nodes, links } = useMemo(
-    () => computeLayout(data, config, layout.align),
-    [data, config, layout.align]
+    () => computeLayout(data, config, layout.align, nodeGap),
+    [data, config, layout.align, nodeGap]
   );
 
   // 动画效果
@@ -956,7 +1058,7 @@ nodes.forEach((node, index) => {
     <div
       ref={containerRef}
       className={classNames(styles.zcpcyChatsSankeyChartContainer, className)}
-      style={{ width, height, ...style }}
+      style={style}
     >
       <canvas
         ref={canvasRef}
