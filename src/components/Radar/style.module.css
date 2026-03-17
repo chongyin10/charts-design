@@ -40,7 +40,7 @@
   border-radius: 8px;
   font-size: 12px;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 2222;
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
   box-shadow:

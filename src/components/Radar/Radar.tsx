@@ -797,7 +797,7 @@ const Radar: React.FC<RadarProps> = ({
         };
     }, [propWidth, propHeight]);
 
-    // 动画
+    // 动画 - 只在初始挂载或配置变化时运行，不受 data 变化影响
     useEffect(() => {
         if (!mergedConfig.animation) {
             setAnimationProgress(1);
@@ -827,7 +827,8 @@ const Radar: React.FC<RadarProps> = ({
                 cancelAnimationFrame(animationRef.current);
             }
         };
-    }, [data, mergedConfig.animation, mergedConfig.animationDuration]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mergedConfig.animation, mergedConfig.animationDuration]); // 移除 data 依赖
 
     // 绘制图表
     useEffect(() => {
@@ -866,7 +867,7 @@ const Radar: React.FC<RadarProps> = ({
         mergedConfig,
     ]);
 
-    // 处理鼠标移动 - 仅用于 tooltip
+    // 处理鼠标移动 - tooltip
     const handleMouseMove = useCallback(
         (e: React.MouseEvent<HTMLCanvasElement>) => {
             if (!canvasRef.current || !mergedConfig.tooltip.enabled) return;
@@ -999,7 +1000,9 @@ const Radar: React.FC<RadarProps> = ({
                     onMouseMove={handleMouseMove}
                     onMouseLeave={handleMouseLeave}
                     style={{
-                        cursor: mergedConfig.tooltip.enabled ? 'pointer' : 'default',
+                        cursor: mergedConfig.tooltip.enabled && hoverData
+                            ? 'pointer'
+                            : 'default',
                         width: canvasWidth > 0 ? canvasWidth : '100%',
                         height: canvasHeight > 0 ? canvasHeight : '100%',
                     }}

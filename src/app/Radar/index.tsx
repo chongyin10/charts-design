@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Radar } from '@/components/Radar';
 import { RadarChartData, RadarChartConfig, RadarPointConfig } from '@/components/Radar/Radar.type';
 import { Flex, Table, Anchor } from '@zjpcy/simple-design';
@@ -173,7 +173,7 @@ export default function RadarPage() {
     };
 
     // 自定义配置
-    const customConfig: RadarChartConfig = {
+    const customConfig = useMemo<RadarChartConfig>(() => ({
         padding: 30, // 减小内边距，让图表区域更大
         radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
         startAngle: -90,
@@ -212,7 +212,7 @@ export default function RadarPage() {
             bodyColor: '#374151',
             fontSize: 12,
         },
-    };
+    }), []);
 
     // 平滑曲线数据
     const smoothData: RadarChartData = {
@@ -249,7 +249,7 @@ export default function RadarPage() {
     };
 
     // 平滑曲线配置
-    const smoothConfig: RadarChartConfig = {
+    const smoothConfig = useMemo<RadarChartConfig>(() => ({
         ...customConfig,
         grid: {
             ...customConfig.grid,
@@ -261,16 +261,16 @@ export default function RadarPage() {
         point: {
             display: false
         },
-    };
+    }), [customConfig]);
 
     // 不带动画的配置
-    const noAnimationConfig: RadarChartConfig = {
+    const noAnimationConfig = useMemo<RadarChartConfig>(() => ({
         ...customConfig,
         animation: false,
-    };
+    }), [customConfig]);
 
     // 自定义提示框配置
-    const customTooltipConfig: RadarChartConfig = {
+    const customTooltipConfig = useMemo<RadarChartConfig>(() => ({
         ...customConfig,
         tooltip: {
             enabled: true,
@@ -281,10 +281,10 @@ export default function RadarPage() {
                 `;
             },
         },
-    };
+    }), [customConfig]);
 
     // 圆形网格配置（带刻度标签）- 优化布局让图表占满 canvas
-    const circleGridConfig: RadarChartConfig = {
+    const circleGridConfig = useMemo<RadarChartConfig>(() => ({
         padding: 30, // 减小内边距，让图表区域更大
         radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
         startAngle: -90,
@@ -342,15 +342,15 @@ export default function RadarPage() {
                     return Math.round(roundedValue / 1000) + 'K';
                 }
                 // 判断是否为整数，如果是整数则不显示小数位
-                return Number.isInteger(roundedValue) 
-                    ? roundedValue.toString() 
+                return Number.isInteger(roundedValue)
+                    ? roundedValue.toString()
                     : roundedValue.toFixed(2).replace(/\.?0+$/, '');
             },
         },
-    };
+    }), []);
 
     // 带刻度标签的雷达图配置
-    const tickRadarConfig: RadarChartConfig = {
+    const tickRadarConfig = useMemo<RadarChartConfig>(() => ({
         padding: 30, // 减小内边距，让图表区域更大
         radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
         startAngle: -90,
@@ -398,7 +398,7 @@ export default function RadarPage() {
             bodyColor: '#374151',
             fontSize: 12,
         },
-    };
+    }), []);
 
     // 基础雷达图代码
     const basicCode = `import { Radar } from '@zjpcy/charts-design';
