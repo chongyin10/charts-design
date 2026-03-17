@@ -174,8 +174,8 @@ export default function RadarPage() {
 
     // 自定义配置
     const customConfig: RadarChartConfig = {
-        padding: 80,
-        radiusRatio: 0.6,
+        padding: 30, // 减小内边距，让图表区域更大
+        radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
         startAngle: -90,
         animation: true,
         animationDuration: 1000,
@@ -214,6 +214,55 @@ export default function RadarPage() {
         },
     };
 
+    // 平滑曲线数据
+    const smoothData: RadarChartData = {
+        series: [
+            {
+                name: '产品能力',
+                data: [
+                    { name: '性能', value: 85 },
+                    { name: '设计', value: 92 },
+                    { name: '易用性', value: 78 },
+                    { name: '稳定性', value: 88 },
+                    { name: '性价比', value: 75 },
+                    { name: '服务', value: 82 },
+                ],
+                color: '#f59e0b',
+                fillOpacity: 0.3,
+                smooth: true,
+            },
+            {
+                name: '竞品对比',
+                data: [
+                    { name: '性能', value: 75 },
+                    { name: '设计', value: 80 },
+                    { name: '易用性', value: 85 },
+                    { name: '稳定性', value: 82 },
+                    { name: '性价比', value: 90 },
+                    { name: '服务', value: 78 },
+                ],
+                color: '#3b82f6',
+                fillOpacity: 0.3,
+                smooth: true,
+            },
+        ],
+    };
+
+    // 平滑曲线配置
+    const smoothConfig: RadarChartConfig = {
+        ...customConfig,
+        grid: {
+            ...customConfig.grid,
+            outerShape: 'circle',
+            gridCount: 5,
+            lineColor: '#e5e7eb',
+            fillColor: 'transparent',
+        },
+        point: {
+            display: false
+        },
+    };
+
     // 不带动画的配置
     const noAnimationConfig: RadarChartConfig = {
         ...customConfig,
@@ -234,15 +283,46 @@ export default function RadarPage() {
         },
     };
 
-    // 圆形网格配置（带刻度标签）
+    // 圆形网格配置（带刻度标签）- 优化布局让图表占满 canvas
     const circleGridConfig: RadarChartConfig = {
-        ...customConfig,
-        grid: {
-            ...customConfig.grid,
-            outerShape: 'circle',
-            gridCount: 7,
+        padding: 30, // 减小内边距，让图表区域更大
+        radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
+        startAngle: -90,
+        animation: true,
+        animationDuration: 1000,
+        label: {
+            display: true,
+            color: '#374151',
+            fontSize: 13,
+            fontWeight: '600',
+            offset: 16,
+        },
+        axis: {
             lineColor: '#d1d5db',
+            lineWidth: 1.5,
+            showLine: true,
+        },
+        grid: {
+            showGrid: true,
+            lineColor: '#d1d5db',
+            lineWidth: 1,
+            gridCount: 7,
             fillColor: 'transparent',
+            outerShape: 'circle',
+        },
+        legend: {
+            display: true,
+            position: 'bottom',
+            labelColor: '#374151',
+            labelFontSize: 13,
+            align: 'center',
+        },
+        tooltip: {
+            enabled: true,
+            backgroundColor: '#ffffff',
+            titleColor: '#111827',
+            bodyColor: '#374151',
+            fontSize: 12,
         },
         point: {
             display: true,
@@ -271,8 +351,8 @@ export default function RadarPage() {
 
     // 带刻度标签的雷达图配置
     const tickRadarConfig: RadarChartConfig = {
-        padding: 100,
-        radiusRatio: 0.6,
+        padding: 30, // 减小内边距，让图表区域更大
+        radiusRatio: 0.85, // 增大半径比例，接近占满 canvas
         startAngle: -90,
         animation: true,
         animationDuration: 1000,
@@ -553,6 +633,58 @@ const CustomTooltipExample = () => {
     );
 };`;
 
+    // 平滑曲线代码
+    const smoothCode = `import { Radar } from '@zjpcy/charts-design';
+
+const SmoothRadarExample = () => {
+    const data = {
+        series: [
+            {
+                name: '产品能力',
+                data: [
+                    { name: '性能', value: 85 },
+                    { name: '设计', value: 92 },
+                    { name: '易用性', value: 78 },
+                    { name: '稳定性', value: 88 },
+                    { name: '性价比', value: 75 },
+                    { name: '服务', value: 82 },
+                ],
+                color: '#f59e0b',
+                fillOpacity: 0.3,
+                smooth: true,  // 启用平滑曲线
+            },
+            {
+                name: '竞品对比',
+                data: [
+                    { name: '性能', value: 75 },
+                    { name: '设计', value: 80 },
+                    { name: '易用性', value: 85 },
+                    { name: '稳定性', value: 82 },
+                    { name: '性价比', value: 90 },
+                    { name: '服务', value: 78 },
+                ],
+                color: '#3b82f6',
+                fillOpacity: 0.3,
+                smooth: true,  // 启用平滑曲线
+            },
+        ],
+    };
+
+    return (
+        <Radar
+            data={data}
+            width={400}
+            height={400}
+            config={{
+                grid: {
+                    outerShape: 'circle',
+                    gridCount: 5,
+                },
+            }}
+        />
+    );
+};`;
+
     // 圆形网格代码
     const circleGridCode = `import { Radar } from '@zjpcy/charts-design';
 
@@ -787,6 +919,22 @@ const CircleGridRadarExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 平滑曲线 */}
+                    <div className={styles.exampleSection} id="radar-smooth">
+                        <h3 className={styles.subsectionTitle}>平滑曲线</h3>
+                        <p className={styles.sectionText}>通过设置 smooth: true，将雷达图的折线改为贝塞尔平滑曲线，呈现更加流畅的视觉效果。</p>
+                        <div className={styles.exampleDemo}>
+                            <Radar data={smoothData} width={400} height={400} config={smoothConfig} />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={smoothCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {smoothCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 圆形网格 */}
                     <div className={styles.exampleSection} id="radar-circle-grid">
                         <h3 className={styles.subsectionTitle}>圆形网格</h3>
@@ -933,6 +1081,7 @@ const CircleGridRadarExample = () => {
                                 <Anchor.Link href="#radar-8dimension" title="8维度展示" />
                                 <Anchor.Link href="#radar-no-animation" title="无动画" />
                                 <Anchor.Link href="#radar-tooltip" title="自定义提示框" />
+                                <Anchor.Link href="#radar-smooth" title="平滑曲线" />
                                 <Anchor.Link href="#radar-circle-grid" title="圆形网格" />
                                 <Anchor.Link href="#radar-features" title="组件特性" />
                                 <Anchor.Link href="#radar-api" title="API 参考" />
