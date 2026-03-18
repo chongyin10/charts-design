@@ -19,6 +19,7 @@ import BoxExample from './Box';
 import GaugeExample from './Gauge';
 import RadarExample from './Radar';
 import SankeyExample from './Sankey';
+import StockExample from './Stock';
 
 const { Header, Sider, Content } = Layout;
 
@@ -28,7 +29,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey' || hash === 'stock')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -116,6 +117,11 @@ export default function Home() {
             label: 'Sankey',
             description: '桑基图'
         },
+        {
+            key: 'stock',
+            label: 'Stock',
+            description: '股票图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -151,6 +157,8 @@ export default function Home() {
                 return <RadarExample />;
             case 'sankey':
                 return <SankeyExample />;
+            case 'stock':
+                return <StockExample />;
             default:
                 return <LineExample />;
         }

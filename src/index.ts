@@ -11,6 +11,7 @@ export { BoxPlot, default as BoxPlotDefault } from './components/Box';
 export { Gauge, default as GaugeDefault } from './components/Gauge';
 export { Radar, default as RadarDefault } from './components/Radar';
 export { Sankey, default as SankeyDefault } from './components/Sankey';
+export { Stock, default as StockDefault } from './components/Stock';
 
 // 导出类型定义
 export type {
@@ -141,6 +142,29 @@ export type {
   ComputedLink,
   SankeyChartConfig,
 } from './components/Sankey/Sankey.type';
+
+export type {
+  StockProps,
+  StockChartData,
+  StockDataPoint,
+  StockChartConfig,
+  CandlestickConfig,
+  VolumeConfig,
+  MovingAverageConfig,
+  GridConfig,
+  AxisConfig,
+  XAxisConfig,
+  YAxisConfig,
+  TooltipConfig,
+  CrosshairConfig,
+  InteractionConfig,
+  TechnicalIndicatorConfig,
+  ComputedCandle,
+  MovingAveragePoint,
+  ComputedLayout,
+  TimeRange,
+  ChartType,
+} from './components/Stock/Stock.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';

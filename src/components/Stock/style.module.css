@@ -1,0 +1,276 @@
+/**
+ * 股票图组件样式
+ */
+
+.zcpcyChatsStockChartContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Canvas 样式 - 确保自适应 */
+.zcpcyChatsStockChartCanvas {
+  display: block;
+  cursor: crosshair;
+  width: 100%;
+  height: auto;
+}
+
+/* 加载状态 */
+.zcpcyChatsStockChartLoading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: 100;
+}
+
+.zcpcyChatsStockChartLoadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #0066ff;
+  border-radius: 50%;
+  animation: stockChartSpin 1s linear infinite;
+}
+
+@keyframes stockChartSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 提示框样式 */
+.zcpcyChatsStockTooltip {
+  position: fixed;
+  pointer-events: none;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 12px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+}
+
+.zcpcyChatsStockTooltipVisible {
+  opacity: 1;
+}
+
+.zcpcyChatsStockTooltipTitle {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.zcpcyChatsStockTooltipRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.zcpcyChatsStockTooltipLabel {
+  color: #6b7280;
+  margin-right: 12px;
+}
+
+.zcpcyChatsStockTooltipValue {
+  font-weight: 500;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.zcpcyChatsStockTooltipUp {
+  color: #ef4444;
+}
+
+.zcpcyChatsStockTooltipDown {
+  color: #22c55e;
+}
+
+/* 十字光标标签 */
+.zcpcyChatsStockCrosshairLabel {
+  position: absolute;
+  background: #374151;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'SF Mono', Monaco, monospace;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* 控制栏样式 */
+.zcpcyChatsStockControls {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.zcpcyChatsStockTimeRangeButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.zcpcyChatsStockTimeRangeButton {
+  padding: 6px 12px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zcpcyChatsStockTimeRangeButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.zcpcyChatsStockTimeRangeButtonActive {
+  background: #0066ff;
+  color: #ffffff;
+  border-color: #0066ff;
+}
+
+.zcpcyChatsStockTimeRangeButtonActive:hover {
+  background: #0052cc;
+}
+
+/* 图例样式 */
+.zcpcyChatsStockLegend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.zcpcyChatsStockLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zcpcyChatsStockLegendColor {
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+.zcpcyChatsStockLegendLabel {
+  color: #6b7280;
+}
+
+.zcpcyChatsStockLegendValue {
+  color: #111827;
+  font-weight: 500;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+/* 信息栏样式 */
+.zcpcyChatsStockInfoBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.zcpcyChatsStockInfoItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.zcpcyChatsStockInfoLabel {
+  color: #6b7280;
+}
+
+.zcpcyChatsStockInfoValue {
+  font-weight: 600;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+
+.zcpcyChatsStockInfoValueUp {
+  color: #ef4444;
+}
+
+.zcpcyChatsStockInfoValueDown {
+  color: #22c55e;
+}
+
+/* 空数据状态 */
+.zcpcyChatsStockEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.zcpcyChatsStockEmptyIcon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.zcpcyChatsStockEmptyText {
+  font-size: 14px;
+}
+
+/* 响应式适配 */
+@media (max-width: 640px) {
+  .zcpcyChatsStockControls {
+    padding: 8px 12px;
+  }
+
+  .zcpcyChatsStockTimeRangeButton {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  .zcpcyChatsStockLegend {
+    padding: 6px 12px;
+    gap: 12px;
+  }
+
+  .zcpcyChatsStockInfoBar {
+    padding: 8px 12px;
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .zcpcyChatsStockTooltip {
+    min-width: 140px;
+    padding: 10px 12px;
+  }
+}
