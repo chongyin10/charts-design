@@ -104,6 +104,12 @@
       "require": "./dist/scatter/index.js"
     },
     "./scatter/style.css": "./dist/scatter/style.css",
+    "./stock": {
+      "types": "./dist/stock/index.d.ts",
+      "import": "./dist/stock/index.esm.js",
+      "require": "./dist/stock/index.js"
+    },
+    "./stock/style.css": "./dist/stock/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [
@@ -132,7 +138,7 @@
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@zjpcy/simple-design": "1.7.0",
+    "@zjpcy/simple-design": "^1.8.1",
     "next": "^14.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

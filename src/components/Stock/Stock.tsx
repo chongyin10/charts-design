@@ -277,10 +277,11 @@ const Stock: React.FC<StockProps> = ({
         const points: MovingAveragePoint[] = [];
         for (let i = visibleRange.start; i < visibleRange.end; i++) {
           const value = maData[i];
-          if (value !== null) {
+          const dataPoint = data.data[i];
+          if (value !== null && dataPoint) {
             const localIndex = i - visibleRange.start;
             points.push({
-              timestamp: data.data[i].timestamp,
+              timestamp: dataPoint.timestamp,
               value,
               x: paddingLeft + (localIndex + 0.5) * (mainChart.width / visibleData.length),
               y: paddingTop + (maxPrice - value) * priceScale,
@@ -623,7 +624,10 @@ const Stock: React.FC<StockProps> = ({
   const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
     const zoomEnabled = mergedConfig.interaction.zoomEnabled !== false;
     if (!zoomEnabled) return;
-    e.preventDefault();
+    // 检查事件是否可以取消，避免 passive event listener 警告
+    if (e.cancelable) {
+      e.preventDefault();
+    }
 
     const minDataPoints = mergedConfig.interaction.minDataPoints || 20;
     const maxDataPoints = mergedConfig.interaction.maxDataPoints || 500;
@@ -685,8 +689,10 @@ const Stock: React.FC<StockProps> = ({
     onVisibleRangeChange?.(newRange);
   };
 
-  // 当前悬停的数据
-  const hoverData = hoverIndex !== null ? data.data[hoverIndex] : null;
+  // 当前悬停的数据，默认显示最后一个可见数据点
+  const hoverData = hoverIndex !== null && hoverIndex >= 0 && hoverIndex < data.data.length
+    ? data.data[hoverIndex]
+    : data.data[visibleRange.end - 1];
 
   return (
     <div
