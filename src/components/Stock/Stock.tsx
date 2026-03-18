@@ -648,33 +648,33 @@ const Stock: React.FC<StockProps> = ({
 
   // 时间范围按钮
   const timeRanges: { label: string; value: TimeRange; getRange: () => { start: number; end: number } }[] = [
-    { 
-      label: '日K', 
+    {
+      label: '1日',
       value: '1D',
       getRange: () => ({ start: Math.max(0, data.data.length - 1), end: data.data.length })
     },
-    { 
-      label: '周K', 
+    {
+      label: '5日',
       value: '5D',
       getRange: () => ({ start: Math.max(0, data.data.length - 5), end: data.data.length })
     },
-    { 
-      label: '月K', 
+    {
+      label: '1月',
       value: '1M',
       getRange: () => ({ start: Math.max(0, data.data.length - 30), end: data.data.length })
     },
-    { 
-      label: '季K', 
+    {
+      label: '1季',
       value: '3M',
       getRange: () => ({ start: Math.max(0, data.data.length - 90), end: data.data.length })
     },
-    { 
-      label: '年K', 
+    {
+      label: '1年',
       value: '1Y',
       getRange: () => ({ start: Math.max(0, data.data.length - 365), end: data.data.length })
     },
-    { 
-      label: '全部', 
+    {
+      label: '全部',
       value: 'ALL',
       getRange: () => ({ start: 0, end: data.data.length })
     },
