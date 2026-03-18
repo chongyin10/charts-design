@@ -14,12 +14,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Canvas 样式 - 确保自适应 */
+/* Canvas 样式 - 确保坐标对齐，不进行 CSS 拉伸 */
 .zcpcyChatsStockChartCanvas {
   display: block;
   cursor: crosshair;
-  width: 100%;
-  height: auto;
+  /* 使用逻辑尺寸，避免 CSS 拉伸导致坐标偏移 */
+  max-width: 100%;
 }
 
 /* 加载状态 */

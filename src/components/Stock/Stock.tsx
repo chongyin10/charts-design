@@ -193,15 +193,41 @@ const Stock: React.FC<StockProps> = ({
   }, [config]);
   
   // 状态
+  const initialEnd = data.data.length;
+  const initialStart = Math.max(0, data.data.length - mergedConfig.interaction.defaultDataPoints);
   const [visibleRange, setVisibleRange] = useState({
-    start: Math.max(0, data.data.length - mergedConfig.interaction.defaultDataPoints),
-    end: data.data.length,
+    start: initialStart,
+    end: initialEnd,
   });
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  // 初始 hoverIndex 设为默认可见范围的最后一个数据点，确保信息栏始终显示
+  const [hoverIndex, setHoverIndex] = useState<number | null>(initialEnd > 0 ? initialEnd - 1 : null);
+  // 鼠标/触摸的精确位置（用于十字光标）
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartX, setDragStartX] = useState(0);
   const [dragStartRange, setDragStartRange] = useState({ start: 0, end: 0 });
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0, visible: false });
+  
+  // 触摸状态
+  const touchState = useRef<{
+    startX: number;
+    startY: number;
+    startDistance: number;
+    startRange: { start: number; end: number };
+    isPinching: boolean;
+    isDragging: boolean;
+    lastTouchX: number;
+    lastTouchY: number;
+  }>({
+    startX: 0,
+    startY: 0,
+    startDistance: 0,
+    startRange: { start: 0, end: 0 },
+    isPinching: false,
+    isDragging: false,
+    lastTouchX: 0,
+    lastTouchY: 0,
+  });
 
   // 计算布局
   const computedLayout = useMemo((): ComputedLayout => {
@@ -496,60 +522,280 @@ const Stock: React.FC<StockProps> = ({
     if (crosshairVisible && hoverIndex !== null) {
       const candle = candles[hoverIndex - visibleRange.start];
       if (candle) {
+        // 使用光标实际位置，如果没有则使用 K 线数据点位置
+        const cursorX = cursorPos?.x ?? candle.x;
+        const cursorY = cursorPos?.y ?? candle.closeY;
+        
+        // 限制在图表区域内
+        const clampedX = Math.max(mainChart.x, Math.min(mainChart.x + mainChart.width, cursorX));
+        const clampedY = Math.max(mainChart.y, Math.min(mainChart.y + mainChart.height, cursorY));
+        
         ctx.strokeStyle = crosshairHorizontalColor;
         ctx.lineWidth = 1;
         if (crosshairLineType === 'dashed') {
           ctx.setLineDash([4, 4]);
         }
 
-        // 水平线
+        // 水平线 - 跟随光标 Y 位置
         ctx.beginPath();
-        ctx.moveTo(mainChart.x, candle.closeY);
-        ctx.lineTo(mainChart.x + mainChart.width, candle.closeY);
+        ctx.moveTo(mainChart.x, clampedY);
+        ctx.lineTo(mainChart.x + mainChart.width, clampedY);
         ctx.stroke();
 
-        // 垂直线
+        // 垂直线 - 跟随光标 X 位置
         ctx.strokeStyle = crosshairVerticalColor;
         ctx.beginPath();
-        ctx.moveTo(candle.x, mainChart.y);
-        ctx.lineTo(candle.x, mainChart.y + mainChart.height);
+        ctx.moveTo(clampedX, mainChart.y);
+        ctx.lineTo(clampedX, mainChart.y + mainChart.height);
         ctx.stroke();
 
         ctx.setLineDash([]);
 
+        // 根据光标 Y 位置计算对应的价格
+        const priceAtCursor = priceRange.max - (clampedY - mainChart.y) / mainChart.height * (priceRange.max - priceRange.min);
+        
         // 绘制价格标签
         ctx.fillStyle = crosshairLabelBackground;
-        const priceText = formatPrice(candle.data.close);
+        const priceText = formatPrice(priceAtCursor);
         const textWidth = ctx.measureText(priceText).width + 10;
-        const labelX = axisYPosition === 'left' 
-          ? mainChart.x - textWidth - 2 
+        const labelX = axisYPosition === 'left'
+          ? mainChart.x - textWidth - 2
           : mainChart.x + mainChart.width + 2;
         
-        ctx.fillRect(labelX, candle.closeY - 10, textWidth, 20);
+        ctx.fillRect(labelX, clampedY - 10, textWidth, 20);
         ctx.fillStyle = crosshairLabelColor;
         ctx.textAlign = 'center';
-        ctx.fillText(priceText, labelX + textWidth / 2, candle.closeY + 4);
+        ctx.fillText(priceText, labelX + textWidth / 2, clampedY + 4);
       }
     }
-  }, [data, computedLayout, hoverIndex, width, height, visibleRange, mergedConfig]);
+  }, [data, computedLayout, hoverIndex, cursorPos, width, height, visibleRange, mergedConfig]);
 
   // 绘制
   useEffect(() => {
     draw();
   }, [draw]);
 
+  // 使用原生事件绑定触摸事件和滚轮事件（支持 passive: false）
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    // 原生触摸事件处理器
+    const handleNativeTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      
+      const panEnabled = mergedConfig.interaction.panEnabled !== false;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      if (e.touches.length === 1 && panEnabled) {
+        const touch = e.touches[0];
+        // 转换为 Canvas 逻辑坐标
+        const x = (touch.clientX - rect.left) * scaleX;
+        const y = (touch.clientY - rect.top) * scaleY;
+        touchState.current = {
+          startX: x,
+          startY: y,
+          startDistance: 0,
+          startRange: { ...visibleRange },
+          isPinching: false,
+          isDragging: true,
+          lastTouchX: x,
+          lastTouchY: y,
+        };
+        setIsDragging(true);
+        setDragStartX(touchState.current.startX);
+        setDragStartRange({ ...visibleRange });
+      } else if (e.touches.length === 2) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        
+        touchState.current = {
+          ...touchState.current,
+          startDistance: distance,
+          startRange: { ...visibleRange },
+          isPinching: true,
+          isDragging: false,
+          lastTouchX: ((touch1.clientX + touch2.clientX) / 2 - rect.left) * scaleX,
+          lastTouchY: ((touch1.clientY + touch2.clientY) / 2 - rect.top) * scaleY,
+        };
+      }
+    };
+
+    const handleNativeTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      
+      if (e.touches.length === 1 && touchState.current.isDragging) {
+        const touch = e.touches[0];
+        // 转换为 Canvas 逻辑坐标
+        const x = (touch.clientX - rect.left) * scaleX;
+        const y = (touch.clientY - rect.top) * scaleY;
+        
+        const dx = x - touchState.current.startX;
+        const dataPointWidth = computedLayout.mainChart.width / (touchState.current.startRange.end - touchState.current.startRange.start);
+        const dataPointsDelta = Math.round(-dx / dataPointWidth);
+        
+        if (dataPointsDelta !== 0) {
+          const newStart = Math.max(0, Math.min(
+            data.data.length - (touchState.current.startRange.end - touchState.current.startRange.start),
+            touchState.current.startRange.start + dataPointsDelta
+          ));
+          const newEnd = newStart + (touchState.current.startRange.end - touchState.current.startRange.start);
+          
+          setVisibleRange({ start: newStart, end: newEnd });
+          onVisibleRangeChange?.({ start: newStart, end: newEnd });
+        }
+        
+        // 更新悬停位置 - 即使在图表区域外也保持信息栏显示
+        const { mainChart } = computedLayout;
+        const relativeX = Math.max(0, Math.min(mainChart.width, x - mainChart.x));
+        const dataIndex = Math.floor(relativeX / (mainChart.width / (visibleRange.end - visibleRange.start)));
+        const actualIndex = Math.max(visibleRange.start, Math.min(visibleRange.end - 1, visibleRange.start + dataIndex));
+        setHoverIndex(actualIndex);
+        setCursorPos({ x, y });
+      } else if (e.touches.length === 2 && touchState.current.isPinching) {
+        const touch1 = e.touches[0];
+        const touch2 = e.touches[1];
+        const distance = Math.hypot(
+          touch2.clientX - touch1.clientX,
+          touch2.clientY - touch1.clientY
+        );
+        
+        const zoomEnabled = mergedConfig.interaction.zoomEnabled !== false;
+        if (!zoomEnabled) return;
+        
+        const minDataPoints = mergedConfig.interaction.minDataPoints || 20;
+        const maxDataPoints = mergedConfig.interaction.maxDataPoints || 500;
+        
+        const scale = distance / touchState.current.startDistance;
+        const currentCount = touchState.current.startRange.end - touchState.current.startRange.start;
+        const newCount = Math.round(currentCount / scale);
+        
+        const clampedCount = Math.max(minDataPoints, Math.min(maxDataPoints, newCount));
+        
+        const centerX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+        const { mainChart } = computedLayout;
+        const relativeX = Math.max(0, Math.min(mainChart.width, centerX - mainChart.x));
+        const dataPointWidth = mainChart.width / currentCount;
+        const centerDataIndex = touchState.current.startRange.start + Math.floor(relativeX / dataPointWidth);
+        
+        const newStart = Math.max(0, Math.min(data.data.length - clampedCount,
+          Math.round(centerDataIndex - (relativeX / mainChart.width) * clampedCount)));
+        const newEnd = newStart + clampedCount;
+        
+        setVisibleRange({ start: newStart, end: newEnd });
+        onVisibleRangeChange?.({ start: newStart, end: newEnd });
+      }
+    };
+
+    const handleNativeTouchEnd = (e: TouchEvent) => {
+      e.preventDefault();
+      touchState.current.isDragging = false;
+      touchState.current.isPinching = false;
+      setIsDragging(false);
+    };
+
+    // 原生滚轮事件处理器 - 支持鼠标滚轮和触摸板双指缩放
+    const handleNativeWheel = (e: WheelEvent) => {
+      // 总是阻止默认滚动行为（包括横向滚动）
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const zoomEnabled = mergedConfig.interaction.zoomEnabled !== false;
+      if (!zoomEnabled) return;
+
+      const minDataPoints = mergedConfig.interaction.minDataPoints || 20;
+      const maxDataPoints = mergedConfig.interaction.maxDataPoints || 500;
+      
+      const currentCount = visibleRange.end - visibleRange.start;
+      
+      // 检测触摸板双指缩放 (pinch gesture)
+      // e.ctrlKey 在触摸板双指缩放时为 true
+      const isPinch = e.ctrlKey || e.metaKey;
+      
+      // 根据 deltaY 计算缩放因子
+      // 触摸板的 deltaY 通常较小，需要更灵敏的响应
+      const delta = isPinch ? e.deltaY * 2 : e.deltaY;
+      const zoomFactor = delta > 0 ? 1.08 : 0.92;
+      const newCount = Math.round(currentCount * zoomFactor);
+      
+      const clampedCount = Math.max(minDataPoints, Math.min(maxDataPoints, newCount));
+      
+      // 以鼠标位置为中心缩放
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const { mainChart } = computedLayout;
+      
+      // 计算鼠标位置对应的数据索引
+      const relativeX = Math.max(0, Math.min(mainChart.width, x - mainChart.x));
+      const dataPointWidth = mainChart.width / currentCount;
+      const mouseDataIndex = visibleRange.start + Math.floor(relativeX / dataPointWidth);
+      
+      // 以鼠标位置为中心计算新的可见范围
+      const newStart = Math.max(0, Math.min(data.data.length - clampedCount,
+        Math.round(mouseDataIndex - (relativeX / mainChart.width) * clampedCount)));
+      const newEnd = newStart + clampedCount;
+      
+      setVisibleRange({ start: newStart, end: newEnd });
+      onVisibleRangeChange?.({ start: newStart, end: newEnd });
+    };
+
+    // 绑定原生事件（支持 passive: false）
+    canvas.addEventListener('touchstart', handleNativeTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleNativeTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleNativeTouchEnd, { passive: false });
+    canvas.addEventListener('touchcancel', handleNativeTouchEnd, { passive: false });
+    canvas.addEventListener('wheel', handleNativeWheel, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('touchstart', handleNativeTouchStart);
+      canvas.removeEventListener('touchmove', handleNativeTouchMove);
+      canvas.removeEventListener('touchend', handleNativeTouchEnd);
+      canvas.removeEventListener('touchcancel', handleNativeTouchEnd);
+      canvas.removeEventListener('wheel', handleNativeWheel);
+    };
+  }, [visibleRange, computedLayout, data.data.length, mergedConfig.interaction, onVisibleRangeChange]);
+
+  // 将 CSS 像素坐标转换为 Canvas 逻辑坐标
+  const getCanvasCoordinates = useCallback((clientX: number, clientY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    
+    const rect = canvas.getBoundingClientRect();
+    // 计算 CSS 到 Canvas 逻辑像素的缩放比例
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    };
+  }, []);
+
   // 处理鼠标移动
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // 使用正确的坐标转换
+    const { x, y } = getCanvasCoordinates(e.clientX, e.clientY);
 
     const panEnabled = mergedConfig.interaction.panEnabled !== false;
     
-    if (isDragging && panEnabled) {
+    // 检查鼠标左键是否真的被按下（e.buttons & 1 表示左键被按下）
+    // 这样可以防止触摸板手势被误识别为拖拽
+    const isLeftButtonDown = (e.buttons & 1) === 1;
+    
+    if (isDragging && panEnabled && isLeftButtonDown) {
       const dx = x - dragStartX;
       const dataPointWidth = computedLayout.mainChart.width / (visibleRange.end - visibleRange.start);
       const dataPointsDelta = Math.round(-dx / dataPointWidth);
@@ -564,7 +810,20 @@ const Stock: React.FC<StockProps> = ({
         setVisibleRange({ start: newStart, end: newEnd });
         onVisibleRangeChange?.({ start: newStart, end: newEnd });
       }
+      
+      // 拖拽时也更新悬停位置，保持信息栏显示
+      const { mainChart } = computedLayout;
+      const relativeX = Math.max(0, Math.min(mainChart.width, x - mainChart.x));
+      const dataIndex = Math.floor(relativeX / (mainChart.width / (visibleRange.end - visibleRange.start)));
+      const actualIndex = Math.max(visibleRange.start, Math.min(visibleRange.end - 1, visibleRange.start + dataIndex));
+      setHoverIndex(actualIndex);
+      setCursorPos({ x, y });
       return;
+    }
+    
+    // 如果左键没有按下但 isDragging 为 true，重置状态
+    if (isDragging && !isLeftButtonDown) {
+      setIsDragging(false);
     }
 
     // 查找最近的K线
@@ -577,40 +836,64 @@ const Stock: React.FC<StockProps> = ({
       
       if (actualIndex >= visibleRange.start && actualIndex < visibleRange.end) {
         setHoverIndex(actualIndex);
+        setCursorPos({ x, y });
         setTooltipPos({ x: e.clientX + 10, y: e.clientY - 10, visible: true });
       }
     } else {
-      setHoverIndex(null);
+      // 不重置 hoverIndex，保持信息栏显示最后悬停的数据
       setTooltipPos(prev => ({ ...prev, visible: false }));
     }
   }, [isDragging, dragStartX, dragStartRange, visibleRange, computedLayout, data.data.length, mergedConfig.interaction.panEnabled, onVisibleRangeChange]);
 
-  // 处理鼠标按下
+  // 处理鼠标按下 - 左键拖拽
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    // 只响应左键
+    if (e.button !== 0) return;
+    
     const panEnabled = mergedConfig.interaction.panEnabled !== false;
     if (!panEnabled) return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    // 使用正确的坐标转换
+    const { x } = getCanvasCoordinates(e.clientX, e.clientY);
     
     setIsDragging(true);
     setDragStartX(x);
     setDragStartRange({ ...visibleRange });
-  }, [visibleRange, mergedConfig.interaction.panEnabled]);
+    
+    // 防止选中文本
+    e.preventDefault();
+  }, [visibleRange, mergedConfig.interaction.panEnabled, getCanvasCoordinates]);
 
   // 处理鼠标释放
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
 
+  // 全局监听 mouseup 事件，确保在 canvas 外松开鼠标时也能正确重置拖拽状态
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
+  // 处理右键滚轮（Mac 触摸板双指）
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    // 阻止默认右键菜单，但允许滚轮缩放
+    e.preventDefault();
+  }, []);
+
   // 处理鼠标离开
   const handleMouseLeave = useCallback(() => {
-    setHoverIndex(null);
+    // 不重置 hoverIndex，保持信息栏显示最后悬停的数据
     setTooltipPos(prev => ({ ...prev, visible: false }));
-    setIsDragging(false);
   }, []);
 
   // 处理点击
@@ -620,31 +903,6 @@ const Stock: React.FC<StockProps> = ({
     }
   }, [hoverIndex, data.data, onDataClick]);
 
-  // 处理滚轮缩放
-  const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
-    const zoomEnabled = mergedConfig.interaction.zoomEnabled !== false;
-    if (!zoomEnabled) return;
-    // 检查事件是否可以取消，避免 passive event listener 警告
-    if (e.cancelable) {
-      e.preventDefault();
-    }
-
-    const minDataPoints = mergedConfig.interaction.minDataPoints || 20;
-    const maxDataPoints = mergedConfig.interaction.maxDataPoints || 500;
-    
-    const currentCount = visibleRange.end - visibleRange.start;
-    const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
-    const newCount = Math.round(currentCount * zoomFactor);
-    
-    const clampedCount = Math.max(minDataPoints, Math.min(maxDataPoints, newCount));
-    const centerIndex = (visibleRange.start + visibleRange.end) / 2;
-    const newStart = Math.max(0, Math.min(data.data.length - clampedCount, 
-      Math.round(centerIndex - clampedCount / 2)));
-    const newEnd = newStart + clampedCount;
-
-    setVisibleRange({ start: newStart, end: newEnd });
-    onVisibleRangeChange?.({ start: newStart, end: newEnd });
-  }, [visibleRange, data.data.length, mergedConfig.interaction, onVisibleRangeChange]);
 
   // 时间范围按钮
   const timeRanges: { label: string; value: TimeRange; getRange: () => { start: number; end: number } }[] = [
@@ -686,13 +944,18 @@ const Stock: React.FC<StockProps> = ({
     const newRange = range.getRange();
     setActiveTimeRange(range.value);
     setVisibleRange(newRange);
+    // 切换时间范围时，将 hoverIndex 设为可见范围的最后一个数据点
+    setHoverIndex(newRange.end > 0 ? newRange.end - 1 : null);
     onVisibleRangeChange?.(newRange);
   };
 
   // 当前悬停的数据，默认显示最后一个可见数据点
   const hoverData = hoverIndex !== null && hoverIndex >= 0 && hoverIndex < data.data.length
     ? data.data[hoverIndex]
-    : data.data[visibleRange.end - 1];
+    : data.data[Math.max(0, visibleRange.end - 1)];
+
+  // 信息栏数据是否就绪
+  const hasHoverData = hoverData != null;
 
   return (
     <div
@@ -718,47 +981,51 @@ const Stock: React.FC<StockProps> = ({
         </div>
       </div>
 
-      {/* 信息栏 */}
-      {hoverData && (
-        <div className={styles.zcpcyChatsStockInfoBar}>
-          <div className={styles.zcpcyChatsStockInfoItem}>
-            <span className={styles.zcpcyChatsStockInfoLabel}>日期:</span>
-            <span className={styles.zcpcyChatsStockInfoValue}>{formatDate(hoverData.timestamp)}</span>
-          </div>
-          <div className={styles.zcpcyChatsStockInfoItem}>
-            <span className={styles.zcpcyChatsStockInfoLabel}>开:</span>
-            <span className={classNames(
-              styles.zcpcyChatsStockInfoValue,
-              hoverData.close >= hoverData.open ? styles.zcpcyChatsStockInfoValueUp : styles.zcpcyChatsStockInfoValueDown
-            )}>
-              {formatPrice(hoverData.open)}
-            </span>
-          </div>
-          <div className={styles.zcpcyChatsStockInfoItem}>
-            <span className={styles.zcpcyChatsStockInfoLabel}>高:</span>
-            <span className={styles.zcpcyChatsStockInfoValue}>{formatPrice(hoverData.high)}</span>
-          </div>
-          <div className={styles.zcpcyChatsStockInfoItem}>
-            <span className={styles.zcpcyChatsStockInfoLabel}>低:</span>
-            <span className={styles.zcpcyChatsStockInfoValue}>{formatPrice(hoverData.low)}</span>
-          </div>
-          <div className={styles.zcpcyChatsStockInfoItem}>
-            <span className={styles.zcpcyChatsStockInfoLabel}>收:</span>
-            <span className={classNames(
-              styles.zcpcyChatsStockInfoValue,
-              hoverData.close >= hoverData.open ? styles.zcpcyChatsStockInfoValueUp : styles.zcpcyChatsStockInfoValueDown
-            )}>
-              {formatPrice(hoverData.close)}
-            </span>
-          </div>
-          {hoverData.volume !== undefined && (
-            <div className={styles.zcpcyChatsStockInfoItem}>
-              <span className={styles.zcpcyChatsStockInfoLabel}>成交量:</span>
-              <span className={styles.zcpcyChatsStockInfoValue}>{formatVolume(hoverData.volume)}</span>
-            </div>
-          )}
+      {/* 信息栏 - 始终渲染，使用占位符保持布局稳定 */}
+      <div className={styles.zcpcyChatsStockInfoBar}>
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>日期:</span>
+          <span className={styles.zcpcyChatsStockInfoValue}>
+            {hasHoverData ? formatDate(hoverData.timestamp) : '--'}
+          </span>
         </div>
-      )}
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>开:</span>
+          <span className={classNames(
+            styles.zcpcyChatsStockInfoValue,
+            hasHoverData && (hoverData.close >= hoverData.open ? styles.zcpcyChatsStockInfoValueUp : styles.zcpcyChatsStockInfoValueDown)
+          )}>
+            {hasHoverData ? formatPrice(hoverData.open) : '--'}
+          </span>
+        </div>
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>高:</span>
+          <span className={styles.zcpcyChatsStockInfoValue}>
+            {hasHoverData ? formatPrice(hoverData.high) : '--'}
+          </span>
+        </div>
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>低:</span>
+          <span className={styles.zcpcyChatsStockInfoValue}>
+            {hasHoverData ? formatPrice(hoverData.low) : '--'}
+          </span>
+        </div>
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>收:</span>
+          <span className={classNames(
+            styles.zcpcyChatsStockInfoValue,
+            hasHoverData && (hoverData.close >= hoverData.open ? styles.zcpcyChatsStockInfoValueUp : styles.zcpcyChatsStockInfoValueDown)
+          )}>
+            {hasHoverData ? formatPrice(hoverData.close) : '--'}
+          </span>
+        </div>
+        <div className={styles.zcpcyChatsStockInfoItem}>
+          <span className={styles.zcpcyChatsStockInfoLabel}>成交量:</span>
+          <span className={styles.zcpcyChatsStockInfoValue}>
+            {hasHoverData && hoverData.volume !== undefined ? formatVolume(hoverData.volume) : '--'}
+          </span>
+        </div>
+      </div>
 
       {/* 图例 */}
       {mergedConfig.movingAverage.visible && (
@@ -786,7 +1053,8 @@ const Stock: React.FC<StockProps> = ({
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         onClick={handleClick}
-        onWheel={handleWheel}
+        onContextMenu={handleContextMenu}
+        style={{ touchAction: 'none' }}
       />
 
       {/* 加载状态 */}

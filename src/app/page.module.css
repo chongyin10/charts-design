@@ -64,6 +64,7 @@
   padding: 24px;
   background: #f0f2f5;
   overflow-y: auto;
+  height: calc(100vh - 64px);
 }
 
 /* 主内容区样式 */
