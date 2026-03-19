@@ -183,6 +183,64 @@ export interface RadarPointConfig {
 }
 
 /**
+ * 雷达图数据点标签配置
+ */
+export interface RadarPointLabelConfig {
+    /** 是否显示数据点标签 */
+    display?: boolean;
+    /** 标签颜色 */
+    color?: string;
+    /** 字体大小 */
+    fontSize?: number;
+    /** 字体粗细 */
+    fontWeight?: string;
+    /** 距离数据点的偏移量 */
+    offset?: number;
+    /** 背景颜色 */
+    backgroundColor?: string;
+    /** 边框颜色 */
+    borderColor?: string;
+    /** 边框宽度 */
+    borderWidth?: number;
+    /** 圆角半径 */
+    borderRadius?: number;
+    /** 内边距 */
+    padding?: { x?: number; y?: number };
+    /** 自定义格式化函数 */
+    formatter?: (value: number) => string;
+}
+
+/**
+ * 雷达图标题配置
+ */
+export interface RadarTitleConfig {
+    /** 是否显示标题 */
+    display?: boolean;
+    /** 标题文本 */
+    text?: string;
+    /** 标题颜色 */
+    color?: string;
+    /** 字体大小 */
+    fontSize?: number;
+    /** 字体粗细 */
+    fontWeight?: string;
+    /** 距离顶部的距离 */
+    offset?: number;
+}
+
+/**
+ * 雷达图维度标签配置（扩展）
+ */
+export interface RadarDimensionLabelConfig {
+    /** 是否显示维度序号 */
+    showIndex?: boolean;
+    /** 序号格式，{index} 会被替换为序号 */
+    indexFormat?: string;
+    /** 序号与名称的分隔符 */
+    separator?: string;
+}
+
+/**
  * 雷达扫描效果配置
  */
 export interface RadarScanConfig {
@@ -218,8 +276,12 @@ export interface RadarChartConfig {
     animationDuration?: number;
     /** 是否开启动画 */
     animation?: boolean;
+    /** 标题配置 */
+    title?: RadarTitleConfig;
     /** 标签配置（维度名称标签） */
     label?: RadarLabelConfig;
+    /** 维度标签扩展配置 */
+    dimensionLabel?: RadarDimensionLabelConfig;
     /** 轴线配置 */
     axis?: RadarAxisConfig;
     /** 刻度标签配置 */
@@ -232,6 +294,8 @@ export interface RadarChartConfig {
     tooltip?: RadarTooltipConfig;
     /** 数据点配置（全局默认） */
     point?: RadarPointConfig;
+    /** 数据点标签配置 */
+    pointLabel?: RadarPointLabelConfig;
     /** 雷达扫描效果配置 */
     scan?: RadarScanConfig;
 }
@@ -263,6 +327,7 @@ export interface ComputedIndicator {
     min: number;
     color?: string;
     angle: number; // 角度（弧度）
+    index: number; // 维度序号
 }
 
 /**

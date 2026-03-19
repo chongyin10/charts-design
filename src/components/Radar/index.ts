@@ -22,4 +22,7 @@ export type {
     RadarChartConfig,
     RadarPointConfig,
     RadarScanConfig,
+    RadarPointLabelConfig,
+    RadarTitleConfig,
+    RadarDimensionLabelConfig,
 } from './Radar.type';

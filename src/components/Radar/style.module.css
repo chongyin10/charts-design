@@ -23,6 +23,17 @@
   min-height: 0;
 }
 
+/* 图表标题 */
+.zcpcyChatsRadarChartTitle {
+  text-align: center;
+  padding: 8px 16px;
+  margin-bottom: 8px;
+  color: #374151;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
 .zcpcyChatsRadarChartCanvas {
   display: block;
   width: 100%;

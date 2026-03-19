@@ -4,7 +4,7 @@
  * 支持双集合和三集合韦恩图
  */
 
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import classNames from 'classnames';
 import styles from './style.module.css';
 import type {
@@ -463,8 +463,8 @@ const calculateTwoSetLayout = (
  */
 const Venn: React.FC<VennProps> = ({
   data,
-  width = 400,
-  height = 400,
+  width: propWidth = 400,
+  height: propHeight = 400,
   config: userConfig,
   className,
   style,
@@ -474,6 +474,67 @@ const Venn: React.FC<VennProps> = ({
 }) => {
   const config = mergeConfig(userConfig);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 响应式尺寸状态 - 只跟踪宽度，高度保持固定
+  const [containerWidth, setContainerWidth] = useState(propWidth);
+
+  // 使用 ResizeObserver 监听容器大小变化
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let isMounted = true;
+    let debounceTimer: NodeJS.Timeout | null = null;
+
+    const updateSize = () => {
+      if (!isMounted || !container) return;
+      const rect = container.getBoundingClientRect();
+      // 只更新宽度，高度保持固定避免循环
+      const newWidth = Math.max(rect.width, 300); // 最小宽度 300
+      setContainerWidth(newWidth);
+    };
+
+    // 防抖处理的尺寸更新
+    const debouncedUpdateSize = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        if (isMounted) {
+          updateSize();
+        }
+      }, 100); // 100ms 防抖延迟
+    };
+
+    // 初始计算（不使用防抖）
+    updateSize();
+
+    // 创建 ResizeObserver
+    const resizeObserver = new ResizeObserver(() => {
+      debouncedUpdateSize();
+    });
+
+    resizeObserver.observe(container);
+
+    // 监听窗口大小变化
+    const handleResize = () => {
+      debouncedUpdateSize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [propWidth, propHeight]);
+
+  // 使用容器宽度或传入的宽度，高度保持固定
+  const width = containerWidth || propWidth;
+  const height = propHeight;
 
   const [hoveredSet, setHoveredSet] = useState<string | null>(null);
   const [hoveredIntersection, setHoveredIntersection] = useState<string[] | null>(null);

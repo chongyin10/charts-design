@@ -17,6 +17,26 @@ import type {
 } from './Treemap.type';
 
 /**
+ * 防抖函数 - ResizeObserver 专用
+ * @param func 要防抖的函数
+ * @param wait 等待时间（毫秒）
+ */
+const debounceResize = (
+    func: (entries: ResizeObserverEntry[]) => void,
+    wait: number
+): ((entries: ResizeObserverEntry[]) => void) => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    return (entries: ResizeObserverEntry[]) => {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+        timeoutId = setTimeout(() => {
+            func(entries);
+        }, wait);
+    };
+};
+
+/**
  * 默认配色方案 - 柔和莫兰迪色系
  */
 const DEFAULT_COLORS = [
@@ -344,8 +364,9 @@ const formatNumber = (num: number): string => {
  */
 export const Treemap: React.FC<TreemapProps> = ({
     data,
-    width = 600,
-    height = 400,
+    width: propWidth,
+    height: propHeight,
+    autoFit = true,
     className,
     style,
     label,
@@ -365,10 +386,64 @@ export const Treemap: React.FC<TreemapProps> = ({
     const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
     const [animationProgress, setAnimationProgress] = useState(animation ? 0 : 1);
     
+    // 自适应尺寸状态
+    const [containerSize, setContainerSize] = useState<{ width: number; height: number }>({
+        width: propWidth || 600,
+        height: propHeight || 400,
+    });
+    
+    // 实际使用的宽高（优先使用传入的 props，否则使用自适应尺寸）
+    const width = propWidth ?? containerSize.width;
+    const height = propHeight ?? containerSize.height;
+    
     // 悬停动画相关
     const hoverAnimationRef = useRef<number | null>(null);
     const hoverProgressRef = useRef<Record<string, number>>({});
     const prevHoveredRectRef = useRef<ComputedRect | null>(null);
+    
+    // ResizeObserver 引用
+    const resizeObserverRef = useRef<ResizeObserver | null>(null);
+    
+    // 自适应容器大小 - 使用 ResizeObserver
+    useEffect(() => {
+        // 如果 autoFit 为 false，或传入了固定的 width 和 height，则不启用自适应
+        if (!autoFit || (propWidth !== undefined && propHeight !== undefined)) {
+            return;
+        }
+        
+        const container = containerRef.current;
+        if (!container) return;
+        
+        // 防抖处理的大小变化回调
+        const handleResize = debounceResize((entries: ResizeObserverEntry[]) => {
+            const entry = entries[0];
+            if (entry) {
+                const { width: newWidth, height: newHeight } = entry.contentRect;
+                setContainerSize({
+                    width: propWidth ?? Math.floor(newWidth),
+                    height: propHeight ?? Math.floor(newHeight),
+                });
+            }
+        }, 150); // 150ms 防抖延迟
+        
+        // 初始化尺寸
+        const { width: initialWidth, height: initialHeight } = container.getBoundingClientRect();
+        setContainerSize({
+            width: propWidth ?? Math.floor(initialWidth),
+            height: propHeight ?? Math.floor(initialHeight),
+        });
+        
+        // 创建 ResizeObserver
+        resizeObserverRef.current = new ResizeObserver(handleResize);
+        resizeObserverRef.current.observe(container);
+        
+        return () => {
+            if (resizeObserverRef.current) {
+                resizeObserverRef.current.disconnect();
+                resizeObserverRef.current = null;
+            }
+        };
+    }, [autoFit, propWidth, propHeight]);
     
     const rects = useMemo(() => {
         return calculateTreemapLayout(data, width, height, DEFAULT_CONFIG.padding, colors);
@@ -645,7 +720,11 @@ export const Treemap: React.FC<TreemapProps> = ({
         <div
             ref={containerRef}
             className={classNames(styles.container, className)}
-            style={{ width, height, ...style }}
+            style={{
+                width: propWidth ?? '100%',
+                height: propHeight ?? '100%',
+                ...style,
+            }}
         >
             <canvas
                 ref={canvasRef}

@@ -111,6 +111,8 @@ export interface TreemapProps {
     width?: number;
     /** 图表高度 */
     height?: number;
+    /** 是否自适应容器大小（默认 true） */
+    autoFit?: boolean;
     /** 自定义类名 */
     className?: string;
     /** 自定义样式 */

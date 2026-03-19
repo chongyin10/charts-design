@@ -24,6 +24,9 @@ import type {
     RadarLegendConfig,
     RadarTooltipConfig,
     RadarScanConfig,
+    RadarPointLabelConfig,
+    RadarTitleConfig,
+    RadarDimensionLabelConfig,
     ComputedIndicator,
     ComputedPoint,
     ComputedSeries,
@@ -53,12 +56,25 @@ const DEFAULT_CONFIG: Required<RadarChartConfig> = {
     startAngle: -90, // 从12点钟方向开始
     animationDuration: 800,
     animation: true,
+    title: {
+        display: false,
+        text: '',
+        color: '#374151',
+        fontSize: 16,
+        fontWeight: '500',
+        offset: 20,
+    },
     label: {
         display: true,
         color: '#374151',
         fontSize: 13,
         fontWeight: '500',
         offset: 15,
+    },
+    dimensionLabel: {
+        showIndex: false,
+        indexFormat: '{index}',
+        separator: ' ',
     },
     axis: {
         lineColor: '#e5e7eb',
@@ -98,6 +114,18 @@ const DEFAULT_CONFIG: Required<RadarChartConfig> = {
         size: 5,
         fillColor: '#ffffff',
         strokeWidth: 2,
+    },
+    pointLabel: {
+        display: false,
+        color: '#374151',
+        fontSize: 11,
+        fontWeight: '500',
+        offset: 12,
+        backgroundColor: '#ffffff',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: { x: 8, y: 4 },
     },
     scan: {
         enabled: false,
@@ -164,13 +192,16 @@ const mergeConfig = (config: RadarChartConfig | undefined): Required<RadarChartC
     return {
         ...DEFAULT_CONFIG,
         ...config,
+        title: { ...DEFAULT_CONFIG.title, ...config.title },
         label: { ...DEFAULT_CONFIG.label, ...config.label },
+        dimensionLabel: { ...DEFAULT_CONFIG.dimensionLabel, ...config.dimensionLabel },
         axis: { ...DEFAULT_CONFIG.axis, ...config.axis },
         tick: { ...DEFAULT_CONFIG.tick, ...config.tick },
         grid: { ...DEFAULT_CONFIG.grid, ...config.grid },
         legend: { ...DEFAULT_CONFIG.legend, ...config.legend },
         tooltip: { ...DEFAULT_CONFIG.tooltip, ...config.tooltip },
         point: { ...DEFAULT_CONFIG.point, ...config.point },
+        pointLabel: { ...DEFAULT_CONFIG.pointLabel, ...config.pointLabel },
         scan: { ...DEFAULT_CONFIG.scan, ...config.scan },
     };
 };
@@ -269,6 +300,7 @@ const calculateIndicators = (
             max,
             min,
             angle: toRad(startAngle) + (Math.PI * 2 * index) / dimensionCount,
+            index: index + 1, // 维度序号（从1开始）
         };
     });
 };
@@ -432,12 +464,16 @@ const drawLabels = (
     ctx: CanvasRenderingContext2D,
     geometry: RadarGeometry,
     indicators: ComputedIndicator[],
-    labelConfig: RadarLabelConfig
+    labelConfig: RadarLabelConfig,
+    dimensionLabelConfig?: RadarDimensionLabelConfig
 ) => {
     if (!labelConfig.display) return;
 
     const { centerX, centerY, radius } = geometry;
     const offset = labelConfig.offset || 12;
+    const showIndex = dimensionLabelConfig?.showIndex ?? false;
+    const indexFormat = dimensionLabelConfig?.indexFormat ?? '{index}';
+    const separator = dimensionLabelConfig?.separator ?? ' ';
 
     ctx.save();
     ctx.fillStyle = labelConfig.color || '#374151';
@@ -459,7 +495,107 @@ const drawLabels = (
             ctx.textAlign = 'center';
         }
 
-        ctx.fillText(indicator.name, x, y);
+        // 构建标签文本
+        let labelText = indicator.name;
+        if (showIndex) {
+            const indexStr = indexFormat.replace('{index}', String(indicator.index));
+            labelText = indexStr + separator + indicator.name;
+        }
+
+        ctx.fillText(labelText, x, y);
+    });
+
+    ctx.restore();
+};
+
+/**
+ * 绘制数据点标签（带背景的气泡样式）
+ */
+const drawPointLabels = (
+    ctx: CanvasRenderingContext2D,
+    computedSeries: ComputedSeries[],
+    pointLabelConfig: RadarPointLabelConfig
+) => {
+    if (!pointLabelConfig.display) return;
+
+    const {
+        color = '#374151',
+        fontSize = 11,
+        fontWeight = '500',
+        offset = 12,
+        backgroundColor = '#ffffff',
+        borderColor = '#e5e7eb',
+        borderWidth = 1,
+        borderRadius = 12,
+        padding = { x: 8, y: 4 },
+        formatter,
+    } = pointLabelConfig;
+
+    ctx.save();
+    ctx.font = `${fontWeight} ${fontSize}px system-ui, -apple-system, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    computedSeries.forEach(series => {
+        if (series.visible === false) return;
+
+        series.points.forEach(point => {
+            // 格式化数值
+            let labelText: string;
+            if (formatter) {
+                labelText = formatter(point.value);
+            } else {
+                labelText = point.value >= 1000
+                    ? Math.round(point.value / 1000) + 'K'
+                    : String(Math.round(point.value));
+            }
+
+            // 计算文本尺寸
+            const textMetrics = ctx.measureText(labelText);
+            const textWidth = textMetrics.width;
+            const textHeight = fontSize;
+
+            // 计算标签位置（沿角度向外偏移）
+            const angle = Math.atan2(point.y - ctx.canvas.height / 2, point.x - ctx.canvas.width / 2);
+            const labelX = point.x + Math.cos(angle) * offset;
+            const labelY = point.y + Math.sin(angle) * offset;
+
+            // 计算背景框尺寸
+            const padX = padding.x ?? 8;
+            const padY = padding.y ?? 4;
+            const bgWidth = textWidth + padX * 2;
+            const bgHeight = textHeight + padY * 2;
+
+            // 绘制圆角背景
+            ctx.fillStyle = backgroundColor;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = borderWidth;
+
+            const r = borderRadius;
+            const x = labelX - bgWidth / 2;
+            const y = labelY - bgHeight / 2;
+
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + bgWidth - r, y);
+            ctx.quadraticCurveTo(x + bgWidth, y, x + bgWidth, y + r);
+            ctx.lineTo(x + bgWidth, y + bgHeight - r);
+            ctx.quadraticCurveTo(x + bgWidth, y + bgHeight, x + bgWidth - r, y + bgHeight);
+            ctx.lineTo(x + r, y + bgHeight);
+            ctx.quadraticCurveTo(x, y + bgHeight, x, y + bgHeight - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+
+            ctx.fill();
+            if (borderWidth > 0) {
+                ctx.stroke();
+            }
+
+            // 绘制文本
+            ctx.fillStyle = color;
+            ctx.fillText(labelText, labelX, labelY);
+        });
     });
 
     ctx.restore();
@@ -1089,8 +1225,11 @@ const Radar: React.FC<RadarProps> = ({
             }
         });
 
+        // 绘制数据点标签
+        drawPointLabels(ctx, computedSeries, mergedConfig.pointLabel);
+
         // 绘制维度标签
-        drawLabels(ctx, geometry, indicators, mergedConfig.label);
+        drawLabels(ctx, geometry, indicators, mergedConfig.label, mergedConfig.dimensionLabel);
 
         // 绘制扫描效果
         drawScanEffect(ctx, geometry, indicators, computedSeries, mergedConfig.scan, scanAngle);
@@ -1235,6 +1374,19 @@ const Radar: React.FC<RadarProps> = ({
                 height: propHeight || '100%',
             }}
         >
+            {mergedConfig.title.display && mergedConfig.title.text && (
+                <div
+                    className={styles.zcpcyChatsRadarChartTitle}
+                    style={{
+                        color: mergedConfig.title.color,
+                        fontSize: mergedConfig.title.fontSize,
+                        fontWeight: mergedConfig.title.fontWeight,
+                        marginTop: mergedConfig.title.offset,
+                    }}
+                >
+                    {mergedConfig.title.text}
+                </div>
+            )}
             <div ref={wrapperRef} className={styles.zcpcyChatsRadarChartCanvasWrapper}>
                 <canvas
                     ref={canvasRef}

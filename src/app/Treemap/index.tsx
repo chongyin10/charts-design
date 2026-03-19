@@ -276,9 +276,32 @@ const data = {
   }}
 />`;
 
+    // 自适应示例代码
+    const autoFitCode = `import { Treemap } from '@/components/Treemap';
+
+const data = {
+  root: {
+    name: '根目录',
+    children: [
+      { name: '文档', value: 1200, color: '#3b82f6' },
+      { name: '图片', value: 2800, color: '#ef4444' },
+      { name: '视频', value: 4500, color: '#10b981' },
+      { name: '音乐', value: 1500, color: '#f59e0b' },
+      { name: '代码', value: 800, color: '#8b5cf6' },
+      { name: '其他', value: 600, color: '#6b7280' },
+    ],
+  },
+};
+
+// 自适应容器大小
+<div style={{ width: '100%', height: '400px' }}>
+  <Treemap data={data} />
+</div>`;
+
     // 锚点列表
     const anchors = [
         { key: 'basic', title: '基础示例' },
+        { key: 'autofit', title: '自适应' },
         { key: 'nested', title: '嵌套层级' },
         { key: 'deep-nested', title: '多层嵌套' },
         { key: 'events', title: '事件交互' },
@@ -323,16 +346,23 @@ const data = {
         {
             key: '2',
             prop: 'width',
-            desc: '图表宽度',
+            desc: '图表宽度，不传则自适应容器',
             type: 'number',
-            default: '600',
+            default: '-',
         },
         {
             key: '3',
             prop: 'height',
-            desc: '图表高度',
+            desc: '图表高度，不传则自适应容器',
             type: 'number',
-            default: '400',
+            default: '-',
+        },
+        {
+            key: '3a',
+            prop: 'autoFit',
+            desc: '是否自适应容器大小（当 width/height 未指定时生效）',
+            type: 'boolean',
+            default: 'true',
         },
         {
             key: '4',
@@ -441,6 +471,32 @@ const data = {
                             </div>
                             <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
                                 {basicCode}
+                            </SyntaxHighlighter>
+                        </div>
+                    </section>
+
+                    {/* 自适应示例 */}
+                    <section id="autofit" className={styles.section}>
+                        <h2 className={styles.sectionTitle}>自适应</h2>
+                        <p className={styles.paragraph}>
+                            Treemap 组件支持自适应容器大小。不传入 width 和 height 时，会自动填满父容器，
+                            并监听容器尺寸变化自动重绘（带 150ms 防抖处理）。
+                        </p>
+
+                        <div className={styles.autoFitContainer}>
+                            <Treemap
+                                data={basicData}
+                                animation={true}
+                            />
+                        </div>
+
+                        <div className={styles.codeBlock}>
+                            <div className={styles.codeHeader}>
+                                <span className={styles.codeTitle}>示例代码</span>
+                                <CopyButton text={autoFitCode} />
+                            </div>
+                            <SyntaxHighlighter language="tsx" style={vscDarkPlus}>
+                                {autoFitCode}
                             </SyntaxHighlighter>
                         </div>
                     </section>

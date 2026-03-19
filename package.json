@@ -122,6 +122,12 @@
       "require": "./dist/venn/index.js"
     },
     "./venn/style.css": "./dist/venn/style.css",
+    "./waterfall": {
+      "types": "./dist/waterfall/index.d.ts",
+      "import": "./dist/waterfall/index.esm.js",
+      "require": "./dist/waterfall/index.js"
+    },
+    "./waterfall/style.css": "./dist/waterfall/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [

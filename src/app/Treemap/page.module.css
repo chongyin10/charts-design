@@ -81,6 +81,13 @@
     overflow-x: auto;
 }
 
+/* 自适应容器 */
+.autoFitContainer {
+    width: 100%;
+    height: 400px;
+    position: relative;
+}
+
 .codeBlock {
     margin-top: 16px;
 }

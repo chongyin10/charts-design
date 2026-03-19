@@ -1010,6 +1010,38 @@ const CircleGridRadarExample = () => {
         { param: 'strokeWidth', description: '数据点边框宽度', type: 'number', default: '2' },
     ];
 
+    // PointLabel 配置数据（数据点标签配置）
+    const pointLabelDataAPI = [
+        { param: 'display', description: '是否显示数据点标签', type: 'boolean', default: 'false' },
+        { param: 'color', description: '标签文字颜色', type: 'string', default: "'#374151'" },
+        { param: 'fontSize', description: '标签字体大小', type: 'number', default: '11' },
+        { param: 'fontWeight', description: '标签字体粗细', type: 'string', default: "'500'" },
+        { param: 'offset', description: '标签距离数据点的偏移量', type: 'number', default: '12' },
+        { param: 'backgroundColor', description: '标签背景颜色', type: 'string', default: "'#ffffff'" },
+        { param: 'borderColor', description: '标签边框颜色', type: 'string', default: "'#e5e7eb'" },
+        { param: 'borderWidth', description: '标签边框宽度', type: 'number', default: '1' },
+        { param: 'borderRadius', description: '标签圆角半径', type: 'number', default: '12' },
+        { param: 'padding', description: '标签内边距', type: '{ x?: number; y?: number }', default: '{ x: 8, y: 4 }' },
+        { param: 'formatter', description: '标签格式化函数', type: '(value: number) => string', default: '-' },
+    ];
+
+    // Title 配置数据（图表标题配置）
+    const titleDataAPI = [
+        { param: 'display', description: '是否显示标题', type: 'boolean', default: 'false' },
+        { param: 'text', description: '标题文本内容', type: 'string', default: "''" },
+        { param: 'color', description: '标题文字颜色', type: 'string', default: "'#374151'" },
+        { param: 'fontSize', description: '标题字体大小', type: 'number', default: '16' },
+        { param: 'fontWeight', description: '标题字体粗细', type: 'string', default: "'500'" },
+        { param: 'offset', description: '标题距离顶部的距离', type: 'number', default: '20' },
+    ];
+
+    // DimensionLabel 配置数据（维度标签配置）
+    const dimensionLabelDataAPI = [
+        { param: 'showIndex', description: '是否在维度名称前显示序号', type: 'boolean', default: 'false' },
+        { param: 'indexFormat', description: '序号格式，{index} 会被替换为序号', type: 'string', default: "'{index}'" },
+        { param: 'separator', description: '序号与名称的分隔符', type: 'string', default: "' '" },
+    ];
+
     // DataSeries API
     const seriesDataAPI = [
         { param: 'name', description: '系列名称', type: 'string', default: 'required' },
@@ -1253,6 +1285,196 @@ const CircleGridRadarExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 带数据点标签和标题的雷达图 - 匹配用户图片样式 */}
+                    <div className={styles.exampleSection} id="radar-point-labels">
+                        <h3 className={styles.subsectionTitle}>数据点标签与标题</h3>
+                        <p className={styles.sectionText}>展示数据点标签（带背景的气泡样式）、图表标题和维度序号。适用于需要在图表上直接显示数值的场景。</p>
+                        <div className={styles.exampleDemo}>
+                            <Radar
+                                data={{
+                                    series: [
+                                        {
+                                            name: '死亡人数',
+                                            data: [
+                                                { name: '美国', value: 65000 },
+                                                { name: '意大利', value: 27967 },
+                                                { name: '英国', value: 26771 },
+                                                { name: '西班牙', value: 24543 },
+                                                { name: '法国', value: 24376 },
+                                                { name: '德国', value: 6623 },
+                                                { name: '伊朗', value: 6028 },
+                                            ],
+                                            color: '#3b82f6',
+                                            fillOpacity: 0,
+                                            lineWidth: 3,
+                                            showPoints: false,
+                                        },
+                                    ],
+                                }}
+                                width={500}
+                                height={500}
+                                config={{
+                                    padding: 60,
+                                    radiusRatio: 0.75,
+                                    animation: true,
+                                    title: {
+                                        display: true,
+                                        text: '死亡人数 单位 人',
+                                        color: '#374151',
+                                        fontSize: 18,
+                                        fontWeight: '500',
+                                        offset: 10,
+                                    },
+                                    dimensionLabel: {
+                                        showIndex: true,
+                                        indexFormat: '{index}',
+                                        separator: ' ',
+                                    },
+                                    pointLabel: {
+                                        display: true,
+                                        color: '#374151',
+                                        fontSize: 12,
+                                        fontWeight: '500',
+                                        offset: 15,
+                                        backgroundColor: '#ffffff',
+                                        borderColor: '#d1d5db',
+                                        borderWidth: 1,
+                                        borderRadius: 14,
+                                        padding: { x: 10, y: 5 },
+                                    },
+                                    grid: {
+                                        lineColor: '#10b981',
+                                        lineWidth: 1.5,
+                                        showGrid: true,
+                                        gridCount: 7,
+                                        fillColor: 'rgba(16, 185, 129, 0.05)',
+                                    },
+                                    axis: {
+                                        lineColor: '#10b981',
+                                        lineWidth: 1.5,
+                                        showLine: true,
+                                    },
+                                    label: {
+                                        display: true,
+                                        color: '#374151',
+                                        fontSize: 14,
+                                        fontWeight: '500',
+                                        offset: 20,
+                                    },
+                                    tick: {
+                                        display: true,
+                                        color: '#6b7280',
+                                        fontSize: 11,
+                                        offset: 8,
+                                    },
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={`import { Radar } from '@zjpcy/charts-design';
+
+const PointLabelExample = () => {
+    const data = {
+        series: [
+            {
+                name: '死亡人数',
+                data: [
+                    { name: '美国', value: 65000 },
+                    { name: '意大利', value: 27967 },
+                    { name: '英国', value: 26771 },
+                    { name: '西班牙', value: 24543 },
+                    { name: '法国', value: 24376 },
+                    { name: '德国', value: 6623 },
+                    { name: '伊朗', value: 6028 },
+                ],
+                color: '#3b82f6',
+                fillOpacity: 0,
+                lineWidth: 3,
+                showPoints: false,
+            },
+        ],
+    };
+
+    return (
+        <Radar
+            data={data}
+            width={500}
+            height={500}
+            config={{
+                title: {
+                    display: true,
+                    text: '死亡人数 单位 人',
+                    fontSize: 18,
+                },
+                dimensionLabel: {
+                    showIndex: true,  // 显示维度序号
+                },
+                pointLabel: {
+                    display: true,    // 显示数据点标签
+                    backgroundColor: '#ffffff',
+                    borderColor: '#d1d5db',
+                    borderRadius: 14,
+                    padding: { x: 10, y: 5 },
+                },
+            }}
+        />
+    );
+};`} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {`import { Radar } from '@zjpcy/charts-design';
+
+const PointLabelExample = () => {
+    const data = {
+        series: [
+            {
+                name: '死亡人数',
+                data: [
+                    { name: '美国', value: 65000 },
+                    { name: '意大利', value: 27967 },
+                    { name: '英国', value: 26771 },
+                    { name: '西班牙', value: 24543 },
+                    { name: '法国', value: 24376 },
+                    { name: '德国', value: 6623 },
+                    { name: '伊朗', value: 6028 },
+                ],
+                color: '#3b82f6',
+                fillOpacity: 0,
+                lineWidth: 3,
+                showPoints: false,
+            },
+        ],
+    };
+
+    return (
+        <Radar
+            data={data}
+            width={500}
+            height={500}
+            config={{
+                title: {
+                    display: true,
+                    text: '死亡人数 单位 人',
+                    fontSize: 18,
+                },
+                dimensionLabel: {
+                    showIndex: true,  // 显示维度序号
+                },
+                pointLabel: {
+                    display: true,    // 显示数据点标签
+                    backgroundColor: '#ffffff',
+                    borderColor: '#d1d5db',
+                    borderRadius: 14,
+                    padding: { x: 10, y: 5 },
+                },
+            }}
+        />
+    );
+};`}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 组件特性 */}
                     <div className={styles.exampleSection} id="radar-features">
                         <h3 className={styles.subsectionTitle}>组件特性</h3>
@@ -1356,6 +1578,33 @@ const CircleGridRadarExample = () => {
                         </div>
                     </div>
 
+                    {/* PointLabel 配置 */}
+                    <div className={styles.exampleSection} id="radar-point-label">
+                        <h3 className={styles.subsectionTitle}>PointLabel 配置</h3>
+                        <p className={styles.sectionText}>数据点标签配置项说明，用于在数据点旁显示数值标签。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={pointLabelDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* Title 配置 */}
+                    <div className={styles.exampleSection} id="radar-title">
+                        <h3 className={styles.subsectionTitle}>Title 配置</h3>
+                        <p className={styles.sectionText}>图表标题配置项说明，在图表顶部显示标题。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={titleDataAPI} />
+                        </div>
+                    </div>
+
+                    {/* DimensionLabel 配置 */}
+                    <div className={styles.exampleSection} id="radar-dimension-label">
+                        <h3 className={styles.subsectionTitle}>DimensionLabel 配置</h3>
+                        <p className={styles.sectionText}>维度标签配置项说明，控制维度名称是否显示序号。</p>
+                        <div className={styles.apiTable}>
+                            <Table columns={apiColumns} dataSource={dimensionLabelDataAPI} />
+                        </div>
+                    </div>
+
                     {/* 刻度配置 */}
                     <div className={styles.exampleSection} id="radar-tick">
                         <h3 className={styles.subsectionTitle}>Tick 配置</h3>
@@ -1404,6 +1653,7 @@ const CircleGridRadarExample = () => {
                                 <Anchor.Link href="#radar-scatter" title="散点雷达图" />
                                 <Anchor.Link href="#radar-smooth" title="平滑曲线" />
                                 <Anchor.Link href="#radar-circle-grid" title="圆形网格" />
+                                <Anchor.Link href="#radar-point-labels" title="数据点标签" />
                                 <Anchor.Link href="#radar-features" title="组件特性" />
                                 <Anchor.Link href="#radar-api" title="API 参考" />
                                     <Anchor.Link href="#radar-series" title="Series 配置" />
@@ -1413,6 +1663,9 @@ const CircleGridRadarExample = () => {
                                     <Anchor.Link href="#radar-grid" title="Grid 配置" />
                                     <Anchor.Link href="#radar-axis" title="Axis 配置" />
                                     <Anchor.Link href="#radar-point" title="Point 配置" />
+                                    <Anchor.Link href="#radar-point-label" title="PointLabel 配置" />
+                                    <Anchor.Link href="#radar-title" title="Title 配置" />
+                                    <Anchor.Link href="#radar-dimension-label" title="DimensionLabel 配置" />
                                     <Anchor.Link href="#radar-tick" title="Tick 配置" />
                                     <Anchor.Link href="#radar-scan" title="Scan 配置" />
                                     <Anchor.Link href="#radar-other" title="其他配置" />

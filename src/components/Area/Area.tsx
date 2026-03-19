@@ -833,7 +833,7 @@ export const Area: React.FC<AreaProps> = ({
             // 绘制竖线（竖线模式下）
             // 使用 ref 获取最新值，避免依赖更新导致重新创建 draw 函数
             const currentHoveredIndex = hoveredDataIndexRef.current;
-            if (verticalLine?.enabled && currentHoveredIndex !== null && isAnimationComplete) {
+            if (verticalLine?.enabled && currentHoveredIndex !== null && animationProgress >= 1) {
                 const { padding: p, chartHeight } = chartConfig;
                 const labelsLength = data.labels.length;
                 const dataCount = Math.max(1, labelsLength);
