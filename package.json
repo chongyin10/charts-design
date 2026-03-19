@@ -1,5 +1,5 @@
 {
-  "name": "@zjpcy/charts-design",
+  "name": "@zjpcy/charts",
   "version": "1.0.0",
   "description": "React + Next.js component library with dual build setup (Webpack for dev, Rollup for publish)",
   "main": "dist/index.js",
@@ -110,6 +110,18 @@
       "require": "./dist/stock/index.js"
     },
     "./stock/style.css": "./dist/stock/style.css",
+    "./treemap": {
+      "types": "./dist/treemap/index.d.ts",
+      "import": "./dist/treemap/index.esm.js",
+      "require": "./dist/treemap/index.js"
+    },
+    "./treemap/style.css": "./dist/treemap/style.css",
+    "./venn": {
+      "types": "./dist/venn/index.d.ts",
+      "import": "./dist/venn/index.esm.js",
+      "require": "./dist/venn/index.js"
+    },
+    "./venn/style.css": "./dist/venn/style.css",
     "./style.css": "./dist/style.css"
   },
   "sideEffects": [

@@ -1,0 +1,109 @@
+/**
+ * Treemap 组件样式 - 极简淡雅设计
+ */
+
+.container {
+    position: relative;
+    display: inline-block;
+    box-sizing: border-box;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+}
+
+.canvas {
+    display: block;
+    cursor: pointer;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.canvas:hover {
+    cursor: pointer;
+}
+
+/* 提示框样式 - 极简白 */
+.tooltip {
+    position: fixed;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    pointer-events: none;
+    z-index: 1000;
+    max-width: 200px;
+    word-wrap: break-word;
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    color: #595959;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border-left: 1px solid #e8e8e8;
+    border-top: 1px solid #e8e8e8;
+    transform: rotate(45deg);
+}
+
+/* 标签文字样式 */
+.labelText {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-weight: 500;
+}
+
+/* 数值文字样式 */
+.valueText {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-weight: 400;
+    opacity: 0.85;
+}
+
+/* 深色模式适配 */
+@media (prefers-color-scheme: dark) {
+    .container {
+        background: #141414;
+        border: 1px solid #303030;
+    }
+    
+    .canvas {
+        background: #141414;
+    }
+    
+    .tooltip {
+        background: #1f1f1f;
+        border: 1px solid #303030;
+        color: #d9d9d9;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    
+    .tooltip::before {
+        background: #1f1f1f;
+        border-left: 1px solid #303030;
+        border-top: 1px solid #303030;
+    }
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+    .container {
+        border-radius: 6px;
+    }
+    
+    .canvas {
+        border-radius: 6px;
+    }
+    
+    .tooltip {
+        font-size: 12px;
+        padding: 8px 12px;
+        max-width: 160px;
+    }
+}

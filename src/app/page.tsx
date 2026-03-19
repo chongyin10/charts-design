@@ -20,6 +20,9 @@ import GaugeExample from './Gauge';
 import RadarExample from './Radar';
 import SankeyExample from './Sankey';
 import StockExample from './Stock';
+import TreemapExample from './Treemap';
+import VennExample from './Venn';
+import WaterfallExample from './Waterfall';
 
 const { Header, Sider, Content } = Layout;
 
@@ -29,7 +32,7 @@ export default function Home() {
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey' || hash === 'stock')) {
+        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey' || hash === 'stock' || hash === 'treemap' || hash === 'venn' || hash === 'waterfall')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -122,6 +125,21 @@ export default function Home() {
             label: 'Stock',
             description: '股票图'
         },
+        {
+            key: 'treemap',
+            label: 'Treemap',
+            description: '矩阵树图'
+        },
+        {
+            key: 'venn',
+            label: 'Venn',
+            description: '韦恩图'
+        },
+        {
+            key: 'waterfall',
+            label: 'Waterfall',
+            description: '瀑布图'
+        },
     ];
 
     // 渲染对应的内容组件
@@ -159,6 +177,12 @@ export default function Home() {
                 return <SankeyExample />;
             case 'stock':
                 return <StockExample />;
+            case 'treemap':
+                return <TreemapExample />;
+            case 'venn':
+                return <VennExample />;
+            case 'waterfall':
+                return <WaterfallExample />;
             default:
                 return <LineExample />;
         }

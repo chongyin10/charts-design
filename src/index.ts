@@ -12,6 +12,9 @@ export { Gauge, default as GaugeDefault } from './components/Gauge';
 export { Radar, default as RadarDefault } from './components/Radar';
 export { Sankey, default as SankeyDefault } from './components/Sankey';
 export { Stock, default as StockDefault } from './components/Stock';
+export { Treemap, default as TreemapDefault } from './components/Treemap';
+export { Venn, default as VennDefault } from './components/Venn';
+export { Waterfall, default as WaterfallDefault } from './components/Waterfall';
 
 // 导出类型定义
 export type {
@@ -165,6 +168,43 @@ export type {
   TimeRange,
   ChartType,
 } from './components/Stock/Stock.type';
+
+export type {
+  TreemapProps,
+  TreemapChartData,
+  TreemapNode,
+  TreemapChartConfig,
+  ComputedRect,
+  TreemapLabelConfig,
+  TreemapTooltipConfig,
+} from './components/Treemap/Treemap.type';
+
+export type {
+  VennProps,
+  VennData,
+  VennSet,
+  VennIntersection,
+  VennConfig,
+  VennLabelConfig,
+  VennLegendConfig,
+  VennTooltipConfig,
+  ComputedCircle,
+  ComputedIntersection,
+} from './components/Venn/Venn.type';
+
+export type {
+  WaterfallProps,
+  WaterfallChartData,
+  WaterfallDataItem,
+  WaterfallAxisConfig,
+  WaterfallGridConfig,
+  WaterfallLegendConfig,
+  WaterfallTooltipConfig,
+  WaterfallConnectorConfig,
+  WaterfallColumnConfig,
+  WaterfallLabelConfig,
+  ComputedWaterfallColumn,
+} from './components/Waterfall/Waterfall.type';
 
 // 导出工具函数
 export { cn, formatNumber, generateId, debounce, throttle } from './lib/utils';
