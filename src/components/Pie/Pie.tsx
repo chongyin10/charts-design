@@ -473,6 +473,8 @@ export const Pie: React.FC<PieProps> = ({
     const expandProgressRef = useRef(0);
     // 目标展开索引
     const targetExpandIndexRef = useRef<number | null>(null);
+    // 动画帧 ID 引用，用于取消动画
+    const expandAnimationIdRef = useRef<number | null>(null);
 
     // 判断是否为多层环形图
     const isMultiRing = useMemo(() => !!multiRingData && multiRingData.layers.length > 0, [multiRingData]);
@@ -615,6 +617,11 @@ export const Pie: React.FC<PieProps> = ({
             if (animationId) {
                 cancelAnimationFrame(animationId);
             }
+            // 清理展开动画
+            if (expandAnimationIdRef.current) {
+                cancelAnimationFrame(expandAnimationIdRef.current);
+                expandAnimationIdRef.current = null;
+            }
         };
     }, [draw, animationDuration, onChartReady]);
 
@@ -627,39 +634,43 @@ export const Pie: React.FC<PieProps> = ({
 
     // 展开动画
     const animateExpand = useCallback((targetIndex: number | null, targetLayer: number | null) => {
+        // 取消之前的动画
+        if (expandAnimationIdRef.current) {
+            cancelAnimationFrame(expandAnimationIdRef.current);
+            expandAnimationIdRef.current = null;
+        }
+
         const startProgress = expandProgressRef.current;
         const targetProgress = targetIndex !== null ? 1 : 0;
-        const duration = 350; // 350ms 展开动画，更丝滑
+        const duration = 200; // 200ms 展开/收缩动画，更快更跟手
         let startTime: number;
-        let animationId: number;
+
+        // 设置目标索引
+        targetExpandIndexRef.current = targetIndex;
+        hoveredLayerRef.current = targetLayer;
 
         const animate = (timestamp: number) => {
             if (!startTime) startTime = timestamp;
             const elapsed = timestamp - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // 使用 easeOutQuart 缓动函数，更丝滑
-            const easeProgress = 1 - Math.pow(1 - progress, 4);
+            // 使用 easeOutCubic 缓动函数，更自然的减速效果
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
             
             // 计算当前展开进度
             expandProgressRef.current = startProgress + (targetProgress - startProgress) * easeProgress;
             
-            // 重绘
+            // 重绘 - 使用当前的展开索引和层索引
             draw(1, expandProgressRef.current, targetExpandIndexRef.current, hoveredLayerRef.current);
 
             if (progress < 1) {
-                animationId = requestAnimationFrame(animate);
+                expandAnimationIdRef.current = requestAnimationFrame(animate);
+            } else {
+                expandAnimationIdRef.current = null;
             }
         };
 
-        targetExpandIndexRef.current = targetIndex;
-        animationId = requestAnimationFrame(animate);
-
-        return () => {
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-        };
+        expandAnimationIdRef.current = requestAnimationFrame(animate);
     }, [draw]);
 
     // 处理鼠标移动 - 使用 ref 避免重渲染
@@ -678,13 +689,20 @@ export const Pie: React.FC<PieProps> = ({
 
             // 只有当悬停状态改变时才触发展开动画和更新 tooltip
             if (newHoveredIndex !== hoveredIndexRef.current || newHoveredLayer !== hoveredLayerRef.current) {
+                // 取消之前的动画，确保状态同步
+                if (expandAnimationIdRef.current) {
+                    cancelAnimationFrame(expandAnimationIdRef.current);
+                    expandAnimationIdRef.current = null;
+                }
+                
+                // 更新悬停状态
                 hoveredIndexRef.current = newHoveredIndex;
                 hoveredLayerRef.current = newHoveredLayer;
 
                 // 触发展开/收缩动画
                 animateExpand(newHoveredIndex, newHoveredLayer);
 
-                // 更新 tooltip 状态（这会触发 React 更新，但只影响 tooltip）
+                // 更新 tooltip 状态
                 if (slice) {
                     setTooltipData({
                         item: slice.item,
@@ -709,11 +727,19 @@ export const Pie: React.FC<PieProps> = ({
 
     // 处理鼠标离开
     const handleMouseLeave = useCallback(() => {
-        if (hoveredIndexRef.current !== null || hoveredLayerRef.current !== null) {
-            hoveredIndexRef.current = null;
-            hoveredLayerRef.current = null;
-            animateExpand(null, null);
+        // 取消之前的动画
+        if (expandAnimationIdRef.current) {
+            cancelAnimationFrame(expandAnimationIdRef.current);
+            expandAnimationIdRef.current = null;
         }
+        
+        // 重置悬停状态
+        hoveredIndexRef.current = null;
+        hoveredLayerRef.current = null;
+        
+        // 立即执行收缩动画
+        animateExpand(null, null);
+        
         setTooltipVisible(false);
         if (canvasRef.current) {
             canvasRef.current.style.cursor = 'default';

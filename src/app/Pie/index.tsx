@@ -105,6 +105,32 @@ export default function PieChartPage() {
         ],
     };
 
+    // 多层对比环形图数据（类似图片效果）
+    const contrastRingData: PieMultiRingData = {
+        layers: [
+            {
+                name: '内层',
+                items: [
+                    { label: '产品 A', value: 30, color: '#3b82f6' },
+                    { label: '产品 B', value: 25, color: '#10b981' },
+                    { label: '产品 C', value: 20, color: '#8b5cf6' },
+                    { label: '产品 D', value: 15, color: '#ef4444' },
+                    { label: '产品 E', value: 10, color: '#06b6d4' },
+                ],
+            },
+            {
+                name: '外层',
+                items: [
+                    { label: '产品 A', value: 28, color: '#60a5fa' },
+                    { label: '产品 B', value: 27, color: '#34d399' },
+                    { label: '产品 C', value: 22, color: '#a78bfa' },
+                    { label: '产品 D', value: 13, color: '#f87171' },
+                    { label: '产品 E', value: 10, color: '#22d3ee' },
+                ],
+            },
+        ],
+    };
+
     // 处理数据点击
     const handleDataClick = (index: number, item: { label: string; value: number }) => {
         console.log('点击了:', index, item);
@@ -365,7 +391,48 @@ const MultiRingExample = () => {
     );
 };`;
 
-    // API 表格列定义
+// 多层对比环形图代码
+const contrastRingCode = `import { Pie } from '@zjpcy/charts-design';
+
+const ContrastRingExample = () => {
+const contrastRingData = {
+    layers: [
+        {
+            name: '内层',
+            items: [
+                { label: '产品 A', value: 30, color: '#3b82f6' },
+                { label: '产品 B', value: 25, color: '#10b981' },
+                { label: '产品 C', value: 20, color: '#8b5cf6' },
+                { label: '产品 D', value: 15, color: '#ef4444' },
+                { label: '产品 E', value: 10, color: '#06b6d4' },
+            ],
+        },
+        {
+            name: '外层',
+            items: [
+                { label: '产品 A', value: 28, color: '#60a5fa' },
+                { label: '产品 B', value: 27, color: '#34d399' },
+                { label: '产品 C', value: 22, color: '#a78bfa' },
+                { label: '产品 D', value: 13, color: '#f87171' },
+                { label: '产品 E', value: 10, color: '#22d3ee' },
+            ],
+        },
+    ],
+};
+
+return (
+    <Pie
+        multiRingData={contrastRingData}
+        width={400}
+        height={400}
+        gap={4}
+        legend={{ display: true, position: 'bottom' }}
+        tooltip={{ enabled: true }}
+    />
+);
+};`;
+
+// API 表格列定义
     const apiColumns: Column[] = [
         { dataIndex: 'param', title: '参数', width: '120px' },
         { dataIndex: 'description', title: '说明' },
@@ -665,6 +732,29 @@ const MultiRingExample = () => {
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 双层对比环形图 */}
+                    <div className={styles.exampleSection} id="pie-contrast-ring">
+                        <h3 className={styles.subsectionTitle}>双层对比环形图</h3>
+                        <p className={styles.sectionText}>展示两个不同数据集在同一环形图中的对比效果。内层和外层分别代表不同时间段或不同类别的数据，使用相近色系便于对比分析。</p>
+                        <div className={styles.exampleDemo}>
+                            <Pie
+                                multiRingData={contrastRingData}
+                                width={400}
+                                height={400}
+                                gap={4}
+                                legend={{ display: true, position: 'bottom' }}
+                                tooltip={{ enabled: true }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={contrastRingCode} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {contrastRingCode}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 组件特性 */}
                     <div className={styles.exampleSection} id="pie-features">
                         <h3 className={styles.subsectionTitle}>组件特性</h3>
@@ -779,6 +869,7 @@ const MultiRingExample = () => {
                                 <Anchor.Link href="#pie-tooltip-custom" title="Tooltip 自定义" />
                                 <Anchor.Link href="#pie-legend" title="图例配置" />
                                 <Anchor.Link href="#pie-multi-ring" title="多层嵌套环形图" />
+                                <Anchor.Link href="#pie-contrast-ring" title="双层对比环形图" />
                                 <Anchor.Link href="#pie-features" title="组件特性" />
                                 <Anchor.Link href="#pie-api" title="API 参考" />
                                 <Anchor.Link href="#pie-item" title="数据项配置" />
