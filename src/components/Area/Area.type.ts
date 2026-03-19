@@ -116,6 +116,10 @@ export interface AreaAxisConfig {
     customTicks?: string[];
     /** 自定义刻度位置数组，可选。如果提供，customTicks 会按指定索引位置显示；如果不提供，customTicks 会在图表范围内均匀分布 */
     customTickIndices?: number[];
+    /** 标签格式化函数 */
+    tickFormatter?: (value: number) => string;
+    /** 标签显示位置 */
+    position?: 'left' | 'right';
 }
 
 /**
@@ -172,6 +176,34 @@ export interface AreaVerticalLineConfig {
 }
 
 /**
+ * 十字光标配置
+ */
+export interface AreaCrosshairConfig {
+    /** 是否启用十字光标（默认 false） */
+    enabled?: boolean;
+    /** 水平线颜色 */
+    horizontalColor?: string;
+    /** 垂直线颜色 */
+    verticalColor?: string;
+    /** 线宽度 */
+    lineWidth?: number;
+    /** 线型：solid-实线, dashed-虚线, dotted-点线 */
+    lineType?: 'solid' | 'dashed' | 'dotted';
+    /** 是否显示Y轴标签 */
+    showYLabel?: boolean;
+    /** 是否显示X轴标签 */
+    showXLabel?: boolean;
+    /** Y轴标签背景色 */
+    yLabelBackground?: string;
+    /** Y轴标签文字颜色 */
+    yLabelColor?: string;
+    /** X轴标签背景色 */
+    xLabelBackground?: string;
+    /** X轴标签文字颜色 */
+    xLabelColor?: string;
+}
+
+/**
  * Tooltip 数据项
  */
 export interface AreaTooltipItem {
@@ -199,14 +231,18 @@ export interface AreaProps {
     padding?: number;
     /** X轴配置 */
     xAxis?: AreaAxisConfig;
-    /** Y轴配置 */
+    /** Y轴配置（主Y轴，左侧） */
     yAxis?: AreaAxisConfig;
+    /** 第二Y轴配置（右侧），用于双Y轴场景 */
+    yAxisRight?: AreaAxisConfig;
     /** 图例配置 */
     legend?: AreaLegendConfig;
     /** 提示框配置 */
     tooltip?: AreaTooltipConfig;
     /** 竖线配置 */
     verticalLine?: AreaVerticalLineConfig;
+    /** 十字光标配置 */
+    crosshair?: AreaCrosshairConfig;
     /** 动画时长（毫秒） */
     animationDuration?: number;
     /** 是否平滑曲线 */

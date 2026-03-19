@@ -44,6 +44,21 @@ const DEFAULT_CONFIG = {
     tooltipBodyColor: '#374151',
     fontSize: 12,
     titleFontSize: 14,
+    rightPadding: 60, // 右侧Y轴内边距
+};
+
+const DEFAULT_CROSSHAIR = {
+    enabled: false,
+    horizontalColor: '#9ca3af',
+    verticalColor: '#9ca3af',
+    lineWidth: 1,
+    lineType: 'dashed' as const,
+    showYLabel: true,
+    showXLabel: true,
+    yLabelBackground: '#374151',
+    yLabelColor: '#ffffff',
+    xLabelBackground: '#374151',
+    xLabelColor: '#ffffff',
 };
 
 /**
@@ -68,6 +83,7 @@ const calculateChartConfig = (
     width: number,
     height: number,
     padding: number,
+    rightPadding: number,
     stacked: boolean,
     yAxisMin?: number,
     yAxisMax?: number
@@ -98,7 +114,45 @@ const calculateChartConfig = (
 
     return {
         padding,
-        chartWidth: width - padding * 2,
+        chartWidth: width - padding - rightPadding,
+        chartHeight: height - padding * 2,
+        maxValue,
+        minValue,
+        valueRange,
+    };
+};
+
+/**
+ * 计算右侧Y轴配置（用于双Y轴）
+ */
+const calculateRightAxisConfig = (
+    data: AreaChartData,
+    rightAxisDatasetIndices: number[],
+    height: number,
+    padding: number,
+    rightPadding: number,
+    yAxisRightMin?: number,
+    yAxisRightMax?: number
+): AreaChartConfig | null => {
+    if (rightAxisDatasetIndices.length === 0) return null;
+
+    const allValues: number[] = [];
+    rightAxisDatasetIndices.forEach(idx => {
+        const dataset = data.datasets[idx];
+        if (dataset && !dataset.hidden) {
+            allValues.push(...dataset.data);
+        }
+    });
+
+    if (allValues.length === 0) return null;
+
+    const maxValue = yAxisRightMax ?? Math.max(...allValues, 0);
+    const minValue = yAxisRightMin ?? Math.min(...allValues, 0);
+    const valueRange = maxValue - minValue || 1;
+
+    return {
+        padding,
+        chartWidth: 0, // 右侧Y轴不使用chartWidth
         chartHeight: height - padding * 2,
         maxValue,
         minValue,
@@ -184,8 +238,36 @@ const computePoints = (
 };
 
 /**
+ * 计算右侧Y轴数据点
+ */
+const computeRightAxisPoints = (
+    data: AreaChartData,
+    leftConfig: AreaChartConfig,
+    rightConfig: AreaChartConfig,
+    rightAxisDatasetIndices: number[],
+    height: number
+): ComputedPoint[][] => {
+    const result: ComputedPoint[][] = [];
+    
+    rightAxisDatasetIndices.forEach(idx => {
+        const dataset = data.datasets[idx];
+        if (!dataset) return;
+        
+        result[idx] = dataset.data.map((value, dataIndex) => ({
+            x: indexToX(dataIndex, leftConfig, data.labels.length),
+            y: valueToY(value, rightConfig, height),
+            value,
+            label: data.labels[dataIndex] || '',
+            datasetIndex: idx,
+            dataIndex,
+        }));
+    });
+    
+    return result;
+};
+
+/**
  * 计算自定义刻度的 X 坐标位置
- * 当 customTickIndices 未提供时，在图表范围内均匀分布
  */
 const calculateCustomTickPositions = (
     customTicks: string[],
@@ -229,9 +311,14 @@ const drawGrid = (
     legacyGridColor?: string,
     xAxisTickInterval?: number,
     customTicks?: string[],
-    customTickIndices?: number[]
+    customTickIndices?: number[],
+    yAxisTickFormatter?: (value: number) => string,
+    rightAxisConfig?: AreaChartConfig | null,
+    yAxisRightTickFormatter?: (value: number) => string,
+    yAxisRightTitle?: string
 ): void => {
     const { padding, chartWidth, chartHeight, maxValue, minValue } = config;
+    const rightPadding = rightAxisConfig ? DEFAULT_CONFIG.rightPadding : padding;
 
     const showGrid = xAxisGrid?.display !== false || yAxisGrid?.display !== false;
     const defaultGridColor = legacyGridColor || '#e5e7eb';
@@ -314,6 +401,7 @@ const drawGrid = (
         });
     }
 
+    // 绘制左侧Y轴标签
     const yGridCount = 5;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -322,7 +410,20 @@ const drawGrid = (
         const ratio = i / yGridCount;
         const y = height - padding - ratio * chartHeight;
         const value = minValue + ratio * (maxValue - minValue);
-        ctx.fillText(value.toFixed(0), padding - 8, y);
+        const labelText = yAxisTickFormatter ? yAxisTickFormatter(value) : value.toFixed(0);
+        ctx.fillText(labelText, padding - 8, y);
+    }
+
+    // 绘制右侧Y轴标签（如果配置了双Y轴）
+    if (rightAxisConfig) {
+        ctx.textAlign = 'left';
+        for (let i = 0; i <= yGridCount; i++) {
+            const ratio = i / yGridCount;
+            const y = height - padding - ratio * chartHeight;
+            const value = rightAxisConfig.minValue + ratio * rightAxisConfig.valueRange;
+            const labelText = yAxisRightTickFormatter ? yAxisRightTickFormatter(value) : value.toFixed(2);
+            ctx.fillText(labelText, width - rightPadding + 8, y);
+        }
     }
 
     ctx.save();
@@ -359,6 +460,18 @@ const drawGrid = (
         ctx.lineTo(padding, y);
         ctx.stroke();
     }
+    
+    // 绘制右侧Y轴刻度线
+    if (rightAxisConfig) {
+        for (let i = 0; i <= yGridCount; i++) {
+            const ratio = i / yGridCount;
+            const y = height - padding - ratio * chartHeight;
+            ctx.beginPath();
+            ctx.moveTo(width - rightPadding, y);
+            ctx.lineTo(width - rightPadding + 6, y);
+            ctx.stroke();
+        }
+    }
     ctx.restore();
 
     const showVerticalGrid = xAxisGrid?.vertical !== false && showGrid;
@@ -390,7 +503,7 @@ const drawGrid = (
             const y = height - padding - ratio * chartHeight;
             ctx.beginPath();
             ctx.moveTo(padding, y);
-            ctx.lineTo(width - padding, y);
+            ctx.lineTo(width - rightPadding, y);
             ctx.stroke();
         }
         ctx.restore();
@@ -401,7 +514,7 @@ const drawGrid = (
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.font = `bold ${fontSize}px sans-serif`;
-        ctx.fillText(xAxisTitle, width / 2, height - 15);
+        ctx.fillText(xAxisTitle, padding + chartWidth / 2, height - 15);
         ctx.restore();
     }
 
@@ -411,6 +524,16 @@ const drawGrid = (
         ctx.textBaseline = 'bottom';
         ctx.font = `bold ${fontSize}px sans-serif`;
         ctx.fillText(yAxisTitle, padding, padding - 10);
+        ctx.restore();
+    }
+
+    // 绘制右侧Y轴标题
+    if (yAxisRightTitle && rightAxisConfig) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.fillText(yAxisRightTitle, width - rightPadding, padding - 10);
         ctx.restore();
     }
 };
@@ -443,9 +566,11 @@ const drawAxes = (
     width: number,
     height: number,
     axisColor: string,
-    crossZero?: boolean
+    crossZero?: boolean,
+    hasRightAxis?: boolean
 ): void => {
-    const { padding } = config;
+    const { padding, chartWidth } = config;
+    const rightPadding = hasRightAxis ? DEFAULT_CONFIG.rightPadding : padding;
 
     ctx.strokeStyle = axisColor;
     ctx.lineWidth = 1;
@@ -455,13 +580,22 @@ const drawAxes = (
 
     ctx.beginPath();
     ctx.moveTo(padding, xAxisY);
-    ctx.lineTo(width - padding, xAxisY);
+    ctx.lineTo(width - rightPadding, xAxisY);
     ctx.stroke();
 
+    // 左侧Y轴
     ctx.beginPath();
     ctx.moveTo(padding, padding);
     ctx.lineTo(padding, height - padding);
     ctx.stroke();
+
+    // 右侧Y轴（如果配置了双Y轴）
+    if (hasRightAxis) {
+        ctx.beginPath();
+        ctx.moveTo(width - rightPadding, padding);
+        ctx.lineTo(width - rightPadding, height - padding);
+        ctx.stroke();
+    }
 };
 
 /**
@@ -601,6 +735,45 @@ const drawPoints = (
 };
 
 /**
+ * 绘制线条
+ */
+const drawLine = (
+    ctx: CanvasRenderingContext2D,
+    points: ComputedPoint[],
+    color: string,
+    lineWidth: number,
+    smooth: boolean
+): void => {
+    if (points.length < 2) return;
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+
+    if (smooth) {
+        // 平滑曲线
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            const prev = points[i - 1];
+            const curr = points[i];
+            const cp1x = prev.x + (curr.x - prev.x) / 2;
+            const cp1y = prev.y;
+            const cp2x = prev.x + (curr.x - prev.x) / 2;
+            const cp2y = curr.y;
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, curr.x, curr.y);
+        }
+    } else {
+        // 直线
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+    }
+
+    ctx.stroke();
+};
+
+/**
  * 面积图组件
  */
 export const Area: React.FC<AreaProps> = ({
@@ -610,9 +783,11 @@ export const Area: React.FC<AreaProps> = ({
     padding = DEFAULT_CONFIG.padding,
     xAxis,
     yAxis,
+    yAxisRight,
     legend,
     tooltip,
     verticalLine,
+    crosshair,
     animationDuration = DEFAULT_CONFIG.animationDuration,
     smooth = false,
     stacked = false,
@@ -637,6 +812,28 @@ export const Area: React.FC<AreaProps> = ({
 
     // 响应式尺寸状态
     const [containerSize, setContainerSize] = useState({ width: propWidth, height: propHeight });
+    
+    // 十字光标状态
+    const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+    const cursorPosRef = useRef<{ x: number; y: number } | null>(null);
+
+    // 合并十字光标配置
+    const mergedCrosshair = useMemo(() => ({
+        ...DEFAULT_CROSSHAIR,
+        ...crosshair,
+    }), [crosshair]);
+
+    // 判断是否需要右侧Y轴
+    const hasRightAxis = !!yAxisRight;
+    
+    // 计算右侧Y轴数据集索引（yAxisRight.position === 'right' 的数据集）
+    const rightAxisDatasetIndices = useMemo(() => {
+        if (!hasRightAxis) return [];
+        // 这里简化处理：如果没有指定，使用前一半数据集在左侧，后一半在右侧
+        // 或者可以通过 dataset 上的配置来指定
+        const mid = Math.floor(data.datasets.length / 2);
+        return data.datasets.map((_, idx) => idx).filter(idx => idx >= mid);
+    }, [data.datasets.length, hasRightAxis]);
 
     // 使用 ResizeObserver 监听容器大小变化
     useEffect(() => {
@@ -704,10 +901,26 @@ export const Area: React.FC<AreaProps> = ({
         })),
     }), [data, hiddenDatasets]);
 
+    const rightPadding = hasRightAxis ? DEFAULT_CONFIG.rightPadding : padding;
+
     const chartConfig = useMemo(
-        () => calculateChartConfig(visibleData, width, height, padding, stacked, yAxis?.min, yAxis?.max),
-        [visibleData, width, height, padding, stacked, yAxis?.min, yAxis?.max]
+        () => calculateChartConfig(visibleData, width, height, padding, rightPadding, stacked, yAxis?.min, yAxis?.max),
+        [visibleData, width, height, padding, rightPadding, stacked, yAxis?.min, yAxis?.max]
     );
+    
+    // 计算右侧Y轴配置
+    const rightAxisConfig = useMemo(() => {
+        if (!hasRightAxis) return null;
+        return calculateRightAxisConfig(
+            visibleData, 
+            rightAxisDatasetIndices, 
+            height, 
+            padding, 
+            rightPadding, 
+            yAxisRight?.min, 
+            yAxisRight?.max
+        );
+    }, [visibleData, rightAxisDatasetIndices, height, padding, rightPadding, yAxisRight?.min, yAxisRight?.max, hasRightAxis]);
 
     const allPoints = useMemo(() => {
         if (stacked) {
@@ -715,6 +928,12 @@ export const Area: React.FC<AreaProps> = ({
         }
         return computePoints(visibleData, chartConfig, width, height);
     }, [visibleData, chartConfig, width, height, stacked]);
+    
+    // 计算右侧Y轴数据点
+    const rightAxisPoints = useMemo(() => {
+        if (!hasRightAxis || !rightAxisConfig) return [];
+        return computeRightAxisPoints(visibleData, chartConfig, rightAxisConfig, rightAxisDatasetIndices, height);
+    }, [visibleData, chartConfig, rightAxisConfig, rightAxisDatasetIndices, height, hasRightAxis]);
 
     // 过滤隐藏的数据集
     const visiblePoints = useMemo(() => {
@@ -750,11 +969,15 @@ export const Area: React.FC<AreaProps> = ({
                 xAxis?.gridColor,
                 xAxis?.tickInterval,
                 xAxis?.customTicks,
-                xAxis?.customTickIndices
+                xAxis?.customTickIndices,
+                yAxis?.tickFormatter,
+                rightAxisConfig,
+                yAxisRight?.tickFormatter,
+                yAxisRight?.title?.text
             );
 
             // 绘制坐标轴（crossZero模式下X轴绘制在Y=0位置）
-            drawAxes(ctx, chartConfig, width, height, DEFAULT_CONFIG.axisColor, crossZero);
+            drawAxes(ctx, chartConfig, width, height, DEFAULT_CONFIG.axisColor, crossZero, hasRightAxis);
 
             // 计算0线Y坐标
             const zeroY = getZeroY(chartConfig, height);
@@ -815,7 +1038,11 @@ export const Area: React.FC<AreaProps> = ({
                 visibleData.datasets.forEach((dataset, datasetIndex) => {
                     if (dataset.hidden) return;
 
-                    const points = allPoints[datasetIndex];
+                    const isRightAxis = rightAxisDatasetIndices.includes(datasetIndex);
+                    const points = isRightAxis && rightAxisPoints[datasetIndex] 
+                        ? rightAxisPoints[datasetIndex] 
+                        : allPoints[datasetIndex];
+                    
                     if (!points || points.length === 0) return;
 
                     const animatedPoints = getAnimatedPoints(points);
@@ -824,6 +1051,11 @@ export const Area: React.FC<AreaProps> = ({
 
                     // 绘制填充区域（crossZero模式下从0线开始填充）
                     drawFillArea(ctx, animatedPoints, fillColor, fillOpacity, height, padding, crossZero, zeroY);
+
+                    // 绘制线条
+                    const borderColor = dataset.borderColor || fillColor;
+                    const borderWidth = dataset.borderWidth || 2;
+                    drawLine(ctx, animatedPoints, borderColor, borderWidth, smooth);
 
                     // 绘制数据点（不使用悬停效果，悬停效果单独绘制）
                     drawPoints(ctx, animatedPoints, dataset, datasetIndex, false);
@@ -874,6 +1106,95 @@ export const Area: React.FC<AreaProps> = ({
                 });
             }
 
+            // 绘制十字光标
+            const currentCursorPos = cursorPosRef.current;
+            if (mergedCrosshair.enabled && currentCursorPos && animationProgress >= 1) {
+                const { padding: p, chartWidth, chartHeight } = chartConfig;
+                const rightPad = hasRightAxis ? DEFAULT_CONFIG.rightPadding : p;
+                
+                // 限制在图表区域内
+                const clampedX = Math.max(p, Math.min(p + chartWidth, currentCursorPos.x));
+                const clampedY = Math.max(p, Math.min(p + chartHeight, currentCursorPos.y));
+                
+                ctx.save();
+                ctx.lineWidth = mergedCrosshair.lineWidth;
+                
+                // 设置线型
+                if (mergedCrosshair.lineType === 'dashed') {
+                    ctx.setLineDash([4, 4]);
+                } else if (mergedCrosshair.lineType === 'dotted') {
+                    ctx.setLineDash([2, 2]);
+                }
+                
+                // 绘制水平线
+                ctx.strokeStyle = mergedCrosshair.horizontalColor;
+                ctx.beginPath();
+                ctx.moveTo(p, clampedY);
+                ctx.lineTo(p + chartWidth, clampedY);
+                ctx.stroke();
+                
+                // 绘制垂直线
+                ctx.strokeStyle = mergedCrosshair.verticalColor;
+                ctx.beginPath();
+                ctx.moveTo(clampedX, p);
+                ctx.lineTo(clampedX, p + chartHeight);
+                ctx.stroke();
+                
+                ctx.restore();
+                
+                // 绘制Y轴标签（左侧）
+                if (mergedCrosshair.showYLabel) {
+                    const yValue = chartConfig.maxValue - (clampedY - p) / chartHeight * chartConfig.valueRange;
+                    const yLabelText = yAxis?.tickFormatter ? yAxis.tickFormatter(yValue) : yValue.toFixed(0);
+                    
+                    ctx.save();
+                    ctx.fillStyle = mergedCrosshair.yLabelBackground;
+                    const textWidth = ctx.measureText(yLabelText).width + 10;
+                    ctx.fillRect(p - textWidth - 2, clampedY - 10, textWidth, 20);
+                    
+                    ctx.fillStyle = mergedCrosshair.yLabelColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(yLabelText, p - textWidth / 2 - 2, clampedY);
+                    ctx.restore();
+                }
+                
+                // 绘制右侧Y轴标签
+                if (mergedCrosshair.showYLabel && rightAxisConfig) {
+                    const yValue = rightAxisConfig.maxValue - (clampedY - p) / rightAxisConfig.chartHeight * rightAxisConfig.valueRange;
+                    const yLabelText = yAxisRight?.tickFormatter ? yAxisRight.tickFormatter(yValue) : yValue.toFixed(2);
+                    
+                    ctx.save();
+                    ctx.fillStyle = mergedCrosshair.yLabelBackground;
+                    const textWidth = ctx.measureText(yLabelText).width + 10;
+                    ctx.fillRect(p + chartWidth + 2, clampedY - 10, textWidth, 20);
+                    
+                    ctx.fillStyle = mergedCrosshair.yLabelColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(yLabelText, p + chartWidth + textWidth / 2 + 2, clampedY);
+                    ctx.restore();
+                }
+                
+                // 绘制X轴标签
+                if (mergedCrosshair.showXLabel) {
+                    const xRatio = (clampedX - p) / chartWidth;
+                    const dataIndex = Math.round(xRatio * (data.labels.length - 1));
+                    const xLabelText = data.labels[Math.max(0, Math.min(data.labels.length - 1, dataIndex))];
+                    
+                    ctx.save();
+                    ctx.fillStyle = mergedCrosshair.xLabelBackground;
+                    const textWidth = ctx.measureText(xLabelText).width + 10;
+                    ctx.fillRect(clampedX - textWidth / 2, p + chartHeight + 2, textWidth, 20);
+                    
+                    ctx.fillStyle = mergedCrosshair.xLabelColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(xLabelText, clampedX, p + chartHeight + 12);
+                    ctx.restore();
+                }
+            }
+
             // 单独绘制悬停点（普通模式）
             const hoveredPoint = hoveredPointRef.current;
             if (hoveredPoint && !visibleData.datasets[hoveredPoint.datasetIndex]?.hidden && !verticalLine?.enabled) {
@@ -914,7 +1235,7 @@ export const Area: React.FC<AreaProps> = ({
             // 保存计算的点用于交互
             pointsRef.current = allPoints;
         },
-        [visibleData, allPoints, chartConfig, width, height, padding, data.labels, xAxis, yAxis, smooth, stacked, verticalLine, crossZero]
+        [visibleData, allPoints, rightAxisPoints, chartConfig, rightAxisConfig, width, height, padding, data.labels, xAxis, yAxis, yAxisRight, smooth, stacked, verticalLine, crossZero, mergedCrosshair, hasRightAxis, rightAxisDatasetIndices]
     );
 
     // 动画效果
@@ -958,6 +1279,15 @@ export const Area: React.FC<AreaProps> = ({
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
+            // 更新十字光标位置
+            if (mergedCrosshair.enabled) {
+                cursorPosRef.current = { x, y };
+                setCursorPos({ x, y });
+                if (isAnimationComplete) {
+                    draw(1);
+                }
+            }
+
             // 竖线模式：根据 X 轴位置查找最近的数据索引
             if (verticalLine?.enabled) {
                 const { padding: p, chartWidth } = chartConfig;
@@ -975,7 +1305,7 @@ export const Area: React.FC<AreaProps> = ({
                 // 检查鼠标是否在有效的图表区域内（只在绘图网格区域内才显示竖线）
                 const isInChartArea =
                     x >= p - step / 2 &&
-                    x <= width - p + step / 2 &&
+                    x <= width - (hasRightAxis ? DEFAULT_CONFIG.rightPadding : p) + step / 2 &&
                     y >= p &&
                     y <= height - p;
 
@@ -1061,14 +1391,16 @@ export const Area: React.FC<AreaProps> = ({
                 setTooltipPos({ x: point.x, y: point.y });
             }
         },
-        [allPoints, visibleData.datasets, draw, isAnimationComplete, chartConfig, data.labels.length, width, height, verticalLine]
+        [allPoints, visibleData.datasets, draw, isAnimationComplete, chartConfig, data.labels.length, width, height, verticalLine, mergedCrosshair.enabled, hasRightAxis]
     );
 
     const handleMouseLeave = useCallback(() => {
         hoveredPointRef.current = null;
         hoveredDataIndexRef.current = null;
+        cursorPosRef.current = null;
         setHoveredPoint(null);
         setHoveredDataIndex(null);
+        setCursorPos(null);
         // 立即重绘以清除悬停效果
         if (isAnimationComplete) {
             draw(1);

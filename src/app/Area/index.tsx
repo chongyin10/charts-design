@@ -1341,6 +1341,170 @@ const areaPropsData = [
                         </SyntaxHighlighter>
                     </div>
 
+                    {/* 双Y轴十字光标功能 */}
+                    <div className={styles.exampleSection} id="area-crosshair">
+                        <h3 className={styles.subsectionTitle}>双Y轴十字光标</h3>
+                        <p className={styles.sectionText}>通过 crosshair 属性启用十字光标模式，yAxisRight 配置右侧Y轴。适用于需要对比两种不同单位数据的场景。</p>
+                        <div className={styles.exampleDemo}>
+                            <Area
+                                data={{
+                                    labels: ['2005/4/8', '2006/12/29', '2008/9/22', '2010/6/18', '2012/3/13', '2013/12/10', '2015/8/27', '2017/5/24', '2019/2/15', '2020/11/12'],
+                                    datasets: [
+                                        {
+                                            label: '沪深300',
+                                            data: [1000, 5500, 1500, 2800, 1800, 2400, 4500, 3500, 3800, 5000],
+                                            fillColor: '#3b82f6',
+                                            fillOpacity: 0.3,
+                                            borderColor: '#3b82f6',
+                                            borderWidth: 2,
+                                        },
+                                        {
+                                            label: '总市值/GDP',
+                                            data: [0.35, 1.95, 0.85, 1.15, 0.65, 0.95, 1.75, 1.35, 1.45, 1.95],
+                                            fillColor: '#ef4444',
+                                            fillOpacity: 0.1,
+                                            borderColor: '#ef4444',
+                                            borderWidth: 2,
+                                        },
+                                    ],
+                                }}
+                                width={900}
+                                height={400}
+                                smooth={true}
+                                xAxis={{
+                                    tickColor: '#6b7280',
+                                    tickFontSize: 11,
+                                    tickInterval: 2,
+                                }}
+                                yAxis={{
+                                    title: { text: '沪深300', color: '#3b82f6' },
+                                    tickColor: '#3b82f6',
+                                    tickFontSize: 11,
+                                    min: 0,
+                                    max: 6000,
+                                    tickFormatter: (value: number) => value.toFixed(0),
+                                }}
+                                yAxisRight={{
+                                    title: { text: '总市值/GDP', color: '#ef4444' },
+                                    tickColor: '#ef4444',
+                                    tickFontSize: 11,
+                                    min: 0,
+                                    max: 2.2,
+                                    tickFormatter: (value: number) => value.toFixed(1),
+                                }}
+                                legend={{
+                                    display: true,
+                                    position: 'top',
+                                }}
+                                crosshair={{
+                                    enabled: true,
+                                    horizontalColor: '#9ca3af',
+                                    verticalColor: '#9ca3af',
+                                    lineType: 'dashed',
+                                    showYLabel: true,
+                                    showXLabel: true,
+                                    yLabelBackground: '#374151',
+                                    yLabelColor: '#ffffff',
+                                    xLabelBackground: '#374151',
+                                    xLabelColor: '#ffffff',
+                                }}
+                            />
+                        </div>
+                        <div className={styles.codeHeader}>
+                            <span>示例代码</span>
+                            <CopyButton text={`import { Area } from '@zjpcy/charts-design';
+
+<Area
+  data={{
+    labels: ['2005/4/8', '2006/12/29', ...],
+    datasets: [
+      {
+        label: '沪深300',
+        data: [1000, 5500, ...],
+        fillColor: '#3b82f6',
+        fillOpacity: 0.3,
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+      },
+      {
+        label: '总市值/GDP',
+        data: [0.35, 1.95, ...],
+        fillColor: '#ef4444',
+        fillOpacity: 0.1,
+        borderColor: '#ef4444',
+        borderWidth: 2,
+      },
+    ],
+  }}
+  width={900}
+  height={400}
+  smooth={true}
+  yAxis={{
+    title: { text: '沪深300', color: '#3b82f6' },
+    tickColor: '#3b82f6',
+    tickFormatter: (value) => value.toFixed(0),
+  }}
+  yAxisRight={{
+    title: { text: '总市值/GDP', color: '#ef4444' },
+    tickColor: '#ef4444',
+    tickFormatter: (value) => value.toFixed(1),
+  }}
+  crosshair={{
+    enabled: true,
+    lineType: 'dashed',
+    showYLabel: true,
+    showXLabel: true,
+  }}
+/>`} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {`import { Area } from '@zjpcy/charts-design';
+
+<Area
+  data={{
+    labels: ['2005/4/8', '2006/12/29', ...],
+    datasets: [
+      {
+        label: '沪深300',
+        data: [1000, 5500, ...],
+        fillColor: '#3b82f6',
+        fillOpacity: 0.3,
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+      },
+      {
+        label: '总市值/GDP',
+        data: [0.35, 1.95, ...],
+        fillColor: '#ef4444',
+        fillOpacity: 0.1,
+        borderColor: '#ef4444',
+        borderWidth: 2,
+      },
+    ],
+  }}
+  width={900}
+  height={400}
+  smooth={true}
+  yAxis={{
+    title: { text: '沪深300', color: '#3b82f6' },
+    tickColor: '#3b82f6',
+    tickFormatter: (value) => value.toFixed(0),
+  }}
+  yAxisRight={{
+    title: { text: '总市值/GDP', color: '#ef4444' },
+    tickColor: '#ef4444',
+    tickFormatter: (value) => value.toFixed(1),
+  }}
+  crosshair={{
+    enabled: true,
+    lineType: 'dashed',
+    showYLabel: true,
+    showXLabel: true,
+  }}
+/>`}
+                        </SyntaxHighlighter>
+                    </div>
+
                     {/* 组件特性 */}
                     <div className={styles.exampleSection} id="area-features">
                         <h3 className={styles.subsectionTitle}>组件特性</h3>
@@ -1449,6 +1613,7 @@ const areaPropsData = [
                                 <Anchor.Link href="#area-tooltip" title="自定义 Tooltip" />
                                 <Anchor.Link href="#area-unemployment" title="失业数据可视化" />
                                 <Anchor.Link href="#area-vertical-line" title="竖线功能" />
+                                <Anchor.Link href="#area-crosshair" title="双Y轴十字光标" />
                                 <Anchor.Link href="#area-features" title="组件特性" />
                                 <Anchor.Link href="#area-api" title="API 参考" />
                                 <Anchor.Link href="#area-dataset" title="Dataset 配置" />
