@@ -217,8 +217,8 @@ const fullBundleConfig = [
   },
 ];
 
-// 合并所有配置
+// 合并所有配置 - 打包全量入口和各个组件
 export default [
-  ...fullBundleConfig,
+  ...fullBundleConfig, // 启用全量入口构建
   ...components.flatMap(generateComponentConfig),
 ];

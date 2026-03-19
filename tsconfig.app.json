@@ -1,0 +1,43 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": false,
+        "esModuleInterop": true,
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "react-jsx",
+        "incremental": true,
+        "declaration": false,
+        "sourceMap": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"],
+            "@/components/*": ["./src/components/*"],
+            "@/lib/*": ["./src/lib/*"],
+            "@/hooks/*": ["./src/hooks/*"],
+            "@/types/*": ["./src/types/*"]
+        }
+    },
+    "include": [
+        "src/app/**/*",
+        "src/components/**/*",
+        "src/hooks/**/*",
+        "src/lib/**/*",
+        "src/types/**/*",
+        "src/**/*.json"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "distapp",
+        "distweb",
+        ".next"
+    ]
+}

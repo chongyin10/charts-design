@@ -208,7 +208,16 @@ export default function LineChartPage() {
             value: number;
         }
 
-        const data = trendDataJson as TrendDataItem[];
+        // 确保 data 是数组
+        const data = Array.isArray(trendDataJson) ? trendDataJson as TrendDataItem[] : [];
+        
+        // 如果数据为空,返回空数据结构
+        if (data.length === 0) {
+            return {
+                labels: [],
+                datasets: [],
+            };
+        }
 
         // 获取唯一的日期列表
         const dates = [...new Set(data.map(item => item.Date))];
@@ -266,7 +275,6 @@ export default function LineChartPage() {
         }
 
         const data = lineSeriesJson as LineSeriesItem[];
-
         // 选择主要城市进行对比
         const selectedDivisions = [
             'New York-White Plains-Wayne, NY-NJ Met Div',
@@ -277,7 +285,6 @@ export default function LineChartPage() {
 
         // 获取唯一的日期列表（按月）
         const dates = [...new Set(data.map(item => item.date))].sort();
-
         // 颜色映射
         const colorMap: Record<string, string> = {
             'New York-White Plains-Wayne, NY-NJ Met Div': '#3b82f6',

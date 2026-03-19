@@ -1,0 +1,479 @@
+.showcase {
+    min-height: 100vh;
+    padding: 120px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.subtitle {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 20px;
+    color: #a78bfa;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 42px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 16px;
+}
+
+.gradientText {
+    background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.description {
+    font-size: 18px;
+    color: #94a3b8;
+}
+
+/* Tab 切换栏 */
+.tabs {
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.tab {
+    position: relative;
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.tab:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tabActive {
+    color: #e2e8f0;
+    background: rgba(139, 92, 246, 0.15);
+}
+
+.tabIndicator {
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899);
+    border-radius: 2px;
+    animation: indicatorIn 0.3s ease-out;
+}
+
+@keyframes indicatorIn {
+    from {
+        transform: translateX(-50%) scaleX(0);
+    }
+    to {
+        transform: translateX(-50%) scaleX(1);
+    }
+}
+
+/* 演示区域 */
+.demoArea {
+    width: 100%;
+    max-width: 1200px;
+}
+
+.chartSection {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+/* 切换动画 */
+.fadeIn {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.fadeOut {
+    animation: fadeOut 0.3s ease-in forwards;
+}
+
+.slideIn {
+    animation: slideIn 0.4s ease-out 0.1s both;
+}
+
+.slideOut {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+.slideUpIn {
+    animation: slideUpIn 0.4s ease-out 0.2s both;
+}
+
+.slideUpOut {
+    animation: slideUpOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+}
+
+@keyframes slideUpIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUpOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+.chartCard {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.chartHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.chartDots {
+    display: flex;
+    gap: 6px;
+}
+
+.chartDots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.chartDots span:nth-child(1) { background: #ef4444; }
+.chartDots span:nth-child(2) { background: #f59e0b; }
+.chartDots span:nth-child(3) { background: #10b981; }
+
+.chartTitle {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.chartContainer {
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    min-height: 480px;
+}
+
+/* 交互反馈层 */
+.feedback {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation: feedbackIn 0.3s ease-out;
+}
+
+@keyframes feedbackIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.feedbackContent {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    color: #34d399;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.feedbackIcon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.3);
+    border-radius: 50%;
+}
+
+/* 信息卡片 */
+.infoCard {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 32px;
+    backdrop-filter: blur(10px);
+    height: fit-content;
+}
+
+.infoTitle {
+    font-size: 24px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 12px;
+}
+
+.infoDescription {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.featureTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.featureTag {
+    padding: 6px 12px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 6px;
+    color: #a78bfa;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 代码区域 */
+.codeSection {
+    width: 100%;
+}
+
+.codeCard {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.codeHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.codeDots {
+    display: flex;
+    gap: 6px;
+}
+
+.codeDots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.codeDots span:nth-child(1) { background: #ef4444; }
+.codeDots span:nth-child(2) { background: #f59e0b; }
+.codeDots span:nth-child(3) { background: #10b981; }
+
+.codeLang {
+    margin-left: 8px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.codeContent {
+    padding: 24px;
+    margin: 0;
+    overflow-x: auto;
+}
+
+.codeContent code {
+    font-family: 'Fira Code', 'Monaco', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #e2e8f0;
+}
+
+/* 特性网格 */
+.featureGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 1200px;
+    width: 100%;
+    margin-top: 80px;
+}
+
+.featureCard {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.featureCard:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(139, 92, 246, 0.3);
+    transform: translateY(-5px);
+}
+
+.featureIcon {
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 16px;
+    color: #8b5cf6;
+    margin: 0 auto 16px;
+}
+
+.featureIcon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.featureCard h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 8px;
+}
+
+.featureCard p {
+    font-size: 14px;
+    color: #64748b;
+}
+
+@media (max-width: 1024px) {
+    .chartSection {
+        grid-template-columns: 1fr;
+    }
+
+    .featureGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .showcase {
+        padding: 80px 20px;
+    }
+
+    .title {
+        font-size: 32px;
+    }
+
+    .tabs {
+        padding: 6px;
+    }
+
+    .tab {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .chartContainer {
+        padding: 20px;
+    }
+
+    .featureGrid {
+        grid-template-columns: 1fr;
+    }
+}

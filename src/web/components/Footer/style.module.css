@@ -1,0 +1,127 @@
+.footer {
+    background: rgba(15, 23, 42, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 60px 0 30px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.content {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 80px;
+    margin-bottom: 50px;
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.brandLogo {
+    width: 48px;
+    height: 48px;
+}
+
+.brandLogo svg {
+    width: 100%;
+    height: 100%;
+}
+
+.brandName {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.brandDesc {
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 280px;
+}
+
+.links {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+}
+
+.linkGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.linkGroup h4 {
+    color: #e2e8f0;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.linkGroup a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.linkGroup a:hover {
+    color: #3b82f6;
+}
+
+.bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.copyright {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.techStack {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.techBadge {
+    padding: 4px 10px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .links {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .bottom {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+}

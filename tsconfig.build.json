@@ -30,6 +30,7 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.stories.tsx",
-    "src/app/**/*"
+    "src/app/**/*",
+    "src/web/**/*"
   ]
 }
