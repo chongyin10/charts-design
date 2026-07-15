@@ -191,10 +191,11 @@ export default function Home() {
     return (
         <Layout className={styles.layout}>
             {/* 侧边栏 */}
-            <Sider className={styles.sider} width={200}>
+            <Sider className={styles.sider} width={200} theme="light">
                 <div className={styles.logo}>Design Charts</div>
                 <Menu
                     mode="inline"
+                    theme="light"
                     items={menuItems}
                     className={styles.menu}
                     selectedKey={selectedKey}

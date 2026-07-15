@@ -4,7 +4,8 @@
 }
 
 .sider {
-  background: #001529;
+  background: #fff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
 }
 
 .logo {
@@ -14,11 +15,48 @@
   justify-content: center;
   font-size: 18px;
   font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #1890ff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .menu {
+  background: #fff;
   border-right: none;
+}
+
+/* 普通菜单项：蓝色文字 */
+.menu :global(.zjpcy-menu-item-light) {
+  color: #1890ff !important;
+}
+
+/* 悬停状态：浅蓝背景 */
+.menu :global(.zjpcy-menu-item-light):hover:not(:global(.zjpcy-menu-item-disabled)) {
+  background-color: rgba(24, 144, 255, 0.08) !important;
+  color: #1890ff !important;
+}
+
+/* 选中状态：蓝色背景 + 白色文字 */
+.menu :global(.zjpcy-menu-item-light-selected),
+.menu :global(.zjpcy-menu-item-light-selected-vertical) {
+  background-color: #1890ff !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+
+/* 选中项悬停 */
+.menu :global(.zjpcy-menu-item-light-selected):hover,
+.menu :global(.zjpcy-menu-item-light-selected-vertical):hover {
+  background-color: #40a9ff !important;
+  color: #fff !important;
+}
+
+/* 确保选中项内部文字、图标也是白色 */
+.menu :global(.zjpcy-menu-item-light-selected) :global(.zjpcy-menu-item-label),
+.menu :global(.zjpcy-menu-item-light-selected) :global(.zjpcy-menu-item-icon),
+.menu :global(.zjpcy-menu-item-light-selected-vertical) :global(.zjpcy-menu-item-label),
+.menu :global(.zjpcy-menu-item-light-selected-vertical) :global(.zjpcy-menu-item-icon) {
+  color: #fff !important;
 }
 
 /* 自定义菜单样式 */
