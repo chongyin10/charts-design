@@ -210,7 +210,7 @@ export default function DualAxesChartPage() {
 
   // ==================== 代码示例 ====================
 
-  const basicCode = `import { DualAxes } from '@zjpcy/charts-design/dual-axes';
+  const basicCode = `import { DualAxes } from '@zjpcy/charts/dual-axes';
 
 <DualAxes
   data={{

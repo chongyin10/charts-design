@@ -1,6 +1,6 @@
 /**
  * 柱状图组件入口
- * 支持按需引入: import { Column } from '@zjpcy/charts-design/column'
+ * 支持按需引入: import { Column } from '@zjpcy/charts/column'
  */
 
 // 重新导出组件

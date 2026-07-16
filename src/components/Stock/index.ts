@@ -1,7 +1,7 @@
 /**
  * 股票图组件入口
  * 用于展示金融市场中证券（如股票、期货、外汇等）价格走势及相关交易数据的专业图表
- * 支持按需引入: import { Stock } from '@zjpcy/charts-design/stock'
+ * 支持按需引入: import { Stock } from '@zjpcy/charts/stock'
  */
 
 // 导入默认导出

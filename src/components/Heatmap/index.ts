@@ -1,6 +1,6 @@
 /**
  * 热力图组件入口
- * 支持按需引入: import { Heatmap } from '@zjpcy/charts-design/heatmap'
+ * 支持按需引入: import { Heatmap } from '@zjpcy/charts/heatmap'
  */
 
 // 重新导出组件

@@ -105,6 +105,39 @@
   height: calc(100vh - 64px);
 }
 
+/* 安装提示卡片 */
+.installCard {
+  background: white;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.installHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.installHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.installDesc {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.installCard pre {
+  margin: 0 !important;
+  border-radius: 6px;
+}
+
 /* 主内容区样式 */
 .container {
   max-width: 1200px;

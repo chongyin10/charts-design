@@ -196,7 +196,7 @@ export default function HeatmapChartPage() {
     };
 
     // 基础热力图代码
-    const basicCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const basicCode = `import { Heatmap } from '@zjpcy/charts';
 
 const BasicHeatmapExample = () => {
     const data = {
@@ -232,7 +232,7 @@ const BasicHeatmapExample = () => {
 };`;
 
     // 聚类热力图代码
-    const clusteringCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const clusteringCode = `import { Heatmap } from '@zjpcy/charts';
 
 const ClusteringHeatmapExample = () => {
     const data = {
@@ -282,7 +282,7 @@ const ClusteringHeatmapExample = () => {
 };`;
 
     // 相关性矩阵代码
-    const correlationCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const correlationCode = `import { Heatmap } from '@zjpcy/charts';
 
 const CorrelationHeatmapExample = () => {
     const data = {
@@ -322,7 +322,7 @@ const CorrelationHeatmapExample = () => {
 };`;
 
     // 发散型颜色比例尺代码（负值支持）
-    const divergingCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const divergingCode = `import { Heatmap } from '@zjpcy/charts';
 
 const DivergingHeatmapExample = () => {
     const data = {
@@ -359,7 +359,7 @@ const DivergingHeatmapExample = () => {
 };`;
 
     // 用户行为分析代码
-    const behaviorCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const behaviorCode = `import { Heatmap } from '@zjpcy/charts';
 
 const BehaviorHeatmapExample = () => {
     const data = {
@@ -403,7 +403,7 @@ const BehaviorHeatmapExample = () => {
 };`;
 
     // 密度热力图代码
-    const densityCode = `import { Heatmap } from '@zjpcy/charts-design';
+    const densityCode = `import { Heatmap } from '@zjpcy/charts';
 import densityData from './heatmap.json';
 
 const DensityHeatmapExample = () => {

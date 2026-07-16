@@ -242,7 +242,7 @@ export default function GaugeChartPage() {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const BasicExample = () => {
     return (
@@ -257,7 +257,7 @@ const BasicExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const BasicExample = () => {
     return (
@@ -298,7 +298,7 @@ const BasicExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const GradientExample = () => {
     return (
@@ -323,7 +323,7 @@ const GradientExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const GradientExample = () => {
     return (
@@ -395,7 +395,7 @@ const GradientExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const SpeedometerExample = () => {
     return (
@@ -441,7 +441,7 @@ const SpeedometerExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const SpeedometerExample = () => {
     return (
@@ -518,7 +518,7 @@ const SpeedometerExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const MinimalExample = () => {
     return (
@@ -548,7 +548,7 @@ const MinimalExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const MinimalExample = () => {
     return (
@@ -604,7 +604,7 @@ const MinimalExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const LargeRangeExample = () => {
     return (
@@ -629,7 +629,7 @@ const LargeRangeExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const LargeRangeExample = () => {
     return (
@@ -695,7 +695,7 @@ const LargeRangeExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const CustomStyleExample = () => {
     return (
@@ -735,7 +735,7 @@ const CustomStyleExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const CustomStyleExample = () => {
     return (
@@ -793,7 +793,7 @@ const CustomStyleExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const EventsExample = () => {
     const handleClick = (data) => {
@@ -818,7 +818,7 @@ const EventsExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const EventsExample = () => {
     const handleClick = (data) => {
@@ -878,7 +878,7 @@ const EventsExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const PanelWaveExample = () => {
     return (
@@ -909,7 +909,7 @@ const PanelWaveExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const PanelWaveExample = () => {
     return (
@@ -1005,7 +1005,7 @@ const PanelWaveExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const PanelConfigExample = () => {
     return (
@@ -1069,7 +1069,7 @@ const PanelConfigExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const PanelConfigExample = () => {
     return (
@@ -1189,7 +1189,7 @@ const PanelConfigExample = () => {
                     </div>
                     <div className={styles.codeHeader}>
                         <span>示例代码</span>
-                        <CopyButton text={`import { Gauge } from '@zjpcy/charts-design';
+                        <CopyButton text={`import { Gauge } from '@zjpcy/charts';
 
 const PanelPositionExample = () => {
     return (
@@ -1249,7 +1249,7 @@ const PanelPositionExample = () => {
 };`} />
                     </div>
                     <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                        {`import { Gauge } from '@zjpcy/charts-design';
+                        {`import { Gauge } from '@zjpcy/charts';
 
 const PanelPositionExample = () => {
     return (

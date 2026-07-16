@@ -1,6 +1,6 @@
 /**
  * 雷达图组件入口
- * 支持按需引入: import { Radar } from '@zjpcy/charts-design/radar'
+ * 支持按需引入: import { Radar } from '@zjpcy/charts/radar'
  */
 
 // 重新导出组件

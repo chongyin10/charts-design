@@ -1,7 +1,7 @@
 /**
  * 桑基图组件入口
  * 用于描述一组值到另一组值的流向，通常应用于能源、材料成分、金融等数据的可视化分析
- * 支持按需引入: import { Sankey } from '@zjpcy/charts-design/sankey'
+ * 支持按需引入: import { Sankey } from '@zjpcy/charts/sankey'
  */
 
 // 重新导出组件

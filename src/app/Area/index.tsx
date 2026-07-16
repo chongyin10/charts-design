@@ -297,7 +297,7 @@ export default function AreaChartPage() {
     };
 
     // 基础面积图代码
-    const basicCode = `import { Area } from '@zjpcy/charts-design';
+    const basicCode = `import { Area } from '@zjpcy/charts';
 
 const BasicAreaExample = () => {
     const data = {
@@ -334,7 +334,7 @@ const BasicAreaExample = () => {
 };`;
 
     // 平滑曲线代码
-    const smoothCode = `import { Area } from '@zjpcy/charts-design';
+    const smoothCode = `import { Area } from '@zjpcy/charts';
 
 const SmoothAreaExample = () => {
     const data = {
@@ -364,7 +364,7 @@ const SmoothAreaExample = () => {
 };`;
 
     // 多系列代码
-    const multiSeriesCode = `import { Area } from '@zjpcy/charts-design';
+    const multiSeriesCode = `import { Area } from '@zjpcy/charts';
 
 const MultiSeriesAreaExample = () => {
     const data = {
@@ -404,7 +404,7 @@ const MultiSeriesAreaExample = () => {
 };`;
 
     // 堆叠面积图代码
-    const stackedCode = `import { Area } from '@zjpcy/charts-design';
+    const stackedCode = `import { Area } from '@zjpcy/charts';
 
 const StackedAreaExample = () => {
     const data = {
@@ -445,7 +445,7 @@ const StackedAreaExample = () => {
 };`;
 
     // 股票数据示例代码（从 JSON 加载）
-    const stockCode = `import { Area } from '@zjpcy/charts-design';
+    const stockCode = `import { Area } from '@zjpcy/charts';
 import aaplJson from './aapl.json';
 
 const StockAreaExample = () => {
@@ -481,7 +481,7 @@ const StockAreaExample = () => {
 };`;
 
     // 自定义 X 轴标签代码示例
-    const customTickCode = `import { Area } from '@zjpcy/charts-design';
+    const customTickCode = `import { Area } from '@zjpcy/charts';
 import aaplJson from './aapl.json';
 
 const CustomTickExample = () => {
@@ -527,7 +527,7 @@ const CustomTickExample = () => {
 };`;
 
     // 点击事件代码
-    const clickEventCode = `import { Area } from '@zjpcy/charts-design';
+    const clickEventCode = `import { Area } from '@zjpcy/charts';
 
 const ClickableAreaExample = () => {
     const data = {
@@ -560,7 +560,7 @@ const ClickableAreaExample = () => {
 };`;
 
     // 自定义 Tooltip 代码
-    const customTooltipCode = `import { Area } from '@zjpcy/charts-design';
+    const customTooltipCode = `import { Area } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {
@@ -606,7 +606,7 @@ const CustomTooltipExample = () => {
 };`;
 
     // 竖线功能代码
-    const verticalLineCode = `import { Area } from '@zjpcy/charts-design';
+    const verticalLineCode = `import { Area } from '@zjpcy/charts';
 
 const VerticalLineExample = () => {
     const data = {
@@ -644,7 +644,7 @@ const VerticalLineExample = () => {
 };`;
 
     // 正负值面积图代码（crossZero模式）
-    const crossZeroCode = `import { Area } from '@zjpcy/charts-design';
+    const crossZeroCode = `import { Area } from '@zjpcy/charts';
 import profitLossDataJson from './profit-loss-data.json';
 
 const CrossZeroAreaExample = () => {
@@ -695,7 +695,7 @@ const CrossZeroAreaExample = () => {
 };`;
 
     // 多系列正负值面积图代码
-    const crossZeroMultiCode = `import { Area } from '@zjpcy/charts-design';
+    const crossZeroMultiCode = `import { Area } from '@zjpcy/charts';
 import profitLossDataJson from './profit-loss-data.json';
 
 const CrossZeroMultiAreaExample = () => {
@@ -768,7 +768,7 @@ const CrossZeroMultiAreaExample = () => {
 };`;
 
 // 失业数据堆叠面积图代码示例
-const unemploymentCode = `import { Area } from '@zjpcy/charts-design';
+const unemploymentCode = `import { Area } from '@zjpcy/charts';
 import unemploymentDataJson from './unemployment-by-industry.json';
 
 const UnemploymentAreaExample = () => {
@@ -1412,7 +1412,7 @@ const areaPropsData = [
                         </div>
                         <div className={styles.codeHeader}>
                             <span>示例代码</span>
-                            <CopyButton text={`import { Area } from '@zjpcy/charts-design';
+                            <CopyButton text={`import { Area } from '@zjpcy/charts';
 
 <Area
   data={{
@@ -1458,7 +1458,7 @@ const areaPropsData = [
 />`} />
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {`import { Area } from '@zjpcy/charts-design';
+                            {`import { Area } from '@zjpcy/charts';
 
 <Area
   data={{

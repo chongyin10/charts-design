@@ -1,6 +1,6 @@
 /**
  * 箱线图组件入口
- * 支持按需引入: import { BoxPlot } from '@zjpcy/charts-design/box'
+ * 支持按需引入: import { BoxPlot } from '@zjpcy/charts/box'
  */
 
 // 重新导出组件

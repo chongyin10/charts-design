@@ -1,6 +1,6 @@
 /**
  * 散点图组件入口
- * 支持按需引入: import { Scatter } from '@zjpcy/charts-design/scatter'
+ * 支持按需引入: import { Scatter } from '@zjpcy/charts/scatter'
  */
 
 // 重新导出组件

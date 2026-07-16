@@ -1,6 +1,6 @@
 /**
  * 韦恩图组件入口
- * 支持按需引入: import { Venn } from '@zjpcy/charts-design/venn'
+ * 支持按需引入: import { Venn } from '@zjpcy/charts/venn'
  */
 
 // 重新导出组件

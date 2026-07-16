@@ -1,6 +1,6 @@
 /**
  * 饼图组件入口
- * 支持按需引入: import { Pie } from '@zjpcy/charts-design/pie'
+ * 支持按需引入: import { Pie } from '@zjpcy/charts/pie'
  */
 
 // 重新导出组件

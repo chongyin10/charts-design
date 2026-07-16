@@ -1,6 +1,6 @@
 /**
  * 瀑布图组件入口
- * 支持按需引入: import { Waterfall } from '@zjpcy/charts-design/waterfall'
+ * 支持按需引入: import { Waterfall } from '@zjpcy/charts/waterfall'
  */
 
 // 重新导出组件

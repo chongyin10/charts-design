@@ -1,6 +1,6 @@
 /**
  * 漏斗图组件入口
- * 支持按需引入: import { Funnel } from '@zjpcy/charts-design/funnel'
+ * 支持按需引入: import { Funnel } from '@zjpcy/charts/funnel'
  */
 
 // 重新导出组件

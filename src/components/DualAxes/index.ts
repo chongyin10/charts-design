@@ -1,6 +1,6 @@
 /**
  * 双轴图组件入口
- * 支持按需引入: import { DualAxes } from '@zjpcy/charts-design/dual-axes'
+ * 支持按需引入: import { DualAxes } from '@zjpcy/charts/dual-axes'
  */
 
 // 重新导出组件

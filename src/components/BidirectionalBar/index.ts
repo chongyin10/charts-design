@@ -1,6 +1,6 @@
 /**
  * 对称条形图组件入口
- * 支持按需引入: import { BidirectionalBar } from '@zjpcy/charts-design/bidirectionalBar'
+ * 支持按需引入: import { BidirectionalBar } from '@zjpcy/charts/bidirectionalBar'
  */
 
 // 重新导出组件

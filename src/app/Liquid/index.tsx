@@ -206,7 +206,7 @@ export default function LiquidChartPage() {
     };
 
     // 代码示例
-    const basicCode = `import { Liquid } from '@zjpcy/charts-design';
+    const basicCode = `import { Liquid } from '@zjpcy/charts';
 
 const BasicLiquidExample = () => {
     const data = {
@@ -234,7 +234,7 @@ const BasicLiquidExample = () => {
     return <Liquid data={data} config={config} />;
 };`;
 
-    const multipleCode = `import { Liquid } from '@zjpcy/charts-design';
+    const multipleCode = `import { Liquid } from '@zjpcy/charts';
 import { Flex } from '@zjpcy/simple-design';
 
 const MultipleLiquidExample = () => {
@@ -266,7 +266,7 @@ const MultipleLiquidExample = () => {
     );
 };`;
 
-    const largeCode = `import { Liquid } from '@zjpcy/charts-design';
+    const largeCode = `import { Liquid } from '@zjpcy/charts';
 
 const LargeLiquidExample = () => {
     const config = {
@@ -293,7 +293,7 @@ const LargeLiquidExample = () => {
     return <Liquid data={{ value: 85 }} config={config} />;
 };`;
 
-    const interactiveCode = `import { Liquid } from '@zjpcy/charts-design';
+    const interactiveCode = `import { Liquid } from '@zjpcy/charts';
 import { useState } from 'react';
 
 const InteractiveLiquidExample = () => {

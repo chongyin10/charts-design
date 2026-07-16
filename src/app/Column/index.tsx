@@ -201,7 +201,7 @@ export default function ColumnChartPage() {
     };
 
     // 基础柱状图代码
-    const basicCode = `import { Column } from '@zjpcy/charts-design';
+    const basicCode = `import { Column } from '@zjpcy/charts';
 
 const BasicColumnExample = () => {
     const data = {
@@ -239,7 +239,7 @@ const BasicColumnExample = () => {
 };`;
 
     // 分组柱状图代码
-    const groupedCode = `import { Column } from '@zjpcy/charts-design';
+    const groupedCode = `import { Column } from '@zjpcy/charts';
 
 const GroupedColumnExample = () => {
     const data = {
@@ -287,7 +287,7 @@ const GroupedColumnExample = () => {
 };`;
 
     // 堆叠柱状图代码
-    const stackedCode = `import { Column } from '@zjpcy/charts-design';
+    const stackedCode = `import { Column } from '@zjpcy/charts';
 
 const StackedColumnExample = () => {
     const data = {
@@ -336,7 +336,7 @@ const StackedColumnExample = () => {
 };`;
 
     // 圆角柱状图代码
-    const roundedCode = `import { Column } from '@zjpcy/charts-design';
+    const roundedCode = `import { Column } from '@zjpcy/charts';
 
 const RoundedColumnExample = () => {
     const data = {
@@ -371,7 +371,7 @@ const RoundedColumnExample = () => {
 };`;
 
     // 点击事件代码
-    const clickCode = `import { Column } from '@zjpcy/charts-design';
+    const clickCode = `import { Column } from '@zjpcy/charts';
 
 const ClickableColumnExample = () => {
     const data = {
@@ -401,7 +401,7 @@ const ClickableColumnExample = () => {
 };`;
 
 // 直方图代码
-const histogramCode = `import { Column } from '@zjpcy/charts-design';
+const histogramCode = `import { Column } from '@zjpcy/charts';
 
 const HistogramExample = () => {
 const data = {
@@ -452,7 +452,7 @@ return (
 };`;
 
 // 网格线配置代码
-const gridCode = `import { Column } from '@zjpcy/charts-design';
+const gridCode = `import { Column } from '@zjpcy/charts';
 
 const GridColumnExample = () => {
     const data = {
@@ -497,7 +497,7 @@ const GridColumnExample = () => {
 };`;
 
     // 正负值柱状图代码
-    const positiveNegativeCode = `import { Column } from '@zjpcy/charts-design';
+    const positiveNegativeCode = `import { Column } from '@zjpcy/charts';
 
 const PositiveNegativeExample = () => {
     const data = {
@@ -529,7 +529,7 @@ const PositiveNegativeExample = () => {
 };`;
 
     // 完整配置代码
-    const fullConfigCode = `import { Column } from '@zjpcy/charts-design';
+    const fullConfigCode = `import { Column } from '@zjpcy/charts';
 
 const FullConfigExample = () => {
     const data = {
@@ -991,7 +991,7 @@ const FullConfigExample = () => {
                         </div>
                         <div className={styles.codeHeader}>
                             <span>示例代码</span>
-                            <CopyButton text={`import { Column } from '@zjpcy/charts-design';
+                            <CopyButton text={`import { Column } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {
@@ -1027,7 +1027,7 @@ const CustomTooltipExample = () => {
 };`} />
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {`import { Column } from '@zjpcy/charts-design';
+                            {`import { Column } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {

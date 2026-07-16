@@ -138,7 +138,7 @@ export default function PieChartPage() {
     };
 
     // 基础饼图代码
-    const basicCode = `import { Pie } from '@zjpcy/charts-design';
+    const basicCode = `import { Pie } from '@zjpcy/charts';
 
 const BasicPieExample = () => {
     const data = {
@@ -164,7 +164,7 @@ const BasicPieExample = () => {
 };`;
 
     // 环形图代码
-    const donutCode = `import { Pie } from '@zjpcy/charts-design';
+    const donutCode = `import { Pie } from '@zjpcy/charts';
 
 const DonutPieExample = () => {
     const data = {
@@ -191,7 +191,7 @@ const DonutPieExample = () => {
 };`;
 
     // 外部标签代码
-    const outsideLabelCode = `import { Pie } from '@zjpcy/charts-design';
+    const outsideLabelCode = `import { Pie } from '@zjpcy/charts';
 
 const OutsideLabelExample = () => {
     const data = {
@@ -223,7 +223,7 @@ const OutsideLabelExample = () => {
 };`;
 
     // 自定义起始角度代码
-    const startAngleCode = `import { Pie } from '@zjpcy/charts-design';
+    const startAngleCode = `import { Pie } from '@zjpcy/charts';
 
 const StartAngleExample = () => {
     const data = {
@@ -250,7 +250,7 @@ const StartAngleExample = () => {
 };`;
 
     // 点击事件代码
-    const clickCode = `import { Pie } from '@zjpcy/charts-design';
+    const clickCode = `import { Pie } from '@zjpcy/charts';
 
 const ClickablePieExample = () => {
     const data = {
@@ -282,7 +282,7 @@ const ClickablePieExample = () => {
 };`;
 
     // 自定义 Tooltip 代码
-    const customTooltipCode = `import { Pie } from '@zjpcy/charts-design';
+    const customTooltipCode = `import { Pie } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {
@@ -318,7 +318,7 @@ const CustomTooltipExample = () => {
 };`;
 
     // 图例配置代码
-    const legendCode = `import { Pie } from '@zjpcy/charts-design';
+    const legendCode = `import { Pie } from '@zjpcy/charts';
 
 const LegendExample = () => {
     const data = {
@@ -347,7 +347,7 @@ const LegendExample = () => {
 };`;
 
     // 多层嵌套环形图代码
-    const multiRingCode = `import { Pie } from '@zjpcy/charts-design';
+    const multiRingCode = `import { Pie } from '@zjpcy/charts';
 
 const MultiRingExample = () => {
     const multiRingData = {
@@ -392,7 +392,7 @@ const MultiRingExample = () => {
 };`;
 
 // 多层对比环形图代码
-const contrastRingCode = `import { Pie } from '@zjpcy/charts-design';
+const contrastRingCode = `import { Pie } from '@zjpcy/charts';
 
 const ContrastRingExample = () => {
 const contrastRingData = {

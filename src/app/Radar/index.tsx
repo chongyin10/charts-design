@@ -585,7 +585,7 @@ export default function RadarPage() {
     }), []);
 
     // 基础雷达图代码
-    const basicCode = `import { Radar } from '@zjpcy/charts-design';
+    const basicCode = `import { Radar } from '@zjpcy/charts';
 
 const BasicRadarExample = () => {
     const data = {
@@ -631,7 +631,7 @@ const BasicRadarExample = () => {
 };`;
 
     // 多系列对比代码
-    const multiSeriesCode = `import { Radar } from '@zjpcy/charts-design';
+    const multiSeriesCode = `import { Radar } from '@zjpcy/charts';
 
 const MultiSeriesRadarExample = () => {
     const data = {
@@ -682,7 +682,7 @@ const MultiSeriesRadarExample = () => {
 };`;
 
     // 自定义维度代码
-    const customIndicatorCode = `import { Radar } from '@zjpcy/charts-design';
+    const customIndicatorCode = `import { Radar } from '@zjpcy/charts';
 
 const CustomIndicatorExample = () => {
     const data = {
@@ -725,7 +725,7 @@ const CustomIndicatorExample = () => {
 };`;
 
     // 无动画代码
-    const noAnimationCode = `import { Radar } from '@zjpcy/charts-design';
+    const noAnimationCode = `import { Radar } from '@zjpcy/charts';
 
 const NoAnimationExample = () => {
     const data = {
@@ -759,7 +759,7 @@ const NoAnimationExample = () => {
 };`;
 
     // 自定义提示框代码
-    const customTooltipCode = `import { Radar } from '@zjpcy/charts-design';
+    const customTooltipCode = `import { Radar } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {
@@ -818,7 +818,7 @@ const CustomTooltipExample = () => {
 };`;
 
     // 散点雷达图代码
-    const scatterRadarCode = `import { Radar } from '@zjpcy/charts-design';
+    const scatterRadarCode = `import { Radar } from '@zjpcy/charts';
 
 const ScatterRadarExample = () => {
     const data = {
@@ -895,7 +895,7 @@ const ScatterRadarExample = () => {
 };`;
 
     // 平滑曲线代码
-    const smoothCode = `import { Radar } from '@zjpcy/charts-design';
+    const smoothCode = `import { Radar } from '@zjpcy/charts';
 
 const SmoothRadarExample = () => {
     const data = {
@@ -947,7 +947,7 @@ const SmoothRadarExample = () => {
 };`;
 
     // 圆形网格代码
-    const circleGridCode = `import { Radar } from '@zjpcy/charts-design';
+    const circleGridCode = `import { Radar } from '@zjpcy/charts';
 
 const CircleGridRadarExample = () => {
     const data = {
@@ -1372,7 +1372,7 @@ const CircleGridRadarExample = () => {
                         </div>
                         <div className={styles.codeHeader}>
                             <span>示例代码</span>
-                            <CopyButton text={`import { Radar } from '@zjpcy/charts-design';
+                            <CopyButton text={`import { Radar } from '@zjpcy/charts';
 
 const PointLabelExample = () => {
     const data = {
@@ -1423,7 +1423,7 @@ const PointLabelExample = () => {
 };`} />
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {`import { Radar } from '@zjpcy/charts-design';
+                            {`import { Radar } from '@zjpcy/charts';
 
 const PointLabelExample = () => {
     const data = {

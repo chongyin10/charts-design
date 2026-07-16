@@ -365,8 +365,15 @@ export default function LineChartPage() {
         alert(`数据集: ${datasetIndex}, 数据索引: ${dataIndex}, 数值: ${value}`);
     };
 
+    // 安装说明代码
+    const installCode = `npm install @zjpcy/charts
+# 或
+yarn add @zjpcy/charts
+# 或
+pnpm add @zjpcy/charts`;
+
     // 基础折线图代码
-    const basicCode = `import { Line } from '@zjpcy/charts-design';
+    const basicCode = `import { Line } from '@zjpcy/charts';
 
 const BasicLineExample = () => {
     const data = {
@@ -405,7 +412,7 @@ const BasicLineExample = () => {
 };`;
 
     // 平滑曲线代码
-    const smoothCode = `import { Line } from '@zjpcy/charts-design';
+    const smoothCode = `import { Line } from '@zjpcy/charts';
 
 const SmoothLineExample = () => {
     const data = {
@@ -439,7 +446,7 @@ const SmoothLineExample = () => {
 };`;
 
     // 多线对比代码
-    const multiLineCode = `import { Line } from '@zjpcy/charts-design';
+    const multiLineCode = `import { Line } from '@zjpcy/charts';
 
 const MultiLineExample = () => {
     const data = {
@@ -485,7 +492,7 @@ const MultiLineExample = () => {
 };`;
 
     // 面积图代码
-    const areaCode = `import { Line } from '@zjpcy/charts-design';
+    const areaCode = `import { Line } from '@zjpcy/charts';
 
 const AreaLineExample = () => {
     const data = {
@@ -521,7 +528,7 @@ const AreaLineExample = () => {
 };`;
 
     // 点击事件代码
-    const clickCode = `import { Line } from '@zjpcy/charts-design';
+    const clickCode = `import { Line } from '@zjpcy/charts';
 
 const ClickableLineExample = () => {
     const data = {
@@ -552,7 +559,7 @@ const ClickableLineExample = () => {
 };`;
 
     // 图例配置代码
-    const legendCode = `import { Line } from '@zjpcy/charts-design';
+    const legendCode = `import { Line } from '@zjpcy/charts';
 
 const LegendExample = () => {
     const data = {
@@ -591,7 +598,7 @@ const LegendExample = () => {
 };`;
 
     // 预警线示例代码
-    const thresholdCode = `import { Line } from '@zjpcy/charts-design';
+    const thresholdCode = `import { Line } from '@zjpcy/charts';
 
 const ThresholdLineExample = () => {
     const data = {
@@ -627,7 +634,7 @@ const ThresholdLineExample = () => {
 };`;
 
     // 预警线+面积图示例代码
-    const thresholdAreaCode = `import { Line } from '@zjpcy/charts-design';
+    const thresholdAreaCode = `import { Line } from '@zjpcy/charts';
 
 const ThresholdAreaExample = () => {
     const data = {
@@ -667,7 +674,7 @@ const ThresholdAreaExample = () => {
 };`;
 
     // 网格线示例代码
-    const gridCode = `import { Line } from '@zjpcy/charts-design';
+    const gridCode = `import { Line } from '@zjpcy/charts';
 
 const GridLineExample = () => {
     const data = {
@@ -713,7 +720,7 @@ const GridLineExample = () => {
 };`;
 
     // 数据点配置示例代码
-    const pointCode = `import { Line } from '@zjpcy/charts-design';
+    const pointCode = `import { Line } from '@zjpcy/charts';
 
 const PointExample = () => {
     const data = {
@@ -754,7 +761,7 @@ const PointExample = () => {
 };`;
 
     // 轨道连接示例代码（更新为最新 API）
-    const trackConnectionCode = `import { Line } from '@zjpcy/charts-design';
+    const trackConnectionCode = `import { Line } from '@zjpcy/charts';
 
 const TrackConnectionExample = () => {
     const data = {
@@ -790,7 +797,7 @@ const TrackConnectionExample = () => {
 };`;
 
     // 分组数据示例代码
-    const groupedDataCode = `import { Line } from '@zjpcy/charts-design';
+    const groupedDataCode = `import { Line } from '@zjpcy/charts';
 
 const GroupedDataExample = () => {
     const data = {
@@ -850,7 +857,7 @@ const GroupedDataExample = () => {
 };`;
 
     // 竖线功能示例代码
-    const verticalLineCode = `import { Line } from '@zjpcy/charts-design';
+    const verticalLineCode = `import { Line } from '@zjpcy/charts';
 
 const VerticalLineExample = () => {
     const data = {
@@ -908,7 +915,7 @@ const VerticalLineExample = () => {
 };`;
 
     // 失业率数据示例代码
-    const lineSeriesCode = `import { Line } from '@zjpcy/charts-design';
+    const lineSeriesCode = `import { Line } from '@zjpcy/charts';
 import lineSeriesJson from './Json/line-series.json';
 
 const UnemploymentRateExample = () => {
@@ -992,7 +999,7 @@ const UnemploymentRateExample = () => {
 };`;
 
     // JSON 数据加载示例代码
-    const jsonDataCode = `import { Line } from '@zjpcy/charts-design';
+    const jsonDataCode = `import { Line } from '@zjpcy/charts';
 import trendDataJson from './Json/trend-data.json';
 
 const JsonDataExample = () => {
@@ -1185,6 +1192,30 @@ const JsonDataExample = () => {
                 <div className={styles.mainContent}>
                     <h2 className={styles.sectionTitle} id="line-intro">Line 折线图</h2>
                     <p className={styles.sectionText}>使用 Canvas 绘制的高性能折线图组件，支持多线对比、面积图、平滑曲线等功能。</p>
+
+                    {/* 安装说明 */}
+                    <div className={styles.exampleSection} id="line-install">
+                        <h3 className={styles.subsectionTitle}>安装</h3>
+                        <p className={styles.sectionText}>在使用 Line 组件前，请先安装本组件库：</p>
+                        <div className={styles.codeHeader}>
+                            <span>安装命令</span>
+                            <CopyButton text={installCode} />
+                        </div>
+                        <SyntaxHighlighter language="bash" style={vscDarkPlus}>
+                            {installCode}
+                        </SyntaxHighlighter>
+                        <p className={styles.sectionText}>
+                            安装完成后，可通过以下方式按需引入组件和样式：
+                        </p>
+                        <div className={styles.codeHeader}>
+                            <span>按需引入</span>
+                            <CopyButton text={`import { Line } from '@zjpcy/charts/line';\nimport '@zjpcy/charts/line/style.css';`} />
+                        </div>
+                        <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
+                            {`import { Line } from '@zjpcy/charts/line';
+import '@zjpcy/charts/line/style.css';`}
+                        </SyntaxHighlighter>
+                    </div>
 
                     {/* 基础折线图 */}
                     <div className={styles.exampleSection} id="line-basic">
@@ -1634,7 +1665,7 @@ const JsonDataExample = () => {
                         </div>
                         <div className={styles.codeHeader}>
                             <span>示例代码</span>
-                            <CopyButton text={`import { Line } from '@zjpcy/charts-design';
+                            <CopyButton text={`import { Line } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {
@@ -1671,7 +1702,7 @@ const CustomTooltipExample = () => {
 };`} />
                         </div>
                         <SyntaxHighlighter language="typescript" style={vscDarkPlus}>
-                            {`import { Line } from '@zjpcy/charts-design';
+                            {`import { Line } from '@zjpcy/charts';
 
 const CustomTooltipExample = () => {
     const data = {

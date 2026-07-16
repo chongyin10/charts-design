@@ -10,7 +10,17 @@
 - 📦 Rollup 构建，生成优化的 ESM/CJS 格式
 - 🎯 类型定义自动生成
 
-## 安装
+## 安装指南
+
+### 环境要求
+
+- React >= 18.0.0
+- React DOM >= 18.0.0
+- TypeScript >= 5.0.0（推荐）
+
+## 📦 安装
+
+使用 npm、yarn 或 pnpm 安装组件库：
 
 ```bash
 npm install @zjpcy/charts
@@ -20,9 +30,63 @@ yarn add @zjpcy/charts
 pnpm add @zjpcy/charts
 ```
 
-## 使用方式
+## 🎨 引入样式
 
-### 1. 全量引入
+### 全量引入样式
+
+在应用入口文件中引入全局样式文件：
+
+```tsx
+// 引入所有组件样式（必须）
+import '@zjpcy/charts/style.css';
+```
+
+### 按需引入样式
+
+推荐按需引入组件及其对应样式，减小打包体积：
+
+```tsx
+// 引入单个组件
+import { Line } from '@zjpcy/charts/line';
+
+// 引入组件对应的 CSS（必须）
+import '@zjpcy/charts/line/style.css';
+```
+
+> 💡 **提示**
+>
+> 样式文件包含了组件的所有基础样式，必须在引入组件之前或同时引入。每个组件都有独立的样式文件，按需引入可有效减少打包体积。
+
+## 🚀 使用示例
+
+### 基础使用
+
+直接引入需要的组件即可使用：
+
+```tsx
+import { Line } from '@zjpcy/charts/line';
+import '@zjpcy/charts/line/style.css';
+
+function App() {
+  const data = {
+    labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+    datasets: [
+      {
+        label: '销售额',
+        data: [120, 200, 150, 80, 70, 110],
+      },
+    ],
+  };
+
+  return (
+    <div style={{ width: 800, height: 400 }}>
+      <Line data={data} />
+    </div>
+  );
+}
+```
+
+### 全量引入
 
 一次性引入所有组件和样式：
 
@@ -43,7 +107,7 @@ function App() {
 }
 ```
 
-### 2. 按需引入（推荐）
+### 按需引入（推荐）
 
 只引入需要的组件及其 CSS，减少打包体积：
 
@@ -60,14 +124,14 @@ import { Column } from '@zjpcy/charts/column';
 import '@zjpcy/charts/column/style.css';
 ```
 
-### 3. CommonJS 导入
+### CommonJS 导入
 
 ```javascript
 const { Line, Column } = require('@zjpcy/charts');
 require('@zjpcy/charts/style.css');
 ```
 
-### 4. 配合 babel-plugin-import 自动按需引入
+### 配合 babel-plugin-import 自动按需引入
 
 配置 `.babelrc` 或 `babel.config.js`：
 
@@ -96,6 +160,30 @@ module.exports = {
 import { Line, Column } from '@zjpcy/charts';
 // CSS 会自动按需引入
 ```
+
+## 🔧 TypeScript 支持
+
+组件库使用 TypeScript 编写，提供了完整的类型定义：
+
+```tsx
+import { Line, type LineProps, type LineChartData } from '@zjpcy/charts/line';
+
+// 使用类型定义
+const MyLine: React.FC<LineProps> = (props) => {
+  return <Line {...props} />;
+};
+```
+
+> ✨ **类型提示**
+>
+> 所有组件都导出了对应的 Props 类型和数据类型，例如 `LineProps`、`LineChartData`、`ColumnProps` 等。
+
+## 🌐 浏览器兼容性
+
+- 🌐 Chrome >= 80
+- 🔥 Firefox >= 75
+- 🧭 Safari >= 13
+- 🌊 Edge >= 80
 
 ## 示例代码
 

@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { Button, Layout, Menu } from '@zjpcy/simple-design';
 import '@zjpcy/simple-design/dist/cjs/index.css';
+import { Prism } from 'react-syntax-highlighter';
+// 修复 react-syntax-highlighter 与 React 18 的类型不兼容问题
+const SyntaxHighlighter = Prism as any;
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import LineExample from './Line';
 import ColumnExample from './Column';
 import BarExample from './Bar';
@@ -23,16 +27,17 @@ import StockExample from './Stock';
 import TreemapExample from './Treemap';
 import VennExample from './Venn';
 import WaterfallExample from './Waterfall';
+import InstallGuide from './InstallGuide';
 
 const { Header, Sider, Content } = Layout;
 
 export default function Home() {
-    const [selectedKey, setSelectedKey] = useState('line');
+    const [selectedKey, setSelectedKey] = useState('install');
 
     // 从 URL hash 读取初始 key
     useEffect(() => {
         const hash = window.location.hash.replace('#/', '');
-        if (hash && (hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey' || hash === 'stock' || hash === 'treemap' || hash === 'venn' || hash === 'waterfall')) {
+        if (hash && (hash === 'install' || hash === 'line' || hash === 'column' || hash === 'bar' || hash === 'area' || hash === 'pie' || hash === 'scatter' || hash === 'funnel' || hash === 'heatmap' || hash === 'liquid' || hash === 'dualaxes' || hash === 'bidirectionalbar' || hash === 'box' || hash === 'gauge' || hash === 'radar' || hash === 'sankey' || hash === 'stock' || hash === 'treemap' || hash === 'venn' || hash === 'waterfall')) {
             setSelectedKey(hash);
         }
     }, []);
@@ -45,6 +50,11 @@ export default function Home() {
 
     // 菜单项配置
     const menuItems = [
+        {
+            key: 'install',
+            label: 'Install',
+            description: '安装指南'
+        },
         {
             key: 'line',
             label: 'Line',
@@ -145,6 +155,8 @@ export default function Home() {
     // 渲染对应的内容组件
     const renderContent = () => {
         switch (selectedKey) {
+            case 'install':
+                return <InstallGuide />;
             case 'line':
                 return <LineExample />;
             case 'column':
@@ -188,6 +200,21 @@ export default function Home() {
         }
     };
 
+    // 安装命令
+    const installCode = `npm install @zjpcy/charts
+# 或
+yarn add @zjpcy/charts
+# 或
+pnpm add @zjpcy/charts`;
+
+    const handleCopyInstall = async () => {
+        try {
+            await navigator.clipboard.writeText('npm install @zjpcy/charts');
+        } catch (err) {
+            console.error('复制失败:', err);
+        }
+    };
+
     return (
         <Layout className={styles.layout}>
             {/* 侧边栏 */}
@@ -209,6 +236,25 @@ export default function Home() {
                     <h2>组件展示示例</h2>
                 </Header>
                 <Content className={`${styles.content} app-content`}>
+                    {selectedKey !== 'install' && (
+                        <div className={styles.installCard}>
+                            <div className={styles.installHeader}>
+                                <h3>📦 快速开始</h3>
+                                <Button type="primary" size="small" onClick={handleCopyInstall}>
+                                    复制安装命令
+                                </Button>
+                            </div>
+                            <p className={styles.installDesc}>
+                                在使用本示例中的组件前，请先安装图表组件库。查看完整
+                                <Button type="link" size="small" onClick={() => handleMenuChange(null, 'install')}>
+                                    安装指南
+                                </Button>
+                            </p>
+                            <SyntaxHighlighter language="bash" style={vscDarkPlus}>
+                                {installCode}
+                            </SyntaxHighlighter>
+                        </div>
+                    )}
                     {renderContent()}
                 </Content>
             </Layout>
